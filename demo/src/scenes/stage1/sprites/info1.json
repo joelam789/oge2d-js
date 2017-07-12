@@ -1,0 +1,33 @@
+{
+    "active": false,
+    "script": false,
+	"template": "label",
+
+    "components":
+    {
+        "text":
+        {
+            "content": "START",
+            "style":
+            {
+                "fontFamily": "Arial",
+                "fontSize": 48,
+                "fill": "#ffffff"
+            }
+        },
+
+        "display":
+        {
+            "layer": "labels",
+
+            "x": 320,
+            "y": 200,
+            
+            "anchor":
+            {
+                "x": 0.5,
+                "y": 0.5
+            }
+        }
+    }
+}

@@ -1,0 +1,50 @@
+{
+    "script": false,
+
+    "components":
+    {
+        "animation":
+        {
+            "image": "main",
+			"loop": true,
+			"speed": 0.1,
+			"sheets": {
+				"fly": [366,249,66,46, 432,249,66,46, 498,249,66,46]
+			}
+        },
+
+        "display":
+        {
+            "layer": "bombs",
+
+            "x": 100,
+            "y": 100,
+            
+            "anchor":
+            {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+
+        "collision":
+        {
+            "enabled": true,
+            "hitbox":
+            {
+                "x": -30,
+                "y": -20,
+                "width": 60,
+                "height": 40
+            }
+        },
+
+        "shooting":
+        {
+            "role": "friend"
+        }
+
+    }
+
+    
+}

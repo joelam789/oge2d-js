@@ -1,0 +1,14 @@
+{
+    "active": false,
+    "script": false,
+	"template": "title",
+
+    "components":
+    {
+        "display":
+        {
+            "x": 182,
+            "y": 40
+        }
+    }
+}

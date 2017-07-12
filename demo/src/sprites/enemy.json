@@ -1,0 +1,40 @@
+{
+    "script": false,
+
+    "components":
+    {
+        "display":
+        {
+            "layer": "planes",
+            
+            "x": 100,
+            "y": 100,
+            
+            "anchor":
+            {
+                "x": 0.5,
+                "y": 0.5
+            },
+
+            "alpha": 1.0,
+            "tint": 16777215
+        },
+
+        "collision":
+        {
+            "enabled": true
+        },
+
+        "shooting":
+        {
+            "role": "enemy",
+            "boom": "boom1",
+            "power": 20,
+            "score": 100,
+            "maxhp": 10,
+            "hp": 10
+        }
+        
+    }
+    
+}

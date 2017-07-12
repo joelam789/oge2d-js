@@ -1,0 +1,106 @@
+{
+	"inputDir": "dist",
+	"outputDir": "dist",
+
+	"encryption": false,
+
+	"cleanup": true,
+
+	"packs": {
+
+		"pack1":
+		[
+			"json/scenes/preload/preload.json",
+			"json/scenes/preload/sprites/bar1.json",
+			"json/scenes/preload/sprites/label1.json",
+			"json/scenes/preload/sprites/progress1.json",
+			
+			"json/sprites/bar.json",
+			"json/sprites/label.json"
+		],
+
+		"pack2":
+		[
+			"img/main.png",
+
+			"audio/musics/menu.mp3",
+			"audio/sounds/select.mp3",
+
+			"json/scenes/menu/menu.json",
+			"json/scenes/menu/sprites/cursor1.json",
+			"json/scenes/menu/sprites/fps1.json",
+			"json/scenes/menu/sprites/menu-item1.json",
+			"json/scenes/menu/sprites/plot1.json",
+			"json/scenes/menu/sprites/title1.json",
+
+			"json/tilemaps/stage1.json",
+			"json/tilesets/sea.json",
+
+			"json/paths/boss.json",
+			"json/paths/circle.json",
+			"json/paths/deepv.json",
+			"json/paths/hill.json",
+
+			"json/sprites/boom.json",
+			"json/sprites/bullet.json",
+			"json/sprites/cursor.json",
+			"json/sprites/enemy.json",
+			"json/sprites/fps.json",
+			"json/sprites/friend.json",
+			"json/sprites/game-over.json",
+			"json/sprites/icon.json",
+			"json/sprites/menu-item.json",
+			"json/sprites/player.json",
+			"json/sprites/plot.json",
+			"json/sprites/reborn.json",
+			"json/sprites/title.json"
+
+		],
+
+		"pack3":
+		[
+			"audio/musics/battle.mp3",
+			"audio/musics/boss.mp3",
+			"audio/musics/lose.mp3",
+			"audio/musics/win.mp3",
+
+			"audio/sounds/boom1.mp3",
+			"audio/sounds/boom2.mp3",
+			"audio/sounds/hit.mp3",
+			"audio/sounds/pause.mp3",
+			"audio/sounds/shoot.mp3",
+
+			"json/scenes/stage1/stage1.json",
+			"json/scenes/stage1/sprites/bar1.json",
+			"json/scenes/stage1/sprites/boom1.json",
+			"json/scenes/stage1/sprites/boom2.json",
+			"json/scenes/stage1/sprites/boom3.json",
+			"json/scenes/stage1/sprites/boss-bomb1.json",
+			"json/scenes/stage1/sprites/boss1.json",
+			"json/scenes/stage1/sprites/enemy-bullet1.json",
+			"json/scenes/stage1/sprites/enemy-bullet2.json",
+			"json/scenes/stage1/sprites/enemy1.json",
+			"json/scenes/stage1/sprites/enemy2.json",
+			"json/scenes/stage1/sprites/enemy3.json",
+			"json/scenes/stage1/sprites/enemy4.json",
+			"json/scenes/stage1/sprites/enemy5.json",
+			"json/scenes/stage1/sprites/enemy6.json",
+			"json/scenes/stage1/sprites/fps1.json",
+			"json/scenes/stage1/sprites/game-over1.json",
+			"json/scenes/stage1/sprites/icon1.json",
+			"json/scenes/stage1/sprites/icon2.json",
+			"json/scenes/stage1/sprites/info1.json",
+			"json/scenes/stage1/sprites/label1.json",
+			"json/scenes/stage1/sprites/label2.json",
+			"json/scenes/stage1/sprites/label3.json",
+			"json/scenes/stage1/sprites/player-bomb1.json",
+			"json/scenes/stage1/sprites/player-bullet1.json",
+			"json/scenes/stage1/sprites/player1.json",
+			"json/scenes/stage1/sprites/plot1.json",
+			"json/scenes/stage1/sprites/reborn1.json"
+			
+		]
+
+	}
+
+}

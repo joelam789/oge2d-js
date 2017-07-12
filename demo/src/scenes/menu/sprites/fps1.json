@@ -1,0 +1,14 @@
+{
+    "active": true,
+    "script": false,
+	"template": "fps",
+
+    "components":
+    {
+        "display":
+        {
+            "x": 40,
+            "y": 40
+        }
+    }
+}

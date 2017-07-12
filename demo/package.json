@@ -1,0 +1,26 @@
+{
+  "name": "shooting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "gulp",
+    "release": "gulp build-and-bundle",
+    "start": "gulp start"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "archiver": "^1.3.0",
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-jsonlint": "^1.2.0",
+    "gulp-sourcemaps": "^2.6.0",
+    "gulp-typescript": "^3.1.7",
+    "gulp-webserver": "^0.9.1",
+    "run-sequence": "^1.2.2",
+    "systemjs-builder": "^0.16.9",
+    "typescript": "^2.4.1",
+    "typings": "^2.1.1"
+  }
+}

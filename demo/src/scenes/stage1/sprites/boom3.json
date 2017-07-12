@@ -1,0 +1,28 @@
+{
+    "active": false,
+    "script": false,
+	"template": "boom",
+    "count": 3,
+
+    "components":
+    {
+        "animation":
+        {
+            "image": "main",
+			"loop": false,
+			"speed": 0.5,
+			"sheets": {
+				"boom":  [3,308,66,52, 69,308,66,52, 135,308,66,52, 201,308,66,52, 267,308,66,52, 333,308,66,52, 399,308,66,52]
+			}
+        },
+
+        "display":
+        {
+            "scale":
+            {
+                "x": 1.5,
+                "y": 1.5
+            }
+        }
+    }
+}

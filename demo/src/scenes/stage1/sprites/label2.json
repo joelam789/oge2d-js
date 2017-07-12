@@ -1,0 +1,19 @@
+{
+    "active": true,
+    "script": false,
+	"template": "label",
+
+    "components":
+    {
+        "display":
+        {
+            "x": 96,
+            "y": 455
+        },
+
+        "text":
+        {
+            "content": "x2"
+        }
+    }
+}

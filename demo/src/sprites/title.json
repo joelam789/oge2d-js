@@ -1,0 +1,32 @@
+{
+    "script": false,
+
+    "components":
+    {
+        "graphic":
+        {
+            "image": "main",
+            "area":
+            {
+                "x": 102,
+                "y": 576,
+                "width": 278,
+                "height": 141
+            }
+        },
+
+        "display":
+        {
+            "x": 100,
+            "y": 100,
+            
+            "anchor":
+            {
+                "x": 0,
+                "y": 0
+            }
+        }
+    }
+
+    
+}

@@ -1,0 +1,10 @@
+{
+  "globalDependencies": {
+    "core-js": "registry:dt/core-js#0.9.0+20170324193834",
+    "createjs-lib": "registry:dt/createjs-lib#0.0.0+20160510002910",
+    "pixi-display": "github:pixijs/pixi-display/bin/pixi-display.d.ts#b0898bf208431badfd2448cf2dc965a24de39ef8",
+    "pixi.js": "github:pixijs/pixi-typescript/pixi.js.d.ts#6602c12f3ee70478bc2dcb6e46654849235ed3e2",
+    "tweenjs": "registry:dt/tweenjs#0.6.0+20160510010627",
+    "zip.js": "registry:dt/zip.js#2.0.0+20160510002910"
+  }
+}

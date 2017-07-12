@@ -1,0 +1,28 @@
+{
+    "active": false,
+    "script": false,
+	"template": "enemy",
+    "count": 4,
+
+    "components":
+    {
+        "graphic":
+        {
+            "image": "main",
+            "area":
+            {
+                "x": 270,
+                "y": 71,
+                "width": 28,
+                "height": 31
+            }
+        },
+
+        "shooting":
+        {
+            "hp": 30,
+            "maxhp": 30,
+            "score": 200
+        }
+    }
+}

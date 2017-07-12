@@ -1,0 +1,30 @@
+{
+    "components":
+    {
+        "display":
+        {
+            "backgroundColor": "#000000"
+        },
+
+        "event":
+        {
+            "onInit": "onInit",
+            "onActivate": "onActivate",
+            "onDeactivate": "onDeactivate",
+            "onKeyPress": "onKeyPress"
+        }
+    },
+
+    "script": true,
+
+    "preload": 
+    {
+        "images": ["main"],
+        "musics": ["menu"],
+        "sounds": ["select"]
+    },
+
+	"systems": ["motion"],
+    "sprites": ["fps1", "title1", "menu-item1", "cursor1", "plot1"]
+	
+}

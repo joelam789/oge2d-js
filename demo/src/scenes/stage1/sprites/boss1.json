@@ -1,0 +1,37 @@
+{
+    "active": false,
+    "script": false,
+	"template": "enemy",
+    "count": 3,
+
+    "components":
+    {
+        "animation":
+        {
+            "image": "main",
+			"loop": true,
+			"speed": 0.1,
+			"sheets": {
+				"fly": [597,14,99,74, 696,14,99,74, 795,14,99,74]
+			}
+        },
+
+        "display":
+        {
+            "scale":
+            {
+                "x": 1.5,
+                "y": 1.5
+            }
+        },
+
+        "shooting":
+        {
+            "boom": "boom3",
+            "hp": 800,
+            "maxhp": 800,
+            "score": 2000,
+            "power": 2000
+        }
+    }
+}

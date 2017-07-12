@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html style="width: 100%; height: 100%; position: fixed; overflow-y: hidden;">
+    <head>
+        <title>Shooting Game</title>
+
+        <style type="text/css">
+            .round-button {
+            width:80%;
+            }
+            .round-button-circle {
+            width: 100%;
+            height:0;
+            padding-bottom: 100%;
+            border-radius: 50%;
+            border:10px solid #cfdcec;
+            overflow:hidden;
+                    
+            background: #4679BD; 
+            box-shadow: 0 0 3px gray;
+            }
+            .round-button-circle:hover {
+            background:#30588e;
+            }
+            .round-button a {
+            display:block;
+            float:left;
+            width:100%;
+            padding-top:50%;
+            padding-bottom:50%;
+            line-height:1em;
+            margin-top:-0.5em;
+                    
+            text-align:center;
+            color:#e2eaf3;
+            font-family:Verdana;
+            font-size:1.2em;
+            font-weight:bold;
+            text-decoration:none;
+            }
+        </style> 
+    </head>
+
+    <body style="width: 100%; height: 100%; position: fixed; overflow-y: hidden;">
+
+        <script src="js/core.min.js"></script>
+        <script src="js/system.js"></script>
+		<script src="js/zip/zip.js"></script>
+
+        <script src="js/pixi.min.js"></script>
+        <script src="js/pixi-display.js"></script>
+        <script src="js/tweenjs-0.6.2.min.js"></script>
+
+        <script src="js/oge2d.min.js"></script>
+
+        <script src="js/virtualjoystick.js"></script>
+
+        <script src="shooting.min.js"></script>
+
+        <script>
+
+            zip.workerScriptsPath = 'js/zip/';
+            SystemJS.config( { packages: { ".": { defaultExtension: "js" } } } );
+
+            // window's onload event...
+            window.onload = function() {
+                
+                SystemJS.import('oge2d-main').then(function(main) {
+                    //main.app.loadGame("shooting", "game", function(game) {
+                    main.app.load({ game: "demo", container: "game", systems: { shooting: "systems/shooting" } },
+                    function(game) {
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('game').style.display = 'block';
+                    });
+                });
+
+                if (navigator.userAgent.indexOf('Mobile') >= 0 
+                    || navigator.userAgent.indexOf('Phone') >= 0
+                    || navigator.userAgent.indexOf('Android') >= 0 ) {
+                
+                    window.vjoystick = new VirtualJoystick({
+                        container: document.getElementById('joystick'),
+                        mouseSupport: true,
+                    });
+
+                    window.vjoystick.b1 = false;
+                    window.vjoystick.b2 = false;
+
+                    document.getElementById('joystickbuttons').style.display = 'table';
+                }
+
+            };
+
+        </script>
+
+        <center>
+        <img id="loading" src="img/loading.svg" style="display: block;"/>
+        <div id="game" style="display: none;"></div>
+        </center>
+
+        <table id="joystickbuttons" style="position: absolute; left: 0px; top: 0px; z-index: -100; width: 100%; height: 100%; display: none;">
+            <tr style="width: 100%; height: 100%;">
+                <td style="width: 50%;"><div id="joystick" style="width: 100%; height: 100%;">&nbsp;</div></td>
+                <td style="width: 50%;">
+                    <table style="width: 100%; height: 100%;">
+                        <tr style="width: 100%; height: 500px;">
+                            <td style="width: 50%;"><div style="width: 100%; height: 480px;">&nbsp;</div></td>
+                            <td style="width: 50%;"><div style="width: 100%; height: 100%;">&nbsp;</div></td>
+                        </tr>
+                        <tr style="width: 100%;">
+                            <td style="width: 50%;">
+                                <div style="width: 100%;">
+                                    <div class="round-button"><div class="round-button-circle">
+                                        <a href="#" class="round-button" 
+                                            onmousedown="window.vjoystick.b2 = true;"
+                                            onmouseup="window.vjoystick.b2 = false;"
+                                            ontouchstart="window.vjoystick.b2 = true;"
+                                            ontouchend="window.vjoystick.b2 = false;">BOMB</a>
+                                    </div></div>
+                                </div>
+                            </td>
+                            <td style="width: 50%;">
+                                <div style="width: 100%;">
+                                    <div class="round-button"><div class="round-button-circle">
+                                        <a href="#" class="round-button" 
+                                            onmousedown="window.vjoystick.b1 = true;"
+                                            onmouseup="window.vjoystick.b1 = false;"
+                                            ontouchstart="window.vjoystick.b1 = true;"
+                                            ontouchend="window.vjoystick.b1 = false;">SHOOT</a>
+                                    </div></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        
+    </body>
+</html>

@@ -1,0 +1,44 @@
+{
+
+    "components":
+    {
+        "display":
+        {
+            "width": 640,
+            "height": 480,
+
+            "layers":
+            {
+                "planes": "",
+                "bullets": "",
+                "bombs": "",
+                "labels": ""
+            }
+        },
+
+        "event":
+        {
+            "onInit": "onInit"
+        },
+
+        "shooting":
+        {        
+            "controllable": false,
+            "progress": 0,
+            "lives": 2,
+            "bombs": 2,
+            "power": 20,
+            "score": 0,
+            "level": 1,
+            "hp": 100,
+            "sp": 0
+        }
+    },
+
+    "script": true,
+
+    "packs": ["pack1"],
+
+    "basics": ["display", "stage", "tween", "transition", "mouse", "keyboard", "event"],
+    "scenes": ["preload"]
+}

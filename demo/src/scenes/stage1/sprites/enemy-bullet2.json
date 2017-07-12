@@ -1,0 +1,33 @@
+{
+    "active": false,
+    "script": false,
+	"template": "bullet",
+    "count": 20,
+
+    "components":
+    {
+        "graphic":
+        {
+            "image": "main",
+            "area":
+            {
+                "x": 84,
+                "y": 215,
+                "width": 6,
+                "height": 6
+            }
+        },
+
+        "stage":
+        {
+            "x": 0,
+            "y": 0
+        },
+
+        "shooting":
+        {
+            "role": "enemy-bullet",
+            "power": 10
+        }
+    }
+}

@@ -1,0 +1,27 @@
+{
+    "active": true,
+    "script": false,
+	"template": "icon",
+
+    "components":
+    {
+        "graphic":
+        {
+            "image": "main",
+            "area":
+            {
+                "x": 138,
+                "y": 207,
+                "width": 27,
+                "height": 21
+            }
+        },
+
+        "display":
+        {
+            "x": 12,
+            "y": 455
+        }
+    }
+
+}

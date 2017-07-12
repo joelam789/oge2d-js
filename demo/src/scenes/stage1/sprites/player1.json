@@ -1,0 +1,15 @@
+{
+    "active": false,
+    "script": false,
+	"template": "player",
+
+    "components":
+    {
+        "display":
+        {
+            "visible": true,
+            "x": 350,
+            "y": 350
+        }
+    }
+}

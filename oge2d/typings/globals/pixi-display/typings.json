@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/pixijs/pixi-display/b0898bf208431badfd2448cf2dc965a24de39ef8/bin/pixi-display.d.ts",
+    "raw": "github:pixijs/pixi-display/bin/pixi-display.d.ts#b0898bf208431badfd2448cf2dc965a24de39ef8",
+    "typings": "https://raw.githubusercontent.com/pixijs/pixi-display/b0898bf208431badfd2448cf2dc965a24de39ef8/bin/pixi-display.d.ts"
+  }
+}
