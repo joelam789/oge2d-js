@@ -4,7 +4,7 @@
 
   https://rawgit.com/joelam789/oge2d-js/master/demo/dist/index.html
 
-- Just support playing with keyboard for now
+- Support playing with keyboard or virtual joystick (if open it on mobile)
 
   Start the game - Enter
 
