@@ -326,9 +326,9 @@ export class Stage implements Updater {
                 let area = {x: 0, y: 0, width: tileset.tileWidth, height: tileset.tileHeight};
                 for (let tile of tileset.tiles) {
                     tile.textures = [];
-                    for (let i=0; i<tile.offsetX.length; i++) {
-                        area.x = tile.offsetX[i];
-                        area.y = tile.offsetY[i];
+                    for (let i=0; i<tile.offsets.length; i+=2) {
+                        area.x = tile.offsets[i];
+                        area.y = tile.offsets[i+1];
                         let tiletex = imagelib.getTexture(url, area);
                         if (tiletex) tile.textures.push(tiletex);
                     }
@@ -344,7 +344,7 @@ export class Stage implements Updater {
 		
 	}
 
-    private loadTilesetOneByOne(callback: (tilesets: Array<any>)=>void) {
+    private loadTilesetsOneByOne(callback: (tilesets: Array<any>)=>void) {
         if (this._loadingTilesets.length <= 0) {
             let list = [];
             for (let item of this._loadedTilesets) list.push(item);
@@ -355,7 +355,7 @@ export class Stage implements Updater {
             let tilesetName = this._loadingTilesets.shift();
             this.loadTileset(tilesetName, (tileset) => {
                 if (tileset) this._loadedTilesets.push(tileset);
-                this.loadTilesetOneByOne(callback);
+                this.loadTilesetsOneByOne(callback);
             });
         }
     }
@@ -364,7 +364,7 @@ export class Stage implements Updater {
         this._loadingTilesets = [];
         this._loadedTilesets = [];
         for (let item of tilesetNames) this._loadingTilesets.push(item);
-        this.loadTilesetOneByOne((loadedTilesets) => {
+        this.loadTilesetsOneByOne((loadedTilesets) => {
             callback(loadedTilesets);
         });
     }
@@ -393,8 +393,16 @@ export class Stage implements Updater {
             let cellWidth: number = tilemap.tileWidth;
             let cellHeight: number = tilemap.tileHeight;
 
+            let bgcolor = 0xff0000;
+            if (tilemap.backgroundColor) {
+                let colorCode: string = tilemap.backgroundColor.toString();
+                if (colorCode.length > 1 && colorCode.charAt(0) == '#') {
+                    bgcolor = parseInt(colorCode.substring(1), 16);
+                }
+            }
+
             let graph = new PIXI.Graphics();
-            graph.beginFill(0xff0000);
+            graph.beginFill(bgcolor);
             graph.drawRect(0, 0, cellWidth, cellWidth);
             graph.endFill();
             tilemap.defaultTileTexture = graph.generateCanvasTexture();
@@ -467,9 +475,9 @@ export class Stage implements Updater {
                     let posX: number = tilemap.tileWidth * currentColumn - stage.x;
                     let posY: number = tilemap.tileHeight * currentRow - stage.y;
 
-                    for (let k=0; k<cell.tids.length; k++) {
+                    for (let k=0; k<cell.ids.length; k+=2) {
 
-                        let tile = tilemap.tilesets[cell.sids[k]].tiles[cell.tids[k]];
+                        let tile = tilemap.tilesets[cell.ids[k]].tiles[cell.ids[k+1]];
 
                         let spr = tilemap.sprites[idx++];
                         spr.x = posX; spr.y = posY;
@@ -481,7 +489,7 @@ export class Stage implements Updater {
                             spr.texture = spr.textures[0];
                         }
 
-                        let animationSpeed = tile.animationSpeed > 0 && spr.textures.length > 1 ? tile.animationSpeed : 1;
+                        let animationSpeed = tile.speed && tile.speed > 0 && spr.textures.length > 1 ? tile.speed : 1;
                         if (spr.animationSpeed != animationSpeed) spr.animationSpeed = animationSpeed;
 
                         if (needToUpdateGraph) {

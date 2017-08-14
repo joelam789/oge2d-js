@@ -27,7 +27,7 @@
             },
 
             "alpha": 1.0,
-            "tint": 16777215
+            "tint": "0xffffff"
         },
 
         "collision":

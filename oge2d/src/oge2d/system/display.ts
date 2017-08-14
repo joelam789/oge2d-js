@@ -296,6 +296,13 @@ export class Display implements Updater {
                 pixispr.rotation = properties[item] * Math.PI / 180; // converts from degrees to radians
                 continue;
             }
+            if (item == "tint" && typeof properties[item] == "string") {
+                let colorCode: string = properties[item].toString();
+                if (colorCode.length > 1 && colorCode.charAt(0) == '#') {
+                    pixispr.tint = parseInt(colorCode.substring(1), 16);
+                }
+                continue;
+            }
             if (item == "layer") {
                 if (this._game.components["display"].layers 
                     && this._game.components["display"].layers[properties[item].toString()]) {

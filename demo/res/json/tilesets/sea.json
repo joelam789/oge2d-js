@@ -1,148 +1,51 @@
 {
-  "name": "sea",
-  "image": "main",
-  "tileWidth": 32,
-  "tileHeight": 32,
-  "tiles": [
-    {
-      "id": 0,
-      "offsetX": [
-        268, 301
-      ],
-      "offsetY": [
-        367, 367
-      ],
-      "animationSpeed": 0.1
-    },
-    {
-      "id": 1,
-      "offsetX": [
-        301
-      ],
-      "offsetY": [
-        367
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 2,
-      "offsetX": [
-        102
-      ],
-      "offsetY": [
-        500
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 3,
-      "offsetX": [
-        134
-      ],
-      "offsetY": [
-        500
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 4,
-      "offsetX": [
-        102
-      ],
-      "offsetY": [
-        532
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 5,
-      "offsetX": [
-        134
-      ],
-      "offsetY": [
-        532
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 6,
-      "offsetX": [
-        168
-      ],
-      "offsetY": [
-        500
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 7,
-      "offsetX": [
-        200
-      ],
-      "offsetY": [
-        500
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 8,
-      "offsetX": [
-        168
-      ],
-      "offsetY": [
-        532
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 9,
-      "offsetX": [
-        200
-      ],
-      "offsetY": [
-        532
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 10,
-      "offsetX": [
-        232
-      ],
-      "offsetY": [
-        500
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 11,
-      "offsetX": [
-        264
-      ],
-      "offsetY": [
-        500
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 12,
-      "offsetX": [
-        232
-      ],
-      "offsetY": [
-        532
-      ],
-      "animationSpeed": 0
-    },
-    {
-      "id": 13,
-      "offsetX": [
-        264
-      ],
-      "offsetY": [
-        532
-      ],
-      "animationSpeed": 0
-    }
-  ]
+	"name": "sea",
+	"image": "main",
+	"tileWidth": 32,
+	"tileHeight": 32,
+	"tiles": [
+		{
+			"speed": 0.1,
+			"offsets": [268,367,301,367]
+		},
+		{
+			"offsets": [301,367]
+		},
+		{
+			"offsets": [102,500]
+		},
+		{
+			"offsets": [134,500]
+		},
+		{
+			"offsets": [102,532]
+		},
+		{
+			"offsets": [134,532]
+		},
+		{
+			"offsets": [168,500]
+		},
+		{
+			"offsets": [200,500]
+		},
+		{
+			"offsets": [168,532]
+		},
+		{
+			"offsets": [200,532]
+		},
+		{
+			"offsets": [232,500]
+		},
+		{
+			"offsets": [264,500]
+		},
+		{
+			"offsets": [232,532]
+		},
+		{
+			"offsets": [264,532]
+		}
+	]
 }
