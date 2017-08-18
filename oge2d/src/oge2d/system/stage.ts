@@ -37,33 +37,16 @@ export class Stage implements Updater {
             return;
         }
 
+        let imagelib = scene.game.libraries["image"];
+        if (imagelib == undefined || imagelib == null) {
+            if (callback) callback();
+            return;
+        }
+
         let tilemapName: string = stage.map ? stage.map.toString() : "";
-		if (tilemapName && tilemapName.length > 0) {
-            this.loadTilemap(tilemapName, (tilemap) => {
+        let idx = 0, maxX = 0, maxY = 0;
 
-                let maxX = 0, maxY = 0;
-                if (tilemap && tilemap.columnCount > 0 && tilemap.tileWidth > 0) {
-                    maxX = tilemap.columnCount * tilemap.tileWidth - this._game.width;
-                }
-                if (tilemap && tilemap.rowCount > 0 && tilemap.tileHeight > 0) {
-                    maxY = tilemap.rowCount * tilemap.tileHeight - this._game.height;
-                }
-                stage.maxX = maxX > 0 ? maxX : 0;
-			    stage.maxY = maxY > 0 ? maxY : 0;
-                stage.tilemap = tilemap;
-                container.addChild(stage.tilemap.display);
-                if (callback) callback();
-            });
-
-		} else {
-
-            let imagelib = scene.game.libraries["image"];
-            if (imagelib == undefined || imagelib == null) {
-                if (callback) callback();
-                return;
-            }
-
-            let idx = 0, maxX = 0, maxY = 0;
+        if (stage.pics && stage.pics.length > 0) {
             let urls: Array<string> = [], areas: Array<any> = [];
             for (let pic of stage.pics) {
                 if (pic.indexOf('.') < 0) pic += ".png";
@@ -80,8 +63,8 @@ export class Stage implements Updater {
                 areas.push(area);
             }
 
-            stage.maxX = maxX > 0 ? maxX : 0;
-            stage.maxY = maxY > 0 ? maxY : 0;
+            if (maxX > stage.maxX) stage.maxX = maxX;
+            if (maxY > stage.maxY) stage.maxY = maxY;
 
             idx = 0;
             imagelib.loadTextures(urls, areas, (textures) => {
@@ -96,9 +79,45 @@ export class Stage implements Updater {
                         idx += 2;
                     }
                 }
+                if (tilemapName && tilemapName.length > 0) {
+                    this.loadTilemap(tilemapName, (tilemap) => {
+                        maxX = 0; maxY = 0;
+                        if (tilemap && tilemap.columnCount > 0 && tilemap.tileWidth > 0) {
+                            maxX = tilemap.columnCount * tilemap.tileWidth - this._game.width;
+                        }
+                        if (tilemap && tilemap.rowCount > 0 && tilemap.tileHeight > 0) {
+                            maxY = tilemap.rowCount * tilemap.tileHeight - this._game.height;
+                        }
+                        if (maxX > stage.maxX) stage.maxX = maxX;
+                        if (maxY > stage.maxY) stage.maxY = maxY;
+                        stage.tilemap = tilemap;
+                        container.addChild(stage.tilemap.display);
+                        if (callback) callback();
+                    });
+                } else {
+                    if (callback) callback();
+                }
+                
+            });
+        } else if (tilemapName && tilemapName.length > 0) {
+            this.loadTilemap(tilemapName, (tilemap) => {
+                maxX = 0; maxY = 0;
+                if (tilemap && tilemap.columnCount > 0 && tilemap.tileWidth > 0) {
+                    maxX = tilemap.columnCount * tilemap.tileWidth - this._game.width;
+                }
+                if (tilemap && tilemap.rowCount > 0 && tilemap.tileHeight > 0) {
+                    maxY = tilemap.rowCount * tilemap.tileHeight - this._game.height;
+                }
+                if (maxX > stage.maxX) stage.maxX = maxX;
+                if (maxY > stage.maxY) stage.maxY = maxY;
+                stage.tilemap = tilemap;
+                container.addChild(stage.tilemap.display);
                 if (callback) callback();
             });
+        } else {
+            if (callback) callback();
         }
+		
     }
 
 	setup(scene: Scene) {
@@ -198,7 +217,8 @@ export class Stage implements Updater {
                     block.y = 0 - stage.y + stage.areas[idx++];
                     idx += 2;
                 }
-            } else if (stage.tilemap) {
+            }
+            if (stage.tilemap) {
                 this.updateTilemapView(scene);
             }
             
@@ -390,14 +410,23 @@ export class Stage implements Updater {
                 return;
             }
 
+            tilemap.width = tilemap.tileWidth * tilemap.columnCount;
+            tilemap.height = tilemap.tileHeight * tilemap.rowCount;
+
+            tilemap.viewWidth = tilemap.width <= this._game.width ? this._game.width : tilemap.width;
+            tilemap.viewHeight = tilemap.height <= this._game.height ? this._game.height : tilemap.height;
+
             let cellWidth: number = tilemap.tileWidth;
             let cellHeight: number = tilemap.tileHeight;
 
-            let bgcolor = 0xff0000;
-            if (tilemap.backgroundColor) {
-                let colorCode: string = tilemap.backgroundColor.toString();
-                if (colorCode.length > 1 && colorCode.charAt(0) == '#') {
-                    bgcolor = parseInt(colorCode.substring(1), 16);
+            let bgcolor = 0x00;
+            if (tilemap.bgcolor) {
+                let colorCode: string = tilemap.bgcolor.toString();
+                if (colorCode.length >= 7 && colorCode.charAt(0) == '#') {
+                    bgcolor = parseInt(colorCode.substr(1, 6), 16);
+                }
+                if (colorCode.length >= 9 && colorCode.charAt(0) == '#') {
+                    tilemap.bgcolorOpacity = Math.round(parseInt(colorCode.substr(7, 2), 16) / 255.0 * 100) / 100.0;
                 }
             }
 
@@ -406,22 +435,24 @@ export class Stage implements Updater {
             graph.drawRect(0, 0, cellWidth, cellWidth);
             graph.endFill();
             tilemap.defaultTileTexture = graph.generateCanvasTexture();
+            tilemap.defaultTileTextures = [tilemap.defaultTileTexture];
             
-            let col: number = this._game.width % cellWidth;
-            if (col == 0) col = Math.floor(this._game.width / cellWidth) + 1;
-            else col = Math.floor((this._game.width - col) / cellWidth) + 2;
+            let col: number = tilemap.viewWidth % cellWidth;
+            if (col == 0) col = Math.floor(tilemap.viewWidth / cellWidth) + 1;
+            else col = Math.floor((tilemap.viewWidth - col) / cellWidth) + 2;
             
-            let row: number = this._game.height % cellHeight;
-            if (row == 0) row = Math.floor(this._game.height / cellHeight) + 1;
-            else row = Math.floor((this._game.height - row) / cellHeight) + 2;
+            let row: number = tilemap.viewHeight % cellHeight;
+            if (row == 0) row = Math.floor(tilemap.viewHeight / cellHeight) + 1;
+            else row = Math.floor((tilemap.viewHeight - row) / cellHeight) + 2;
 
             tilemap.display = new PIXI.Container();
             tilemap.sprites = [];
             tilemap.spriteCount = col * row * 2;
 
             for (let i=0; i<tilemap.spriteCount; i++) {
-                let tileSprite = new PIXI.extras.AnimatedSprite([tilemap.defaultTileTexture], true);
+                let tileSprite = new PIXI.extras.AnimatedSprite(tilemap.defaultTileTextures, true);
                 tileSprite.visible = false;
+                if (tilemap.bgcolorOpacity != undefined) tileSprite.alpha = tilemap.bgcolorOpacity;
                 tilemap.display.addChild(tileSprite);
                 tilemap.sprites.push(tileSprite);
             }
@@ -454,8 +485,11 @@ export class Stage implements Updater {
 		let row: number = Math.round((stage.y - gapY) / tilemap.tileHeight);
 		let startX: number = col * tilemap.tileWidth;
 		let startY: number = row * tilemap.tileHeight;
-		let endX = stage.x + scene.game.width;
-		let endY = stage.y + scene.game.height;
+		let endX = stage.x + tilemap.viewWidth;
+        let endY = stage.y + tilemap.viewHeight;
+
+        if (endX > tilemap.width) endX = tilemap.width;
+        if (endY > tilemap.height) endY = tilemap.height;
 
         let idx = 0;
 
@@ -477,27 +511,43 @@ export class Stage implements Updater {
 
                     for (let k=0; k<cell.ids.length; k+=2) {
 
-                        let tile = tilemap.tilesets[cell.ids[k]].tiles[cell.ids[k+1]];
-
                         let spr = tilemap.sprites[idx++];
                         spr.x = posX; spr.y = posY;
 
-                        let needToUpdateGraph = spr.textures !== tile.textures;
-                        if (needToUpdateGraph) {
-                            spr.gotoAndStop(0);
-                            spr.textures = tile.textures;
-                            spr.texture = spr.textures[0];
-                        }
+                        let tilesetId = cell.ids[k];
+                        let tileId = cell.ids[k+1];
 
-                        let animationSpeed = tile.speed && tile.speed > 0 && spr.textures.length > 1 ? tile.speed : 1;
-                        if (spr.animationSpeed != animationSpeed) spr.animationSpeed = animationSpeed;
+                        if (tilesetId >= 0 && tileId >= 0) {
 
-                        if (needToUpdateGraph) {
-                            if (spr.textures.length > 1 && !scene.paused) spr.gotoAndPlay(0);
-                            else spr.gotoAndStop(0);
+                            let tile = tilemap.tilesets[tilesetId].tiles[tileId];
+                            let needToUpdateGraph = spr.textures !== tile.textures;
+                            if (needToUpdateGraph) {
+                                spr.gotoAndStop(0);
+                                spr.textures = tile.textures;
+                                spr.texture = spr.textures[0];
+                                spr.alpha = 1.0;
+                            }
+    
+                            if (spr.textures.length > 1) {
+                                let animationSpeed = tile.speed && tile.speed > 0 ? tile.speed : 1;
+                                if (spr.animationSpeed != animationSpeed) spr.animationSpeed = animationSpeed;
+                            }
+    
+                            if (needToUpdateGraph) {
+                                if (spr.textures.length > 1 && !scene.paused) spr.gotoAndPlay(0);
+                            } else {
+                                if (spr.textures.length > 1 && spr.playing === scene.paused) {
+                                    if (spr.playing) spr.stop(); else spr.play();
+                                }
+                            }
+
                         } else {
-                            if (spr.textures.length > 1 && spr.playing === scene.paused) {
-                                if (spr.playing) spr.stop(); else spr.play();
+                            let needToUpdateGraph = spr.textures !== tilemap.defaultTileTextures;
+                            if (needToUpdateGraph) {
+                                spr.gotoAndStop(0);
+                                spr.textures = tilemap.defaultTileTextures;
+                                spr.texture = spr.textures[0];
+                                spr.alpha = tilemap.bgcolorOpacity;
                             }
                         }
 

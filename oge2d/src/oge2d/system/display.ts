@@ -197,8 +197,8 @@ export class Display implements Updater {
         if (display) {
             if (display.object == undefined || display.object == null) display.object = new PIXI.Container();
             if (display.object) this._pixi.stage.addChild(display.object as PIXI.Container);
-            if (display.backgroundColor) {
-                let colorCode: string = display.backgroundColor.toString();
+            if (display.bgcolor) {
+                let colorCode: string = display.bgcolor.toString();
                 if (colorCode.length > 1 && colorCode.charAt(0) == '#') {
                     this._pixi.renderer.backgroundColor = parseInt(colorCode.substring(1), 16);
                 }

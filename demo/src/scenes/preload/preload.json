@@ -3,7 +3,7 @@
     {
         "display":
         {
-            "backgroundColor": "#000000"
+            "bgcolor": "#000000"
         },
 
         "mouse":
