@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Editor</title>
+    </head>
+
+    <body>
+
+        <script src="jspm_packages/system.js"></script>
+        <script src="config.js"></script>
+
+        <script src="js/jquery-3.1.1.min.js"></script>
+        <script>if (!window.$) window.$ = window.jQuery = require('./js/jquery-3.1.1.min.js');</script>
+        <script src="js/bootstrap.min.js"></script>
+
+        <script>
+
+            if (System) System.set('electron', System.newModule(require('electron')));
+            else if (SystemJS) SystemJS.set('electron', SystemJS.newModule(require('electron')));
+
+            // make every refresh action go back to the entry URL
+            var entryurlparts = window.location.href.split('#');
+            if (entryurlparts.length > 1) {
+                window.location.assign(entryurlparts[0]);
+                throw "The entry URL should not contain character '#'";
+            }
+
+            function getUrlParamByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)");
+                var results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+
+            // load main global css (theme)
+            var dochead = document.head || document.getElementsByTagName('head')[0];
+            var linkelement = document.createElement('link');
+            linkelement.type = 'text/css';
+            linkelement.rel = 'stylesheet';
+            linkelement.href = 'css/bootstrap.min.css'; // default css
+            var themeNameFromUrl = getUrlParamByName('theme');
+            if (themeNameFromUrl != null && themeNameFromUrl.length > 0)
+                linkelement.href = 'css/bootstrap-' + themeNameFromUrl + '.min.css';
+            dochead.appendChild(linkelement);
+
+            // window's onload event...
+            window.onload = function() {
+                // load aurelia framework
+                System.import('aurelia-bootstrapper');
+            };
+
+        </script>
+
+        <div id="app" aurelia-app="main" style="display: none; position: relative; top: 0; left: 0; z-index: 0;"></div>
+        <img id="loading" src="img/loading.svg" style="margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; z-index: 500; display: block;"/>
+        
+    </body>
+</html>

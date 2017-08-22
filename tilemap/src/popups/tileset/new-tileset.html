@@ -1,0 +1,32 @@
+<template>
+  <ux-dialog class="panel panel-default">
+    <ux-dialog-header class="panel-heading">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" click.delegate="controller.cancel()"><span aria-hidden="true">&times;</span></button>
+        <h4 class="panel-title" i18n="tileset.create-new">Create new tileset</h4>
+    </ux-dialog-header>
+
+    <ux-dialog-body class="panel-body">
+        <div class="form-group">
+            <label class="control-label" i18n="tileset.new-name">New tileset name</label>
+            <input type="text" class="form-control input-md" placeholder="" value.bind="setting.name" />
+            <label class="control-label" i18n="tileset.tile-width">Tile width</label>
+            <input type="number" class="form-control input-md" placeholder="" value.bind="setting.tileWidth" />
+            <label class="control-label" i18n="tileset.tile-height">Tile height</label>
+            <input type="number" class="form-control input-md" placeholder="" value.bind="setting.tileHeight" />
+
+            <label class="control-label" i18n="tileset.image-file">Image file</label>
+            <div class="input-group">
+            <input type="text" class="form-control" placeholder="" value.bind="setting.image">
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button" click.trigger="openSelectFileDlg()">...</button>
+            </span>
+            </div>
+        </div>
+    </ux-dialog-body>
+    
+    <ux-dialog-footer class="panel-footer">
+        <button class="btn btn-success" click.trigger="setting.image.length > 0 ? controller.ok(currentSetting) : controller.cancel()" i18n="app.ok">OK</button>
+        <button class="btn btn-danger" click.trigger="controller.cancel()" i18n="app.cancel">Cancel</button>
+    </ux-dialog-footer>
+  </ux-dialog>
+</template>

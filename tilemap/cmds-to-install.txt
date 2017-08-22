@@ -1,0 +1,16 @@
+
+npm init
+npm install --save-dev typescript typings jspm
+npm install --save-dev del gulp run-sequence gulp-typescript gulp-sourcemaps gulp-webserver
+npm install --save-dev json-stringify-deterministic electron
+
+npm install --save core-js aurelia-framework aurelia-bootstrapper aurelia-router aurelia-event-aggregator
+
+jspm init
+jspm install core-js nprogress npm:i18next-xhr-backend
+jspm install aurelia-framework aurelia-bootstrapper aurelia-router aurelia-event-aggregator aurelia-pal-browser aurelia-dialog aurelia-i18n
+
+typings install --global --save dt~core-js dt~nprogress dt~i18next-xhr-backend dt~jquery
+typings install --save dt~i18next npm:aurelia-framework npm:aurelia-bootstrapper npm:aurelia-router npm:aurelia-event-aggregator
+typings install --save github:aurelia/dialog github:aurelia/i18n
+

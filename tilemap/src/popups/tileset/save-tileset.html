@@ -1,0 +1,20 @@
+<template>
+  <ux-dialog class="panel panel-default">
+    <ux-dialog-header class="panel-heading">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" click.delegate="controller.cancel()"><span aria-hidden="true">&times;</span></button>
+        <h4 class="panel-title" i18n="tileset.save-tileset">Save tileset</h4>
+    </ux-dialog-header>
+
+    <ux-dialog-body class="panel-body">
+        <div class="form-group">
+            <label class="control-label" i18n="tileset.tileset-name">Tileset name</label>
+            <input type="text" class="form-control input-md" placeholder="" value.bind="tilesetName" />
+        </div>
+    </ux-dialog-body>
+    
+    <ux-dialog-footer class="panel-footer">
+        <button class="btn btn-success" click.trigger="controller.ok(currentTilesetName)" i18n="app.ok">OK</button>
+        <button class="btn btn-danger" click.trigger="controller.cancel()" i18n="app.cancel">Cancel</button>
+    </ux-dialog-footer>
+  </ux-dialog>
+</template>

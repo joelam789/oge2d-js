@@ -1,0 +1,56 @@
+<template>
+    <require from="controls/tile-list-canvas"></require>
+    <div class="section">
+      <div class="container-fluid" style="user-select: none;">
+        <div class="row">
+          <div class="col-lg-3">
+            <div class="row">
+              <div class="col-lg-8">
+                <select class="form-control" value.bind="selectedTilesetName" change.delegate="changeCurrentTileset()">
+                    <option repeat.for="item of tilesets" value.bind="item.name">${item.name}</option>
+                </select>
+              </div>
+              <div class="col-lg-1">
+                <button class="btn btn-default" type="button" disabled.bind="tileWidth == 0 || tileHeight == 0" click.trigger="openSelectTilesetDlg()">+</button>
+              </div>
+            </div>
+            <div class="row">&nbsp;</div>
+            <div class="row">
+              <tile-list-canvas view-model.ref="tileListCanvas" style="width: 100%; height: ${maxListCanvasHeight}px; overflow: auto;"
+                image.bind="tilesetImage" tileset.bind="tileset"></tile-list-canvas>
+            </div>
+          </div>
+          <div class="col-lg-9">
+            <div class="row">
+                <div class="col-lg-9 text-right">
+                  <div class="btn-group">
+                      <a href="javascript:;" click.trigger="undo()" class="btn btn-default" i18n="tilemap.undo">Undo</a>
+                      <a href="javascript:;" click.trigger="redo()" class="btn btn-default" i18n="tilemap.redo">Redo</a>
+                  </div>
+                </div>
+                <div class="col-lg-1">
+                  <button type="button" class="btn btn-default" click.trigger="fillUp()" i18n="tilemap.fill-up">Fill up</button>
+                </div>
+                <div class="col-lg-2">
+                  <div class="form-group">
+                      <div class="checkbox">
+                        <label>&nbsp;&nbsp;<input type="checkbox" value="line" checked.bind="lineFlags"><span i18n="tilemap.show-lines">Show lines</span></label>
+                      </div>
+                  </div>
+                </div>
+            </div>
+            <div class="row">
+              <div style="margin-left: 20px; width: calc(100% - 20px); height: ${maxImageCanvasHeight}px; overflow: auto; position: relative;">
+                <canvas id="tilemap-bg" style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
+                <canvas id="tilemap-map" style="position: absolute; left: 0; top: 0; z-index: 2;"></canvas>
+                <canvas id="tilemap-tile" style="position: absolute; left: 0; top: 0; z-index: 3; opacity: 0.5; pointer-events:none;"></canvas>
+                <canvas id="tilemap-line" style="position: absolute; left: 0; top: 0; z-index: 4; opacity: 0.5; pointer-events:none; visibility: ${lineFlags.length != 0 ? 'visible' : 'hidden'}"></canvas>
+                <canvas id="cursor-rect" width="1" height="1" style="position: absolute; left: 0; top: 0; z-index: 5; pointer-events:none; visibility: hidden;"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</template>

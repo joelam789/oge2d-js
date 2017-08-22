@@ -1,0 +1,78 @@
+
+{
+    "app": {
+        "ok": "OK",
+        "cancel": "Cancel",
+        "save-file-ok": "Save file successfully to the path below: "
+    },
+
+    "topbar": {
+        "new": "New",
+        "open": "Open",
+        "save": "Save",
+        "saveas": "Save as",
+        "tilemap": "Tilemap",
+        "tileset": "Tileset",
+        "flag-img": "./img/flags/uk.png",
+        "language": "Language",
+        "english": "English",
+        "chinese": "中文"
+    },
+
+    "home": {
+        "welcome": "Welcome",
+        "tips": "Tips",
+        "tileset-editor": "Tileset Editor",
+        "tileset-tip-1": "Select an area of the image to add multiple tiles at once.",
+        "tileset-tip-2": "Press 'Ctrl' to select mutiple frames for an animated tile.",
+        "tilemap-editor": "Tilemap Editor",
+        "tilemap-tip-1": "Press 'Ctrl' to enable the 'replacement' mode.",
+        "tilemap-tip-2": "Press 'Shift' to enable the 'eraser' mode."
+    },
+
+    "tilemap": {
+        "tilemap": "Tilemap",
+        "tilemap-name": "Tilemap name",
+        "select-tilemap": "Select a tilemap",
+        "save-tilemap": "Save tilemap",
+        "create-new": "Create new tilemap",
+        "new-name": "New tilemap name",
+        "tilemap-editor": "Tilemap Editor",
+        "tile-width": "Tile width",
+        "tile-height": "Tile height",
+        "column-count": "Column count",
+        "row-count": "Row count",
+        "bgcolor": "Background color",
+        "bgcolor-opacity": "Background color opacity",
+        "tileset-list": "Tileset list",
+        "undo": "Undo",
+        "redo": "Redo",
+        "fill-up": "Fill up",
+        "show-lines": "Show lines"
+    },
+
+    "tileset": {
+        "tileset": "Tileset",
+        "tileset-name": "Tileset name",
+        "select-tilesets": "Select tilesets",
+        "save-tileset": "Save tileset",
+        "create-new": "Create new tileset",
+        "new-name": "New tileset name",
+        "tileset-editor": "Tileset Editor",
+        "tile-width": "Tile width",
+        "tile-height": "Tile height",
+        "image-file": "Image file",
+        "animation-speed": "Animation speed",
+        "edit-tile": "Edit a tile",
+        "cost": "Cost",
+        "offsets": "Offsets",
+        "total-frames": "Total frames",
+        "edit": "Edit",
+        "remove": "Remove",
+        "clear": "Clear",
+        "add-a-tile": "Add a tile",
+        "add-tiles": "Add tiles",
+        "free-style": "Free style selection"
+    }
+
+}

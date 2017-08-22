@@ -1,0 +1,21 @@
+<template>
+  <ux-dialog class="panel panel-default">
+    <ux-dialog-header class="panel-heading">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" click.delegate="controller.cancel()"><span aria-hidden="true">&times;</span></button>
+        <h4 class="panel-title" i18n="tileset.select-tilesets">Select tilesets</h4>
+    </ux-dialog-header>
+
+    <ux-dialog-body class="panel-body">
+      <ul class="list-group">
+        <li repeat.for="tileset of tilesets" class="list-group-item ${tileset.selected ? 'active' : ''}">
+        <a href="javascript:;" click.trigger="$parent.selectTileset(tileset.name)"><p class="list-group-item-text">${tileset.name}</p></a>
+        </li>
+		  </ul>
+    </ux-dialog-body>
+    
+    <ux-dialog-footer class="panel-footer">
+        <button class="btn btn-success" click.trigger="controller.ok(currentSelectedTilesets)" i18n="app.ok">OK</button>
+        <button class="btn btn-danger" click.trigger="controller.cancel()" i18n="app.cancel">Cancel</button>
+    </ux-dialog-footer>
+  </ux-dialog>
+</template>

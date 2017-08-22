@@ -1,0 +1,51 @@
+<template>
+    <require from="controls/tile-list-canvas"></require>
+    <div class="section">
+      <div class="container-fluid" style="user-select: none;">
+        <div class="row">
+          <div class="col-lg-3">
+            <div class="row">
+              <div class="btn-group">
+                <a href="javascript:;" class="btn btn-default" click.trigger="editTile()" i18n="tileset.edit">Edit</a>
+                <a href="javascript:;" class="btn btn-default" click.trigger="removeTiles()" i18n="tileset.remove">Remove</a>
+                <a href="javascript:;" class="btn btn-default" click.trigger="clear()" i18n="tileset.clear">Clear</a>
+              </div>
+            </div>
+            <div class="row">&nbsp;</div>
+            <div class="row">
+              <tile-list-canvas view-model.ref="tileListCanvas" style="width: 100%; height: ${maxListCanvasHeight}px; overflow: auto;"
+                image.bind="image" tileset.bind="tileset" tile-dblclick.delegate="editTile()"></tile-list-canvas>
+            </div>
+          </div>
+          <div class="col-lg-9">
+            <div class="row">
+                <div class="col-lg-9 text-right">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default" 
+                      disabled.bind="(startRect && endRect && startRect.x != endRect.x) || selectedRects.length == 0" 
+                      click.trigger="addNewTile()" i18n="tileset.add-a-tile">Add a tile</button>
+                    <button type="button" class="btn btn-default" 
+                      disabled.bind="!startRect || !endRect || freeSelectionFlags.length > 0" 
+                      click.trigger="autoAddTiles()" i18n="tileset.add-tiles">Add tiles</button>
+                </div>
+                </div>
+                <div class="col-lg-3">
+                <div class="form-group">
+                    <div class="checkbox">
+                      <label><input type="checkbox" value="freeSelection" checked.bind="freeSelectionFlags"><span i18n="tileset.free-style">Free style selection</span></label>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div class="row">
+              <div style="margin-left: 20px; width: calc(100% - 20px); height: ${maxImageCanvasHeight}px; overflow: auto; position: relative;">
+              <canvas id="tileset-img" style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
+              <canvas id="cursor-rect" width="1" height="1" style="position: absolute; left: 0; top: 0; z-index: 2; pointer-events:none; visibility: hidden;"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</template>

@@ -1,0 +1,47 @@
+<template>
+  <ux-dialog class="panel panel-default">
+    <ux-dialog-header class="panel-heading">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" click.delegate="controller.cancel()"><span aria-hidden="true">&times;</span></button>
+        <h4 class="panel-title" i18n="tilemap.create-new">Create new tilemap</h4>
+    </ux-dialog-header>
+
+    <ux-dialog-body class="panel-body">
+        <div class="row">
+            <div class="col-md-12">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label" i18n="tilemap.new-name">New tilemap name</label>
+                    <input type="text" class="form-control input-md" placeholder="" value.bind="setting.name" />
+                    <label class="control-label" i18n="tilemap.tile-width">Tile width</label>
+                    <input type="number" class="form-control input-md" placeholder="" value.bind="setting.tileWidth" />
+                    <label class="control-label" i18n="tilemap.tile-height">Tile height</label>
+                    <input type="number" class="form-control input-md" placeholder="" value.bind="setting.tileHeight" />
+                    <label class="control-label" i18n="tilemap.column-count">Column count</label>
+                    <input type="number" class="form-control input-md" placeholder="" value.bind="setting.columnCount" />
+                    <label class="control-label" i18n="tilemap.row-count">Row count</label>
+                    <input type="number" class="form-control input-md" placeholder="" value.bind="setting.rowCount" />
+                    <label class="control-label" i18n="tilemap.bgcolor-opacity">Background Color Opacity</label>
+                    <input type="number" min="0" max="1" step="0.1" class="form-control input-md" placeholder="" value.bind="setting.bgcolorOpacity" />
+                    <label class="control-label" i18n="tilemap.bgcolor">Background Color</label>
+                    <input type="color" class="form-control input-md" placeholder="" value.bind="setting.bgcolor" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="control-label" i18n="tileset.select-tilesets">Select tilesets</label>
+                <ul class="list-group">
+                <li repeat.for="tileset of tilesets" class="list-group-item ${tileset.selected ? 'active' : ''}">
+                <a href="javascript:;" click.trigger="$parent.selectTileset(tileset.name)"><p class="list-group-item-text">${tileset.name}</p></a>
+                </li>
+                </ul>
+            </div>
+            </div>
+        </div>
+
+    </ux-dialog-body>
+    
+    <ux-dialog-footer class="panel-footer">
+        <button class="btn btn-success" click.trigger="controller.ok(currentSetting)" i18n="app.ok">OK</button>
+        <button class="btn btn-danger" click.trigger="controller.cancel()" i18n="app.cancel">Cancel</button>
+    </ux-dialog-footer>
+  </ux-dialog>
+</template>

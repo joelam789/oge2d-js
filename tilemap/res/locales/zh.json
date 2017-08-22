@@ -1,0 +1,78 @@
+
+{
+    "app": {
+        "ok": "确定",
+        "cancel": "取消",
+        "save-file-ok": "成功保存文件到以下路径: "
+    },
+
+    "topbar": {
+        "new": "新建",
+        "open": "打开",
+        "save": "保存",
+        "saveas": "另存为",
+        "tilemap": "瓷砖地图",
+        "tileset": "瓷砖素材",
+        "flag-img": "./img/flags/china.png",
+        "language": "语言",
+        "english": "English",
+        "chinese": "中文"
+    },
+
+    "home": {
+        "welcome": "欢迎",
+        "tips": "使用提示",
+        "tileset-editor": "瓷砖素材编辑器",
+        "tileset-tip-1": "框选图片一个区域能同时加入多块瓷砖",
+        "tileset-tip-2": "按住 'Ctrl' 能将选中的图块合成一个动画瓷砖",
+        "tilemap-editor": "瓷砖地图编辑器",
+        "tilemap-tip-1": "按住 'Ctrl' 能开启 '替换' 模式",
+        "tilemap-tip-2": "按住 'Shift' 能开启 '擦除' 模式"
+    },
+
+    "tilemap": {
+        "tilemap": "瓷砖地图",
+        "tilemap-name": "瓷砖地图名称",
+        "select-tilemap": "选择瓷砖地图",
+        "save-tilemap": "保存瓷砖地图",
+        "create-new": "创建新的瓷砖地图",
+        "new-name": "新瓷砖地图名称",
+        "tilemap-editor": "瓷砖地图编辑器",
+        "tile-width": "瓷砖宽度",
+        "tile-height": "瓷砖高度",
+        "column-count": "瓷砖列数",
+        "row-count": "瓷砖行数",
+        "bgcolor": "背景颜色",
+        "bgcolor-opacity": "背景色不透明度",
+        "tileset-list": "瓷砖素材列表",
+        "undo": "撤销",
+        "redo": "重做",
+        "fill-up": "填满",
+        "show-lines": "显示格子"
+    },
+
+    "tileset": {
+        "tileset": "瓷砖素材",
+        "tileset-name": "瓷砖素材名称",
+        "select-tilesets": "选择瓷砖素材",
+        "save-tileset": "保存瓷砖素材",
+        "create-new": "创建新的瓷砖素材",
+        "new-name": "新素材名",
+        "tileset-editor": "瓷砖素材编辑器",
+        "tile-width": "瓷砖宽度",
+        "tile-height": "瓷砖高度",
+        "image-file": "图片文件",
+        "animation-speed": "动画速度",
+        "edit-tile": "编辑瓷砖",
+        "cost": "消耗移动力",
+        "offsets": "位置",
+        "total-frames": "总帧数",
+        "edit": "编辑",
+        "remove": "移除",
+        "clear": "清空",
+        "add-a-tile": "添加一块",
+        "add-tiles": "添加多块",
+        "free-style": "自由选择模式"
+    }
+
+}
