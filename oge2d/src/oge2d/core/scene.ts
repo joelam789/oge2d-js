@@ -247,70 +247,72 @@ export class Scene {
             callback(null);
             return;
         }
+        let scriptlib = this.game.libraries["script"];
+        if (scriptlib == undefined || scriptlib == null) {
+            callback(null);
+            return;
+        }
         jsonlib.loadJson("json/scenes/" + this.name + "/sprites/" + spriteName + ".json", (config) => {
             if (config == undefined || config == null) {
                 callback(null);
                 return;
             }
             let newSprite = new Sprite(this, spriteName);
-            if (config.template) {
-                newSprite.template = config.template.toString();
-                jsonlib.loadJson("json/sprites/" + newSprite.template + ".json", (baseConfig) => {
-                    if (baseConfig && baseConfig.components) {
-                        this.mergeComponents(baseConfig.components, config.components);
-                        newSprite.components = baseConfig.components;
-                    } else {
-                        if (config.components) newSprite.components = config.components;
-                    }
-                    let scriptlib = this.game.libraries["script"];
-                    if (scriptlib) {
-                        if (config.script === true) {
-                            scriptlib.loadSceneSpriteScript(this.game.libraries["systemjs"], this.name, spriteName, (newSprScript) => {
-                                newSprite.script = newSprScript;
-                                if (baseConfig && baseConfig.script === true) {
-                                    scriptlib.loadSpriteScript(this.game.libraries["systemjs"], newSprite.template, (sprScript) => {
-                                        newSprite.script.base = sprScript;
-                                        let eventSystem: any = this.systems["event"];
-                                        if (eventSystem) eventSystem.callEvent(newSprite, "onInit");
-                                        this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
-                                    });
-                                } else {
-                                    let eventSystem: any = this.systems["event"];
-                                    if (eventSystem) eventSystem.callEvent(newSprite, "onInit");
-                                    this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
-                                }
-                            });
-                        } else if (baseConfig && baseConfig.script === true) {
-                            scriptlib.loadSpriteScript(this.game.libraries["systemjs"], newSprite.template, (baseScript) => {
-                                newSprite.script = { base: baseScript };
+            if (config.script === true) {
+                scriptlib.loadSceneSpriteScript(this.game.libraries["systemjs"], this.name, spriteName, (newSprScript) => {
+                    newSprite.script = newSprScript;
+                    if (config.template) {
+                        let components: Array<any> = [], scripts: Array<any> = [];
+                        this.loadSpriteTemplate(config.template, components, scripts, (baseComponents, baseScript) => {
+                            if (baseComponents) {
+                                if (config.components) this.mergeComponents(baseComponents, config.components);
+                                newSprite.components = baseComponents;
+                            } else {
+                                if (config.components) newSprite.components = config.components;
+                            }
+                            if (baseScript) {
+                                if (newSprite.script) newSprite.script.base = baseScript;
+                                else newSprite.script = { base: baseScript };
+                            }
+                            if (newSprite.script) {
                                 let eventSystem: any = this.systems["event"];
                                 if (eventSystem) eventSystem.callEvent(newSprite, "onInit");
-                                this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
-                            });
-                        } else {
+                            }
                             this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
-                        }
+                        });
                     } else {
+                        if (newSprite.script) {
+                            let eventSystem: any = this.systems["event"];
+                            if (eventSystem) eventSystem.callEvent(newSprite, "onInit");
+                        }
                         this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
                     }
                 });
             } else {
-                let scriptlib = this.game.libraries["script"];
-                if (scriptlib) {
-                    if (config.script === true) {
-                        scriptlib.loadSceneSpriteScript(this.game.libraries["systemjs"], this.name, spriteName, (loadedScript) => {
-                            newSprite.script = loadedScript;
+                if (config.template) {
+                    let components: Array<any> = [], scripts: Array<any> = [];
+                    this.loadSpriteTemplate(config.template, components, scripts, (baseComponents, baseScript) => {
+                        if (baseComponents) {
+                            if (config.components) this.mergeComponents(baseComponents, config.components);
+                            newSprite.components = baseComponents;
+                        } else {
+                            if (config.components) newSprite.components = config.components;
+                        }
+                        if (baseScript) {
+                            if (newSprite.script) newSprite.script.base = baseScript;
+                            else newSprite.script = { base: baseScript };
+                        }
+                        if (newSprite.script) {
                             let eventSystem: any = this.systems["event"];
                             if (eventSystem) eventSystem.callEvent(newSprite, "onInit");
-                            this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
-                        });
-                    } else {
+                        }
                         this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
-                    }
+                    });
                 } else {
                     this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
                 }
             }
+
         });
     }
 
@@ -319,9 +321,7 @@ export class Scene {
             for (let key of Object.keys(newComponents)) {
                 if (baseComponents[key]) {
                     if (typeof baseComponents[key] == "object" && typeof newComponents[key] == "object") {
-                        for (let itemName of Object.keys(newComponents[key])) {
-                            baseComponents[key][itemName] = newComponents[key][itemName];
-                        }
+                        this.mergeComponents(baseComponents[key], newComponents[key]);
                     } else baseComponents[key] = newComponents[key];
                 } else baseComponents[key] = newComponents[key];
             }
@@ -343,14 +343,15 @@ export class Scene {
             if (sprite.origin) continue; // handle clones later
             let spriteConfig = jsonlib.getJson("json/scenes/" + this.name + "/sprites/" + sprite.name + ".json");
             if (spriteConfig == undefined || spriteConfig == null) continue;
-            let baseConfig = null, components = null;
-            if (sprite.template) baseConfig = jsonlib.getJson("json/sprites/" + sprite.template + ".json");
-            if (baseConfig && baseConfig.components) {
-                this.mergeComponents(baseConfig.components, spriteConfig.components);
+            let baseConfig = null, components = null, baseComponents = null;
+            if (sprite.template) baseComponents = this.reloadSpriteTemplate(sprite.template);
+            if (baseComponents) {
+                if (spriteConfig.components) this.mergeComponents(baseConfig.components, spriteConfig.components);
                 components = baseConfig.components;
             } else {
                 if (spriteConfig.components) components = spriteConfig.components;
             }
+            
             if (components) {
                 this.mergeComponents(sprite.components, components);
                 componentMap.set(sprite.name, components);
@@ -363,6 +364,65 @@ export class Scene {
             sprite.active = sprite.origin.active;
         }
         for (let system of this._systems) if (system.refresh) system.refresh(this);
+    }
+
+    private getSpriteTemplate(components: Array<any>, scripts: Array<any>): any {
+        let result = {component: null, script: null};
+        if (components) while(components.length > 0) {
+            let component = components.pop();
+            if (result.component) this.mergeComponents(result.component, component);
+            else result.component = component;
+        }
+        if (scripts && scripts.length > 0) {
+            for (let i=0; i<scripts.length-1; i++) {
+                scripts[i].base = scripts[i+1];
+            }
+            scripts[scripts.length-1].base = undefined;
+            result.script = scripts[0];
+        }
+        return result;
+    }
+    private loadSpriteTemplate(templateName: string, components: Array<any>, scripts: Array<any>, callback: (templateComponent, templateScript)=>void) {
+        let jsonlib = this.game.libraries["json"];
+        let scriptlib = this.game.libraries["script"];
+        jsonlib.loadJson("json/sprites/" + templateName + ".json", (config) => {
+            if (config) {
+                if (config.components) components.push(config.components);
+                if (config.script === true) {
+                    scriptlib.loadSpriteScript(this.game.libraries["systemjs"], templateName, (sprScript) => {
+                        if (sprScript) scripts.push(sprScript);
+                        if (config.template) {
+                            this.loadSpriteTemplate(config.template, components, scripts, callback);
+                        } else {
+                            let template = this.getSpriteTemplate(components, scripts);
+                            callback(template.component, template.script);
+                        }
+                    });
+                } else {
+                    if (config.template) {
+                        this.loadSpriteTemplate(config.template, components, scripts, callback);
+                    } else {
+                        let template = this.getSpriteTemplate(components, scripts);
+                        callback(template.component, template.script);
+                    }
+                }
+            } else {
+                let template = this.getSpriteTemplate(components, scripts);
+                callback(template.component, template.script);
+            }
+        });
+    }
+
+    private reloadSpriteTemplate(templateName: string): any {
+        let jsonlib = this.game.libraries["json"];
+        let config = jsonlib.getJson("json/sprites/" + templateName + ".json");
+        if (config.template) {
+            let baseComponents = this.reloadSpriteTemplate(config.template);
+            if (baseComponents) {
+                if (config.components) this.mergeComponents(baseComponents, config.components);
+                return baseComponents;
+            } else return config.components;
+        } else return config.components;
     }
 
     getFreeSprite(poolName?: string): Sprite {
