@@ -366,7 +366,7 @@ export class Scene {
         for (let system of this._systems) if (system.refresh) system.refresh(this);
     }
 
-    private getSpriteTemplate(components: Array<any>, scripts: Array<any>): any {
+    private extractSpriteTemplate(components: Array<any>, scripts: Array<any>): any {
         let result = {component: null, script: null};
         if (components) while(components.length > 0) {
             let component = components.pop();
@@ -394,7 +394,7 @@ export class Scene {
                         if (config.template) {
                             this.loadSpriteTemplate(config.template, components, scripts, callback);
                         } else {
-                            let template = this.getSpriteTemplate(components, scripts);
+                            let template = this.extractSpriteTemplate(components, scripts);
                             callback(template.component, template.script);
                         }
                     });
@@ -402,12 +402,12 @@ export class Scene {
                     if (config.template) {
                         this.loadSpriteTemplate(config.template, components, scripts, callback);
                     } else {
-                        let template = this.getSpriteTemplate(components, scripts);
+                        let template = this.extractSpriteTemplate(components, scripts);
                         callback(template.component, template.script);
                     }
                 }
             } else {
-                let template = this.getSpriteTemplate(components, scripts);
+                let template = this.extractSpriteTemplate(components, scripts);
                 callback(template.component, template.script);
             }
         });

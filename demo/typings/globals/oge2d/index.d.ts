@@ -86,9 +86,12 @@ declare module OGE2D {
 	    private addNewSpriteClones(newSprite, isActive, callback);
 	    loadSprite(spriteName: string, callback: (loaded: Sprite) => void): void;
 	    mergeComponents(baseComponents: any, newComponents: any): void;
-	    reset(): void;
+		reset(): void;
+	    private extractSpriteTemplate(components, scripts);
+	    private loadSpriteTemplate(templateName, components, scripts, callback);
+	    private reloadSpriteTemplate(templateName);
 	    getFreeSprite(poolName?: string): Sprite;
-		getFreeSpriteCount(poolName?: string): number;
+	    getFreeSpriteCount(poolName?: string): number;
 	    get(componentName: string): any;
 	    sys(systemName: string): Updater;
 	    spr(spriteName: string): Sprite;

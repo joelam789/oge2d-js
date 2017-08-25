@@ -369,8 +369,8 @@ export class AnimationContainerPixi {
     items: Map<string, Array<PIXI.Texture>> = new Map<string, Array<PIXI.Texture>>();
     onComplete: (spr?: Sprite)=>void = null;
     set(animationName: string, force?: boolean) {
+        if (force !== true && this.current == animationName) return;
         if (this.sprite && this.items.get(animationName)) {
-            if (force !== true && this.current == animationName) return;
             this.sprite.textures = this.items.get(animationName);
             this.current = animationName;
             this.sprite.play();
@@ -378,14 +378,14 @@ export class AnimationContainerPixi {
     }
     reset(animationName?: string, force?: boolean) {
         if (this.sprite) {
-            if (animationName && this.items.get(animationName)) {
-                this.sprite.gotoAndStop(0);
+            this.sprite.gotoAndStop(0);
+            if (animationName) {
                 if (force !== true && this.current == animationName) return;
-                this.sprite.textures = this.items.get(animationName);
-                this.sprite.texture = this.sprite.textures[0];
-                this.current = animationName;
-            } else {
-                this.sprite.gotoAndStop(0);
+                if (this.items.get(animationName)) {
+                    this.sprite.textures = this.items.get(animationName);
+                    this.sprite.texture = this.sprite.textures[0];
+                    this.current = animationName;
+                }
             }
         }
     }
