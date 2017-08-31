@@ -28,7 +28,7 @@ declare module OGE2D {
 	    active: boolean;
 	    constructor(scene: Scene, name: string);
 	    get(componentName: string): any;
-		private callScript(script, functionName, args): any;
+		callScript(script: any, functionName: string, args: any[]): any;
 		call(functionName: string, ...args: any[]): any;
 	}
 	export class Plot {
