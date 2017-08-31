@@ -468,6 +468,15 @@ export class Scene {
         return this.sprites[spriteName];
     }
 
+    call(functionName: string, ...args: any[]) {
+        if (this.script && this.script[functionName]) {
+            let params = [];
+            Array.prototype.push.apply(params, args);
+            return Reflect.apply(this.script[functionName], this.script, params);
+        }
+        return undefined;
+    }
+
     timeout(ms: number, callback: (targetObj?: any)=>void, target?: any) {
         let timer = new Timer();
         timer.start = this.ticks;

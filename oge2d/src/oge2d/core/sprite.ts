@@ -49,6 +49,20 @@ export class Sprite {
         return this.components[componentName];
     }
 
+    private callScript(script: any, functionName: string, args: any[]) {
+        if (script) {
+            if (script[functionName]) return Reflect.apply(script[functionName], script, args);
+            else return this.callScript(script.base, functionName, args);
+        }
+        return undefined;
+    }
+
+    call(functionName: string, ...args: any[]) {
+        let params = [];
+        Array.prototype.push.apply(params, args);
+        return this.callScript(this.script, functionName, params);
+    }
+
 }
 
 export class Plot {

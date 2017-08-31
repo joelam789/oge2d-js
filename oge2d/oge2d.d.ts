@@ -28,6 +28,8 @@ declare module OGE2D {
 	    active: boolean;
 	    constructor(scene: Scene, name: string);
 	    get(componentName: string): any;
+		private callScript(script, functionName, args): any;
+		call(functionName: string, ...args: any[]): any;
 	}
 	export class Plot {
 	    done: boolean;
@@ -95,6 +97,7 @@ declare module OGE2D {
 	    get(componentName: string): any;
 	    sys(systemName: string): Updater;
 	    spr(spriteName: string): Sprite;
+		call(functionName: string, ...args: any[]): any;
 	    timeout(ms: number, callback: (targetObj?: any) => void, target?: any): void;
 	    update(deltaTime: number): void;
 	}
@@ -138,6 +141,7 @@ declare module OGE2D {
 	    get(componentName: string): any;
 	    sys(systemName: string): Updater;
 	    lib(libraryName: string): any;
+		call(functionName: string, ...args: any[]): any;
 	    update(deltaTime: number): void;
 	}
 	
