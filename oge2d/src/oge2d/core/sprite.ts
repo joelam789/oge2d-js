@@ -49,7 +49,7 @@ export class Sprite {
         return this.components[componentName];
     }
 
-    private callScript(script: any, functionName: string, args: any[]) {
+    callScript(script: any, functionName: string, args: any[]) {
         if (script) {
             if (script[functionName]) return Reflect.apply(script[functionName], script, args);
             else return this.callScript(script.base, functionName, args);
