@@ -49,18 +49,12 @@ export class Sprite {
         return this.components[componentName];
     }
 
-    callScript(script: any, functionName: string, args: any[]) {
-        if (script) {
-            if (script[functionName]) return Reflect.apply(script[functionName], script, args);
-            else return this.callScript(script.base, functionName, args);
-        }
-        return undefined;
-    }
-
     call(functionName: string, ...args: any[]) {
-        let params = [];
-        Array.prototype.push.apply(params, args);
-        return this.callScript(this.script, functionName, params);
+        if (this.script) {
+            let params = [];
+            Array.prototype.push.apply(params, args);
+            return this.script.callFunc(this.script, functionName, params);
+        }
     }
 
 }

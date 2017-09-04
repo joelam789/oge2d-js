@@ -186,14 +186,14 @@ export class EventLoop implements Updater {
         }
     }
 
-    callScript(owner: any, script: any, functionName: string, args?: any) {
+    private callScript(owner: any, script: any, functionName: string, args?: any) {
         if (script) {
             if (script[functionName]) script[functionName](owner, args);
             else this.callScript(owner, script.base, functionName, args);
         }
     }
 
-    getScriptFunction(script: any, functionName: string): any {
+    private getScriptFunction(script: any, functionName: string): any {
         if (script) {
             if (script[functionName]) return script[functionName];
             else return this.getScriptFunction(script.base, functionName);

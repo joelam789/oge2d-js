@@ -74,6 +74,7 @@ export class Game {
             if (scriptlib && config.script === true) {
                 scriptlib.loadGameScript(this.libraries["systemjs"], this.name, (loadedScript) => {
                     this.script = loadedScript;
+                    this.script.owner = this;
                     for (let item of firstSystems) if (item.init) item.init(this);
                     for (let item of secondSystems) if (item.init) item.init(this);
                     if (eventSystem) eventSystem.callEvent(this, "onInit");

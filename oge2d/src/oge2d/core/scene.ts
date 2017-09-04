@@ -89,6 +89,7 @@ export class Scene {
             if (scriptlib && config.script === true) {
                 scriptlib.loadSceneScript(this.game.libraries["systemjs"], this.name, (loadedScript) => {
                     this.script = loadedScript;
+                    this.script.owner = this;
                     let eventSystem: any = this.systems["event"];
                     if (eventSystem) eventSystem.callEvent(this, "onInit");
                     this.loadSprites(() => {
@@ -261,6 +262,7 @@ export class Scene {
             if (config.script === true) {
                 scriptlib.loadSceneSpriteScript(this.game.libraries["systemjs"], this.name, spriteName, (newSprScript) => {
                     newSprite.script = newSprScript;
+                    newSprite.script.owner = newSprite;
                     if (config.template) {
                         let components: Array<any> = [], scripts: Array<any> = [];
                         this.loadSpriteTemplate(config.template, components, scripts, (baseComponents, baseScript) => {
