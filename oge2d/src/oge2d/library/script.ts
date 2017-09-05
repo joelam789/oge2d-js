@@ -33,8 +33,7 @@ export class Script {
             if (loadedModule.hasOwnProperty(className)) {
                 let newInstance = Object.create(loadedModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
-                newInstance.getFunc = this.getFunc.bind(this);
-                newInstance.callFunc = this.callFunc.bind(this);
+                newInstance.helper = this;
                 this._games.set(classPath, newInstance);
                 callback(newInstance);
             } else callback(null);
@@ -57,8 +56,7 @@ export class Script {
             if (loadedModule.hasOwnProperty(className)) {
                 let newInstance = Object.create(loadedModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
-                newInstance.getFunc = this.getFunc.bind(this);
-                newInstance.callFunc = this.callFunc.bind(this);
+                newInstance.helper = this;
                 this._scenes.set(classPath, newInstance);
                 callback(newInstance);
             } else callback(null);
@@ -81,8 +79,7 @@ export class Script {
             if (loadedModule.hasOwnProperty(className)) {
                 let newInstance = Object.create(loadedModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
-                newInstance.getFunc = this.getFunc.bind(this);
-                newInstance.callFunc = this.callFunc.bind(this);
+                newInstance.helper = this;
                 this._sprites.set(classPath, newInstance);
                 callback(newInstance);
             } else callback(null);
@@ -105,8 +102,7 @@ export class Script {
             if (loadedModule.hasOwnProperty(className)) {
                 let newInstance = Object.create(loadedModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
-                newInstance.getFunc = this.getFunc.bind(this);
-                newInstance.callFunc = this.callFunc.bind(this);
+                newInstance.helper = this;
                 this._sprites.set(classPath, newInstance);
                 callback(newInstance);
             } else callback(null);
@@ -116,17 +112,17 @@ export class Script {
         });
     }
 
-    getFunc(script: any, functionName: string): any {
+    get(script: any, functionName: string): any {
         if (script) {
             if (script[functionName]) return script[functionName];
-            else return this.getFunc(script.base, functionName);
+            else return this.get(script.base, functionName);
         } else return null;
     }
 
-    callFunc(script: any, functionName: string, args?: any[]) {
+    call(script: any, functionName: string, args?: any[]) {
         if (script) {
             if (script[functionName]) return Reflect.apply(script[functionName], script, args);
-            else return this.callFunc(script.base, functionName, args);
+            else return this.call(script.base, functionName, args);
         }
         return undefined;
     }

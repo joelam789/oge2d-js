@@ -274,7 +274,7 @@ export class Scene {
                             }
                             if (baseScript) {
                                 if (newSprite.script) newSprite.script.base = baseScript;
-                                else newSprite.script = { base: baseScript };
+                                else newSprite.script = { base: baseScript, helper: baseScript.helper };
                             }
                             if (newSprite.script) {
                                 let eventSystem: any = this.systems["event"];
@@ -302,7 +302,7 @@ export class Scene {
                         }
                         if (baseScript) {
                             if (newSprite.script) newSprite.script.base = baseScript;
-                            else newSprite.script = { base: baseScript };
+                            else newSprite.script = { base: baseScript, helper: baseScript.helper };
                         }
                         if (newSprite.script) {
                             let eventSystem: any = this.systems["event"];
