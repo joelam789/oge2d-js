@@ -1,0 +1,24 @@
+{
+	"template": "bullet",
+
+	"components":
+	{
+		"graphic":
+		{
+			"image": "main",
+			"area":
+			{
+				"x": 84,
+				"y": 215,
+				"width": 6,
+				"height": 6
+			}
+		},
+
+		"shooting":
+		{
+			"role": "enemy-bullet",
+			"power": 10
+		}
+	}
+}

@@ -1,0 +1,36 @@
+{
+	"template": "bullet",
+
+	"components":
+	{
+		"graphic":
+		{
+			"image": "main",
+			"area":
+			{
+				"x": 11,
+				"y": 177,
+				"width": 17,
+				"height": 16
+			}
+		},
+
+		"collision":
+		{
+			"enabled": true,
+			"hitbox":
+			{
+				"x": -8,
+				"y": -8,
+				"width": 16,
+				"height": 16
+			}
+		},
+
+		"shooting":
+		{
+			"role": "player-bullet",
+			"power": 10
+		}
+	}
+}

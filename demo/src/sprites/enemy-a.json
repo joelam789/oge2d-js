@@ -1,0 +1,20 @@
+{
+	"template": "enemy",
+
+	"script": true,
+
+	"components":
+	{
+		"animation":
+		{
+			"image": "main",
+			"loop": true,
+			"speed": 0.1,
+			"sheets": {
+				"down": [598,203,33,32],
+				"up": [598,203,33,32, 598,235,33,32, 598,267,33,32, 598,299,33,32, 598,331,33,32]
+			},
+			"current": "down"
+		}
+	}
+}

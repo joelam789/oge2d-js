@@ -1,37 +1,37 @@
 {
-    "script": true,
+	"script": true,
 
-    "components":
-    {
-        "text":
-        {
-            "content": "0",
-            "style":
-            {
-                "fontFamily": "Arial",
-                "fontSize": 16,
-                "fill": "#ffffff"
-            }
-        },
+	"components":
+	{
+		"text":
+		{
+			"content": "0",
+			"style":
+			{
+				"fontFamily": "Arial",
+				"fontSize": 16,
+				"fill": "#ffffff"
+			}
+		},
 
-        "display":
-        {
-            "layer": "labels",
+		"display":
+		{
+			"layer": "labels",
 
-            "x": 100,
-            "y": 100,
-            
-            "anchor":
-            {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
+			"x": 100,
+			"y": 100,
+			
+			"anchor":
+			{
+				"x": 0.5,
+				"y": 0.5
+			}
+		},
 		
 		"event":
-        {
-            "onUpdate": "onUpdate"
-        }
-    }
+		{
+			"onUpdate": "onUpdate"
+		}
+	}
 
 }

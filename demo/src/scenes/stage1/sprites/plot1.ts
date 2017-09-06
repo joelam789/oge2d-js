@@ -17,167 +17,179 @@ export class SceneStage1SpritePlot1 {
 
         yield plot.wait(3000);
         console.log("plot - start to send enemies ... ");
-
-        battle.sendEnemy1(scene, 300, 0, 4);
+		
+		let enemy1 = scene.spr("enemy-a1");
+		
+		enemy1.call("go", scene, 300, 0, 4);
         yield plot.wait(300);
-        battle.sendEnemy1(scene, 230, 0, 4);
+        enemy1.call("go", scene, 230, 0, 4);
         yield plot.wait(300);
-        battle.sendEnemy1(scene, 160, 0, 4);
+        enemy1.call("go", scene, 160, 0, 4);
         
         yield plot.wait(2000);
 
-        battle.sendEnemy1(scene, 120, 0, -4);
+        enemy1.call("go", scene, 120, 0, -4);
         yield plot.wait(300);
-        battle.sendEnemy1(scene, 50, 0, -4);
+        enemy1.call("go", scene, 50, 0, -4);
         yield plot.wait(300);
-        battle.sendEnemy1(scene, -20, 0, -4);
+        enemy1.call("go", scene, -20, 0, -4);
 
         yield plot.wait(2500);
+		
+		let enemy2 = scene.spr("enemy-b1");
 
-        battle.sendEnemy2(scene, 0, -32, 4);
+        enemy2.call("go", scene, 0, -32, 4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, -32, 4);
+        enemy2.call("go", scene, 0, -32, 4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, -32, 4);
+        enemy2.call("go", scene, 0, -32, 4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, -32, 4);
+        enemy2.call("go", scene, 0, -32, 4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, -32, 4);
+        enemy2.call("go", scene, 0, -32, 4);
+		
+		yield plot.wait(3000);
+		
+		let enemy3 = scene.spr("enemy-c1");
         
-        yield plot.wait(3000);
-        
-        battle.sendEnemy3(scene, 600, -20, 2);
+        enemy3.call("go", scene, 600, -20, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 500, -20, 2);
+        enemy3.call("go", scene, 500, -20, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 400, -20, 2);
+        enemy3.call("go", scene, 400, -20, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 300, 500, 2);
+        enemy3.call("go", scene, 300, 500, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 200, 500, 2);
+        enemy3.call("go", scene, 200, 500, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 100, 500, 2);
+        enemy3.call("go", scene, 100, 500, 2);
         
         yield plot.wait(3000);
 	
-        battle.sendEnemy3(scene, 100, -20, 2);
+        enemy3.call("go", scene, 100, -20, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 200, -20, 2);
+        enemy3.call("go", scene, 200, -20, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 300, -20, 2);
+        enemy3.call("go", scene, 300, -20, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 400, 500, 2);
+        enemy3.call("go", scene, 400, 500, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 500, 500, 2);
+        enemy3.call("go", scene, 500, 500, 2);
         yield plot.wait(300);
-        battle.sendEnemy3(scene, 600, 500, 2);
+        enemy3.call("go", scene, 600, 500, 2);
         
         yield plot.wait(3000);
         
-        battle.sendEnemy2(scene, 0, 64, -4);
+        enemy2.call("go", scene, 0, 64, -4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, 64, -4);
+        enemy2.call("go", scene, 0, 64, -4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, 64, -4);
+        enemy2.call("go", scene, 0, 64, -4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, 64, -4);
+        enemy2.call("go", scene, 0, 64, -4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, 64, -4);
+        enemy2.call("go", scene, 0, 64, -4);
         
         yield plot.wait(2500);
 
-        battle.sendEnemy1(scene, 120, 0, -4);
+        enemy1.call("go", scene, 120, 0, -4);
         yield plot.wait(300);
-        battle.sendEnemy1(scene, 50, 0, -4);
+        enemy1.call("go", scene, 50, 0, -4);
         yield plot.wait(300);
-        battle.sendEnemy1(scene, -20, 0, -4);
+        enemy1.call("go", scene, -20, 0, -4);
         
         yield plot.wait(2000);
         
-        battle.sendEnemy1(scene, 300, 0, 4);
+        enemy1.call("go", scene, 300, 0, 4);
         yield plot.wait(300);
-        battle.sendEnemy1(scene, 230, 0, 4);
+        enemy1.call("go", scene, 230, 0, 4);
         yield plot.wait(300);
-        battle.sendEnemy1(scene, 160, 0, 4);
+        enemy1.call("go", scene, 160, 0, 4);
         
         yield plot.wait(2000);
+		
+		let enemy4 = scene.spr("enemy-d1");
+		
+		enemy4.call("go", scene, 200, -100, "right");
+        enemy4.call("go", scene, 400, -200, "left");
+        enemy4.call("go", scene, 200, -300, "right");
+        enemy4.call("go", scene, 400, -400, "left");
+        enemy4.call("go", scene, 100, -500, "down");
+        enemy4.call("go", scene, 500, -500, "down");
+        
+        yield plot.wait(2000);
+		
+		let enemy5 = scene.spr("enemy-e1");
 
-        battle.sendEnemy4(scene, 200, -100, "right");
-        battle.sendEnemy4(scene, 400, -200, "left");
-        battle.sendEnemy4(scene, 200, -300, "right");
-        battle.sendEnemy4(scene, 400, -400, "left");
-        battle.sendEnemy4(scene, 100, -500, "down");
-        battle.sendEnemy4(scene, 500, -500, "down");
-        
-        yield plot.wait(2000);
-
-        battle.sendEnemy5(scene, 0, 0, 1);
+        enemy5.call("go", scene, 0, 0, 1);
         yield plot.wait(12000);
-        battle.sendEnemy5(scene, 0, 0, -1);
+        enemy5.call("go", scene, 0, 0, -1);
         
         yield plot.wait(12000);
+		
+		let enemy6 = scene.spr("enemy-f1");
+		
+		enemy6.call("go", scene);
+        yield plot.wait(2000);
+        enemy6.call("go", scene);
+        yield plot.wait(2000);
+        enemy6.call("go", scene);
+        yield plot.wait(2000);
+        enemy6.call("go", scene);
+        yield plot.wait(2000);
+        enemy6.call("go", scene);
+        yield plot.wait(2000);
+        enemy6.call("go", scene);
 
-        battle.sendEnemy6(scene);
-        yield plot.wait(2000);
-        battle.sendEnemy6(scene);
-        yield plot.wait(2000);
-        battle.sendEnemy6(scene);
-        yield plot.wait(2000);
-        battle.sendEnemy6(scene);
-        yield plot.wait(2000);
-        battle.sendEnemy6(scene);
-        yield plot.wait(2000);
-        battle.sendEnemy6(scene);
-
         yield plot.wait(500);
         
-        battle.sendEnemy2(scene, 0, 64, 4);
+        enemy2.call("go", scene, 0, 64, 4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, 64, 4);
+        enemy2.call("go", scene, 0, 64, 4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, 64, 4);
+        enemy2.call("go", scene, 0, 64, 4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, 64, 4);
+        enemy2.call("go", scene, 0, 64, 4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, 64, 4);
+        enemy2.call("go", scene, 0, 64, 4);
         
         yield plot.wait(500);
         
-        battle.sendEnemy6(scene);
+        enemy6.call("go", scene);
         yield plot.wait(2000);
-        battle.sendEnemy6(scene);
+        enemy6.call("go", scene);
         yield plot.wait(2000);
-        battle.sendEnemy6(scene);
+        enemy6.call("go", scene);
         yield plot.wait(2000);
-        battle.sendEnemy6(scene);
+        enemy6.call("go", scene);
         
         yield plot.wait(500);
         
-        battle.sendEnemy2(scene, 0, -32, -4);
+        enemy2.call("go", scene, 0, -32, -4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, -32, -4);
+        enemy2.call("go", scene, 0, -32, -4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, -32, -4);
+        enemy2.call("go", scene, 0, -32, -4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, -32, -4);
+        enemy2.call("go", scene, 0, -32, -4);
         yield plot.wait(300);
-        battle.sendEnemy2(scene, 0, -32, -4);
+        enemy2.call("go", scene, 0, -32, -4);
         
         yield plot.wait(500);
         
-        battle.sendEnemy6(scene);
+        enemy6.call("go", scene);
         yield plot.wait(2000);
-        battle.sendEnemy6(scene);
+        enemy6.call("go", scene);
         yield plot.wait(2000);
-        battle.sendEnemy6(scene);
+        enemy6.call("go", scene);
         yield plot.wait(2000);
-        battle.sendEnemy6(scene);
+        enemy6.call("go", scene);
         yield plot.wait(2000);
-        battle.sendEnemy6(scene);
+        enemy6.call("go", scene);
         
         yield plot.wait(2000);
-
-        tween.get(battlebgm).to({volume: 0}, 2000).call(() => {
+		
+		tween.get(battlebgm).to({volume: 0}, 2000).call(() => {
             battlebgm.stop();
             plot.signal("bgm-fadeout");
         });
@@ -197,10 +209,12 @@ export class SceneStage1SpritePlot1 {
         game.libraries["audio"].musics["boss"].play();
         
         yield plot.wait(500);
-
-        battle.sendBoss1(scene, 320, -128, 1);
-        battle.sendBoss1(scene, -128, 192, 1);
-        battle.sendBoss1(scene, 640+128, 192, 1);
+		
+		let boss1 = scene.spr("boss-a1");
+		
+		boss1.call("go", scene, 320, -128, 1);
+        boss1.call("go", scene, -128, 192, 1);
+        boss1.call("go", scene, 640+128, 192, 1);
 
         sprite.active = false;
 

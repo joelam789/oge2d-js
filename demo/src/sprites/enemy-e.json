@@ -1,0 +1,28 @@
+{
+	"template": "enemy",
+
+	"script": true,
+
+	"components":
+	{
+		"graphic":
+		{
+			"image": "main",
+			"area":
+			{
+				"x": 703,
+				"y": 119,
+				"width": 85,
+				"height": 61
+			}
+		},
+
+		"shooting":
+		{
+			"boom": "boom-b",
+			"hp": 100,
+			"maxhp": 100,
+			"score": 500
+		}
+	}
+}

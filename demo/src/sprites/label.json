@@ -1,32 +1,30 @@
 {
-    "script": false,
+	"components":
+	{
+		"text":
+		{
+			"content": "0",
+			"style":
+			{
+				"fontFamily": "Arial",
+				"fontSize": 16,
+				"fill": "#ffffff"
+			}
+		},
 
-    "components":
-    {
-        "text":
-        {
-            "content": "0",
-            "style":
-            {
-                "fontFamily": "Arial",
-                "fontSize": 16,
-                "fill": "#ffffff"
-            }
-        },
+		"display":
+		{
+			"layer": "labels",
 
-        "display":
-        {
-            "layer": "labels",
-
-            "x": 100,
-            "y": 100,
-            
-            "anchor":
-            {
-                "x": 0,
-                "y": 0
-            }
-        }
-    }
+			"x": 100,
+			"y": 100,
+			
+			"anchor":
+			{
+				"x": 0,
+				"y": 0
+			}
+		}
+	}
 
 }

@@ -1,0 +1,15 @@
+{
+	"template": "boom-b",
+
+	"components":
+	{
+		"display":
+		{
+			"scale":
+			{
+				"x": 1.5,
+				"y": 1.5
+			}
+		}
+	}
+}

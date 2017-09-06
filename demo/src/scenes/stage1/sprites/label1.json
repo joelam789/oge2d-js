@@ -1,19 +1,19 @@
 {
-    "active": true,
-    "script": false,
+	"active": true,
+	"script": false,
 	"template": "label",
 
-    "components":
-    {
-        "display":
-        {
-            "x": 36,
-            "y": 455
-        },
+	"components":
+	{
+		"display":
+		{
+			"x": 36,
+			"y": 455
+		},
 
-        "text":
-        {
-            "content": "x1"
-        }
-    }
+		"text":
+		{
+			"content": "x1"
+		}
+	}
 }

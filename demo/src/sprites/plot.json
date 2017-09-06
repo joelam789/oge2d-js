@@ -1,10 +1,10 @@
 {
-    "components":
-    {
-        "plot": true,
-        "event":
-        {
-            "onUpdate": "onUpdate"
-        }
-    }
+	"components":
+	{
+		"plot": true,
+		"event":
+		{
+			"onUpdate": "onUpdate"
+		}
+	}
 }

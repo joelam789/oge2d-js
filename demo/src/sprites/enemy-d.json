@@ -1,0 +1,33 @@
+{
+	"template": "enemy",
+
+	"script": true,
+
+	"components":
+	{
+		"animation":
+		{
+			"image": "main",
+			"loop": false,
+			"speed": 0.5,
+			"sheets": {
+				"down": [367,367,33,32],
+				"left": [334,367,33,32],
+				"right": [400,367,33,32]
+			}
+		},
+
+		"stage":
+		{
+			"x": 0,
+			"y": 0
+		},
+
+		"shooting":
+		{
+			"hp": 50,
+			"maxhp": 50,
+			"score": 200
+		}
+	}
+}

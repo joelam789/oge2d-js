@@ -1,14 +1,14 @@
 {
-    "active": false,
-    "script": false,
+	"active": false,
+	"script": false,
 	"template": "title",
 
-    "components":
-    {
-        "display":
-        {
-            "x": 182,
-            "y": 40
-        }
-    }
+	"components":
+	{
+		"display":
+		{
+			"x": 182,
+			"y": 40
+		}
+	}
 }

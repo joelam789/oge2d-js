@@ -1,7 +1,6 @@
 {
-    "active": false,
-    "script": false,
+	"active": false,
+	"script": false,
 	"template": "friend",
-    "count": 3
-
+	"count": 3
 }

@@ -1,27 +1,24 @@
 {
-    "script": false,
+	"components":
+	{
+		"display":
+		{
+			"layer": "bullets",
 
-    "components":
-    {
-        "display":
-        {
-            "layer": "bullets",
+			"x": 100,
+			"y": 100,
+			
+			"anchor":
+			{
+				"x": 0.5,
+				"y": 0.5
+			}
+		},
 
-            "x": 100,
-            "y": 100,
-            
-            "anchor":
-            {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
+		"collision":
+		{
+			"enabled": true
+		}
+	}
 
-        "collision":
-        {
-            "enabled": true
-        }
-    }
-
-    
 }

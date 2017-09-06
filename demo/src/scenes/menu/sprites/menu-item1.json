@@ -1,26 +1,26 @@
 {
-    "active": false,
-    "script": true,
+	"active": false,
+	"script": true,
 	"template": "menu-item",
 
-    "components":
-    {
-        "display":
-        {
-            "x": 270,
-            "y": 220
-        },
+	"components":
+	{
+		"display":
+		{
+			"x": 270,
+			"y": 220
+		},
 
-        "mouse":
-        {
-            "enabled": true,
-            "shareable": false,
-            "actions": ["pointerup"]
-        },
+		"mouse":
+		{
+			"enabled": true,
+			"shareable": false,
+			"actions": ["pointerup"]
+		},
 
-        "event":
-        {
-            "onPointerup": "onPointerup"
-        }
-    }
+		"event":
+		{
+			"onPointerup": "onPointerup"
+		}
+	}
 }

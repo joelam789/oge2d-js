@@ -1,5 +1,5 @@
 {
-    "active": false,
-    "script": true,
+	"active": false,
+	"script": true,
 	"template": "plot"
 }

@@ -1,0 +1,12 @@
+{
+	"template": "enemy-bullet-a",
+
+	"components":
+	{
+		"stage":
+		{
+			"x": 0,
+			"y": 0
+		}
+	}
+}

@@ -1,21 +1,19 @@
 {
-    "script": false,
+	"components":
+	{
+		"display":
+		{
+			"layer": "labels",
 
-    "components":
-    {
-        "display":
-        {
-            "layer": "labels",
-
-            "x": 100,
-            "y": 100,
-            
-            "anchor":
-            {
-                "x": 0,
-                "y": 0
-            }
-        }
-    }
+			"x": 100,
+			"y": 100,
+			
+			"anchor":
+			{
+				"x": 0,
+				"y": 0
+			}
+		}
+	}
 
 }

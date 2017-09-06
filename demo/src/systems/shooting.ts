@@ -94,7 +94,7 @@ export class Shooting implements OGE2D.Updater {
             if (this.keyboard.states["Control"]) {
 				let interval = this.keyboard.ticks["Control"] ? scene.ticks - this.keyboard.ticks["Control"] : scene.ticks;
 				if (interval >= 120) {
-					let bullet = scene.getFreeSprite("player-bullet1");
+					let bullet = scene.getFreeSprite("player-bullet-a1");
                     let position = bullet ? bullet.components.display.object : null;
 					if (bullet && position && this.motion) {
 						position.x = display.object.x;
@@ -191,7 +191,7 @@ export class Shooting implements OGE2D.Updater {
                                 .set({tint:0xffffff});
                 if (this.audio) this.audio.sounds["hit"].play();
             } else {
-                let boom = enemy.scene.getFreeSprite(enemy.components.shooting.boom);
+                let boom = enemy.scene.getFreeSprite(enemy.components.shooting.boom + "1");
                 let display = boom ? boom.get("display") : null;
                 if (boom && display) {
                     display.object.x = enemy.components.display.object.x;
@@ -203,7 +203,7 @@ export class Shooting implements OGE2D.Updater {
                 }
                 this.profile.score += enemy.components.shooting.score;
                 if (this.audio) {
-                    if (enemy.components.shooting.boom == "boom1") this.audio.sounds["boom1"].play();
+                    if (enemy.components.shooting.boom == "boom-a") this.audio.sounds["boom1"].play();
                     else this.audio.sounds["boom2"].play();
                 }
                 enemy.active = false;
@@ -217,7 +217,7 @@ export class Shooting implements OGE2D.Updater {
                                 .wait(200)
                                 .set({tint:0xffffff});
             } else {
-                let boom = player.scene.getFreeSprite("boom2");
+                let boom = player.scene.getFreeSprite("boom-b1");
                 let display = boom ? boom.get("display") : null;
                 if (boom && display) {
                     display.object.x = player.components.display.object.x;

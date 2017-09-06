@@ -25,7 +25,7 @@
         {
             "player": "player1",
             "reborn": "reborn1",
-            "player-bullet": "player-bullet1"
+            "player-bullet-a": "player-bullet-a1"
         }
     },
 
@@ -35,15 +35,15 @@
     {
         "musics": ["battle", "boss", "win", "lose"],
         "sounds": ["shoot", "hit", "boom1", "boom2", "pause"],
-        "jsons": ["tilesets/sea", "tilemaps/stage1", 
-                    "paths/deepv", "paths/circle", "paths/hill", "paths/boss"]
+        "jsons":  ["tilesets/sea", "tilemaps/stage1", 
+                   "paths/deepv", "paths/circle", "paths/hill", "paths/boss"]
     },
 
 	"systems": ["motion", "shooting"],
-    "sprites": ["plot1", "reborn1", "fps1", "bar1", "boom1", "boom2", "boom3",
-                "icon1", "icon2", "label1", "label2", "label3", "info1", "game-over1",
-                "player1", "player-bullet1", "player-bomb1", "enemy1", "enemy-bullet1",
-                "enemy2", "enemy3", "enemy4", "enemy-bullet2", "enemy5", "enemy6",
-                "boss1", "boss-bomb1"]
+    "sprites": ["plot1", "reborn1", "fps1", "bar1", "boom-a1", "boom-b1", "boom-c1",
+                "icon-life1", "icon-bomb1", "label1", "label2", "label3", "info1", "game-over1",
+                "player1", "player-bullet-a1", "player-bomb1", "enemy-a1", "enemy-bullet-a1",
+                "enemy-b1", "enemy-c1", "enemy-d1", "enemy-bullet-b1", "enemy-e1", "enemy-f1",
+				"boss-a1", "boss-bomb-a1"]
 	
 }
