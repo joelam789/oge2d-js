@@ -3,6 +3,6 @@
   "dependencies": {},
   "globalDependencies": {
     "core-js": "registry:dt/core-js#0.9.0+20170324193834",
-    "pixi.js": "github:pixijs/pixi-typescript/pixi.js.d.ts#6602c12f3ee70478bc2dcb6e46654849235ed3e2"
+    "pixi.js": "github:pixijs/pixi-typescript/pixi.js.d.ts#e141acabcbb231adbba2522adc15dda5a605fc86"
   }
 }
