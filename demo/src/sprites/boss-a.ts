@@ -1,6 +1,6 @@
 export class SpriteBossA {
 	
-    explode(scene: OGE2D.Scene, bomb: OGE2D.Sprite, speed: number) {
+	explode(scene: OGE2D.Scene, bomb: OGE2D.Sprite, speed: number) {
 		let motion: any = scene.sys("motion");
 		let display = bomb.get("display").object;
 		let posX = display.x, posY = display.y;
@@ -35,7 +35,7 @@ export class SpriteBossA {
 				});
 			});
 			if (bomb.components.event == undefined) bomb.components.event = { };
-            bomb.components.event["onDeactivate"] = (spr) => this.explode(scene, spr, 2);
+			bomb.components.event["onDeactivate"] = (spr) => this.explode(scene, spr, 2);
 			bomb.active = true;
 		}
 		scene.timeout(2000 + 1000 * (Math.round(Math.random() * 100) % 4), () => this.sendBomb(scene, boss, speed));
@@ -50,7 +50,7 @@ export class SpriteBossA {
 		let display = boss.get("display").object;
 		motion.applyPath(boss, display.x, display.y, speed, pathData.nodes, (spr) => this.move(scene, spr, 0 - speed));
 	}
-	
+
 	go(scene: OGE2D.Scene, posX: number, posY: number, speed: number) {
 		let script = scene.game.lib("script");
 		let motion: any = scene.sys("motion");
@@ -61,15 +61,15 @@ export class SpriteBossA {
 				x = posX;
 				y = posY + 256;
 				enemy.active = true;
-            } else if (posX < 0) {
+			} else if (posX < 0) {
 				x = posX + 256;
 				y = posY;
 				enemy.active = true;
-            } else if (posX > 0 && posY > 0) {
+			} else if (posX > 0 && posY > 0) {
 				x = posX - 256;
 				y = posY;
 				enemy.active = true;
-            } else {
+			} else {
 				enemy.active = false;
 			}
 			if (enemy.active) {
@@ -80,7 +80,7 @@ export class SpriteBossA {
 					if (spr.active) this.sendBomb(scene, spr, 1);
 				});
 				if (enemy.components.event == undefined) enemy.components.event = { };
-            	enemy.components.event["onDeactivate"] = (spr) => {
+				enemy.components.event["onDeactivate"] = (spr) => {
 					let profile = enemy.game.components.shooting;
 					profile.progress = profile.progress + 35;
 					if (profile.progress >= 100) {

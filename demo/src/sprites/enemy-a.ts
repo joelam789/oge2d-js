@@ -1,5 +1,5 @@
 export class SpriteEnemyA {
-    fire(scene: OGE2D.Scene, x: number, y: number, speed: number) {
+	fire(scene: OGE2D.Scene, x: number, y: number, speed: number) {
 		let motion: any = scene.systems["motion"];
 		let display = scene.sprites["player1"].get("display").object;
 		let angle = motion.getMotionAngle(x, y, display.x, display.y);
@@ -11,7 +11,7 @@ export class SpriteEnemyA {
 			bullet.active = true;
 		}
 	}
-	
+
 	go(scene: OGE2D.Scene, x: number, y: number, speed: number) {
 		let motion: any = scene.systems["motion"];
 		let script = scene.game.libraries["script"];
@@ -29,13 +29,12 @@ export class SpriteEnemyA {
 					spr.components.display.animation.play(false);
 				}
 			});
-            enemy.active = true;
+			enemy.active = true;
 			scene.timeout(500 + 500 * (Math.round(Math.random() * 100) % 4), ()=> {
 				if (enemy.active == false) return; 
 				let pos = enemy.get("display").object;
 				this.fire(scene, pos.x, pos.y + 16, Math.round(Math.abs(speed) + 1));
 			});
-
 		}
 	}
 	

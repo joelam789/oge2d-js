@@ -1,13 +1,13 @@
 
 export class SceneStage1 {
     
-    onInit(scene) {
-        console.log("on scene init: " + scene.name);
-    }
+	onInit(scene) {
+		console.log("on scene init: " + scene.name);
+	}
 
-    onActivate(scene) {
+	onActivate(scene) {
 
-        console.log("on scene activate: " + scene.name);
+		console.log("on scene activate: " + scene.name);
 
 		let profile = scene.game.components.shooting;
 		profile.progress = 0;
@@ -20,21 +20,21 @@ export class SceneStage1 {
 		scene.systems["stage"].scroll(0, -1);
 		scene.sprites["plot1"].active = true;
 
-    }
+	}
 
 	onDeactivate(scene) {
 
-        console.log("on scene deactivate: " + scene.name);
+		console.log("on scene deactivate: " + scene.name);
 
 		scene.game.libraries["audio"].musics["battle"].stop();
 		scene.game.libraries["audio"].musics["boss"].stop();
 		scene.game.libraries["audio"].musics["win"].stop();
 		scene.game.libraries["audio"].musics["lose"].stop();
 
-    }
+	}
 
-    onKeyPress(scene: OGE2D.Scene, keyName: string) {
-        //console.log("scene onKeyPress: " + scene.name + " - " + keyName);
+	onKeyPress(scene: OGE2D.Scene, keyName: string) {
+		//console.log("scene onKeyPress: " + scene.name + " - " + keyName);
 		if (keyName == "Enter") {
 			scene.paused = !scene.paused;
 			let battlebgm = scene.game.lib("audio").musics["battle"];
@@ -50,5 +50,5 @@ export class SceneStage1 {
 				if (bossbgm.isPaused()) bossbgm.resume();
 			}
 		}
-    }
+	}
 }

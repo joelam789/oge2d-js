@@ -1,5 +1,5 @@
 export class SpriteEnemy {
-    getFreeEnemy(scene: OGE2D.Scene, enemyName: string): OGE2D.Sprite {
+	getFreeEnemy(scene: OGE2D.Scene, enemyName: string): OGE2D.Sprite {
 		let enemy = scene.getFreeSprite(enemyName);
 		if (enemy) {
 			if (enemy.components.shooting && enemy.components.shooting.maxhp)

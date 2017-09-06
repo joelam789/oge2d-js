@@ -20,7 +20,7 @@ export class SpriteEnemyC {
 			});
 		}
 	}
-	
+
 	go(scene: OGE2D.Scene, x: number, y: number, speed: number) {
 		let script = scene.game.lib("script");
 		let enemy = script.call(this, "getFreeEnemy", [scene, "enemy-c1"]);
