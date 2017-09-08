@@ -22,7 +22,7 @@
           </div>
           <div class="col-lg-9">
             <div class="row">
-                <div class="col-lg-9 text-right">
+                <div class="col-lg-7 text-right">
                   <div class="btn-group">
                       <a href="javascript:;" click.trigger="undo()" class="btn btn-default" i18n="tilemap.undo">Undo</a>
                       <a href="javascript:;" click.trigger="redo()" class="btn btn-default" i18n="tilemap.redo">Redo</a>
@@ -34,10 +34,17 @@
                 <div class="col-lg-2">
                   <div class="form-group">
                       <div class="checkbox">
-                        <label>&nbsp;&nbsp;<input type="checkbox" value="line" checked.bind="lineFlags"><span i18n="tilemap.show-lines">Show lines</span></label>
+                        <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="replacement" checked.bind="replacementFlags"><span i18n="tilemap.replacement-mode">Replacement</span></label>
                       </div>
                   </div>
                 </div>
+                <div class="col-lg-2">
+                    <div class="form-group">
+                        <div class="checkbox">
+                          <label><input type="checkbox" value="line" checked.bind="lineFlags"><span i18n="tilemap.show-lines">Show lines</span></label>
+                        </div>
+                    </div>
+                  </div>
             </div>
             <div class="row">
               <div style="margin-left: 20px; width: calc(100% - 20px); height: ${maxImageCanvasHeight}px; overflow: auto; position: relative;">

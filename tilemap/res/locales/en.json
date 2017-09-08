@@ -48,7 +48,8 @@
         "undo": "Undo",
         "redo": "Redo",
         "fill-up": "Fill up",
-        "show-lines": "Show lines"
+        "show-lines": "Show lines",
+        "replacement-mode": "Replacement"
     },
 
     "tileset": {

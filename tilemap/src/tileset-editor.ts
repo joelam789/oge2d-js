@@ -255,7 +255,17 @@ export class TilesetEditorPage {
             tile.offsets.push(rect.y);
         }
         if (this.selectedRects.length > 1) tile.speed = 0.1; // 60fps * 0.1 = 6fps
-        tileset.tiles.push(tile);
+        if (this.listControl) {
+            let currentIndex = this.listControl.currentTileIndex;
+            if (currentIndex >= 0) {
+                let tiles = [];
+                for (let i=0; i<currentIndex; i++) tiles.push(tileset.tiles[i]);
+                tiles.push(tile);
+                for (let i=currentIndex; i<tileset.tiles.length; i++) tiles.push(tileset.tiles[i]);
+                tileset.tiles = tiles;
+            } else tileset.tiles.push(tile);
+        } else tileset.tiles.push(tile);
+        for (let i=0; i<tileset.tiles.length; i++) tileset.tiles[i].id = i;
         this.tileset = tileset;
     }
 
@@ -307,14 +317,15 @@ export class TilesetEditorPage {
         if (this.image == undefined || this.image == null) return;
         if (!this.startRect || !this.endRect) return;
         if (this.tileset.tiles == undefined || this.tileset.tiles == null) this.tileset.tiles = [];
+        let newTiles = [];
         let tileset = JSON.parse(JSON.stringify(this.tileset));
         let selectedArea = { x: this.startRect.x, y: this.startRect.y, 
             w: this.endRect.x + this.endRect.w - this.startRect.x, h: this.endRect.y + this.endRect.h - this.startRect.y };
         let x = selectedArea.x, y = selectedArea.y;
         while (y + this.tileHeight <= selectedArea.y + selectedArea.h) {
             while (x + this.tileWidth <= selectedArea.x + selectedArea.w) {
-                tileset.tiles.push({
-                    id: tileset.tiles.length,
+                newTiles.push({
+                    id: 0,
                     cost: 0, speed: 0,
                     offsets: [x, y]
                 });
@@ -323,6 +334,17 @@ export class TilesetEditorPage {
             x = selectedArea.x;
             y += this.tileHeight;
         }
+        if (this.listControl) {
+            let currentIndex = this.listControl.currentTileIndex;
+            if (currentIndex >= 0) {
+                let tiles = [];
+                for (let i=0; i<currentIndex; i++) tiles.push(tileset.tiles[i]);
+                for (let i=0; i<newTiles.length; i++) tiles.push(newTiles[i]);
+                for (let i=currentIndex; i<tileset.tiles.length; i++) tiles.push(tileset.tiles[i]);
+                tileset.tiles = tiles;
+            } else for (let i=0; i<newTiles.length; i++) tileset.tiles.push(newTiles[i]);
+        } else for (let i=0; i<newTiles.length; i++) tileset.tiles.push(newTiles[i]);
+        for (let i=0; i<tileset.tiles.length; i++) tileset.tiles[i].id = i;
         this.tileset = tileset;
     }
 
@@ -369,6 +391,7 @@ export class TilesetEditorPage {
                 if (result.err) alert(result.err);
                 else alert(this.i18n.tr("app.save-file-ok") + "\n\n" + result.url + "\n");
             });
+            if (this.listControl) this.tileset.columnCount = this.listControl.columnCount;
             ipcRenderer.send("save-tileset", this.tileset);
         }
     }
@@ -409,6 +432,7 @@ export class TilesetEditorPage {
                     ctx.clearRect(0, 0, this.imageCanvas.width, this.imageCanvas.height);
                     ctx.drawImage(this.image, 0, 0);
                     this.tileset = tileset;
+                    if (tileset.columnCount && this.listControl) this.listControl.columnCount = tileset.columnCount;
                 };
                 this.image.src = url;
             }

@@ -1,3 +1,10 @@
 <template>
-    <canvas click.trigger="onTileClick($event)" dblclick.trigger="onTileDoubleClick($event)"></canvas>
+    <div class="row">
+        <div show.bind="tileset && image" class="form-group" style="margin-left: 15px; width: 200px;">
+        <input type="number" min="1" max="12" step="1" class="form-control input-md" placeholder="" value.bind="columnCount" />
+        </div>
+    </div>
+    <div class="row" style="margin-left: 2px;">
+        <canvas click.trigger="onTileClick($event)" dblclick.trigger="onTileDoubleClick($event)"></canvas>
+    </div>
 </template>

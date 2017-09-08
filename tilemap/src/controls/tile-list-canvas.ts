@@ -8,18 +8,34 @@ export class TileListCanvas {
     @bindable image: HTMLImageElement = null;
     @bindable tileset: any = null;
 
+    @observable columnCount = 8;
     selectedTiles = [];
 
     tileRect: any = null;
 
+    private _canvas: HTMLCanvasElement = null;
+
     constructor(public element: Element, public i18n: I18N) {
     }
 
-    get canvas(): HTMLCanvasElement {
-        let canvas: HTMLCanvasElement = null;
-        if (this.element && this.element.children.length > 0)
-            canvas = this.element.children[0] as HTMLCanvasElement;
+    private findCanvas(element: Element) {
+        let canvas: HTMLCanvasElement = element as HTMLCanvasElement;
+        if (canvas && canvas.getContext) return canvas;
+        else {
+            canvas = null;
+            if (element && element.children && element.children.length > 0) {
+                for (let i=0; i<element.children.length; i++) {
+                    canvas = this.findCanvas(element.children[i]);
+                    if (canvas) return canvas;
+                }
+            }
+        }
         return canvas;
+    }
+
+    get canvas(): HTMLCanvasElement {
+        if (this._canvas == null) this._canvas = this.findCanvas(this.element);
+        return this._canvas;
     }
 
     get currentTileRect() {
@@ -50,20 +66,22 @@ export class TileListCanvas {
         let selectedTile = null;
         let canvas = this.canvas;
         let index = -1, x = 0, y = 0;
-        for (let tile of this.tileset.tiles) {
-            index++;
-            for (let i=this.selectedTiles.length - 1; i >= 0; i--) {
-                let rect = this.selectedTiles[i];
-                if (rect.x == x && rect.y == y) {
-                    selectedTile = tile;
-                    break;
+        if (this.selectedTiles && this.selectedTiles.length > 0) {
+            for (let tile of this.tileset.tiles) {
+                index++;
+                for (let i=this.selectedTiles.length - 1; i >= 0; i--) {
+                    let rect = this.selectedTiles[i];
+                    if (rect.x == x && rect.y == y) {
+                        selectedTile = tile;
+                        break;
+                    }
                 }
-            }
-            if (selectedTile) break;
-            x += this.tileset.tileWidth;
-            if (x >= canvas.width) {
-                x = 0;
-                y += this.tileset.tileHeight;
+                if (selectedTile) break;
+                x += this.tileset.tileWidth;
+                if (x >= canvas.width) {
+                    x = 0;
+                    y += this.tileset.tileHeight;
+                }
             }
         }
         return selectedTile ? index : -1;
@@ -78,6 +96,11 @@ export class TileListCanvas {
     }
 
     private tilesetChanged(newValue, oldValue) {
+        this.selectedTiles = [];
+        this.refresh();
+    }
+
+    private columnCountChanged(newValue, oldValue) {
         this.selectedTiles = [];
         this.refresh();
     }
@@ -148,7 +171,7 @@ export class TileListCanvas {
         let canvas = this.canvas;
         let ctx = canvas ? canvas.getContext('2d') : null;
         if (ctx == undefined || ctx == null) return;
-        let maxWidth = this.tileset.tileWidth * 8;
+        let maxWidth = this.tileset.tileWidth * this.columnCount;
         let maxHeight = this.tileset.tileHeight * Math.ceil(this.tileset.tiles.length / Math.ceil(maxWidth / this.tileset.tileWidth));
         if (maxWidth < this.tileset.tileWidth) maxWidth = this.tileset.tileWidth;
         if (maxHeight < this.tileset.tileHeight) maxHeight = this.tileset.tileHeight;

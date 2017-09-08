@@ -49,6 +49,7 @@ export class TilemapEditorPage {
     currentRect: any = { x: 0, y: 0, w: 0, h: 0 };
 
     lineFlags = [];
+    replacementFlags = [];
 
     selectedArea: any = null;
 
@@ -216,7 +217,7 @@ export class TilemapEditorPage {
 
         this.isMouseDown = false;
 
-        this.applyCurrentTiles(e.ctrlKey === true, e.shiftKey === true);
+        this.applyCurrentTiles(e.ctrlKey === true || this.replacementFlags.length > 0, e.shiftKey === true);
         this.refreshTilemapTiles();
     }
 
@@ -291,6 +292,8 @@ export class TilemapEditorPage {
         if (tileset) {
             this.tilesetImage = tileset.img;
             this.tileset = tileset.obj;
+            if (this.tileset.columnCount && this.tilesetControl)
+                this.tilesetControl.columnCount = this.tileset.columnCount;
         }
     }
 
@@ -482,7 +485,7 @@ export class TilemapEditorPage {
         if (ctx) {
             ctx.clearRect(0, 0, this.tilemapCanvas.width, this.tilemapCanvas.height);
             //ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
-            ctx.fillStyle = this.hexToRGBA(this.tilemap.bgcolor);
+            ctx.fillStyle = this.hexToRGBA(this.tilemap.bgcolor ? this.tilemap.bgcolor : "#00000000");
             let x= 0, y = 0, pos = 0;
             for (let row=0; row<this.tilemap.rowCount; row++) {
                 for (let col=0; col<this.tilemap.columnCount; col++) {
@@ -589,16 +592,19 @@ export class TilemapEditorPage {
             if (tilesetNames.length > 0) {
                 this.loadTilesets(tilesetNames, () => {
                     this.tilemap = JSON.parse(JSON.stringify(tilemap));
+                    if (this.tilemap.bgcolor == undefined) this.tilemap.bgcolor = "#00000000";
                     this.refreshTilemap();
                     if (callback) callback();
                 });
             } else {
                 this.tilemap = JSON.parse(JSON.stringify(tilemap));
+                if (this.tilemap.bgcolor == undefined) this.tilemap.bgcolor = "#00000000";
                 this.refreshTilemap();
                 if (callback) callback();
             }
         } else {
             this.tilemap = JSON.parse(JSON.stringify(tilemap));
+            if (this.tilemap.bgcolor == undefined) this.tilemap.bgcolor = "#00000000";
             this.refreshTilemap();
             if (callback) callback();
         }

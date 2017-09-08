@@ -48,7 +48,8 @@
         "undo": "撤销",
         "redo": "重做",
         "fill-up": "填满",
-        "show-lines": "显示格子"
+        "show-lines": "显示格子",
+        "replacement-mode": "替换模式"
     },
 
     "tileset": {
