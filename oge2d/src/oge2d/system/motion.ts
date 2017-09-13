@@ -124,6 +124,11 @@ export class Motion implements Updater {
 
     moveTo(sprite: Sprite, x: number, y: number, speed: number,
 			onEnd?: (spr:Sprite)=>void, onStep?: (spr:Sprite, currentX:number, currentY:number)=>void) {
+		let pos = this.getSpritePos(sprite);
+		if (pos == undefined || pos == null || (pos.x == x && pos.y == y)) {
+			if (onEnd) onEnd(sprite);
+			return;
+		}
         return this.pathTo(sprite, x, y, speed, null, null, onEnd, onStep);
     }
 

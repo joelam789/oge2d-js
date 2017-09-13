@@ -168,7 +168,7 @@ export class Display implements Updater {
                     } // end if img lib ok
 
                 } else if (sprite.script) {
-                    let texfunc = sprite.script.prepareTexture || sprite.script.base.prepareTexture;
+                    let texfunc = this.getScriptFunction(sprite.script, "prepareTexture");
                     let tex: PIXI.Texture = texfunc ? texfunc(sprite) : null;
                     if (tex) {
                         let pixispr = new PIXI.Sprite(tex);
@@ -357,6 +357,13 @@ export class Display implements Updater {
         for (let sprite of scene.spriteList) {
             this.updateSpriteParentNode(sprite, container);
         }
+    }
+
+    getScriptFunction(script: any, functionName: string): any {
+        if (script) {
+            if (script[functionName]) return script[functionName];
+            else return this.getScriptFunction(script.base, functionName);
+        } else return null;
     }
 
 }

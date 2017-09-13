@@ -106,17 +106,24 @@ export class Texture {
         }
     }
 
-    getTexture(url: string, area: any): any {
-        let texId = url + "," + area.x + "," + area.y + "," + area.width + "," + area.height;
+    getTexture(url: string, area?: any): any {
+        let texId = area ? (url + "," + area.x + "," + area.y + "," + area.width + "," + area.height) : url;
         let tex = this._textures.get(texId);
-        if (tex != undefined && tex != null) return tex;
-        let img = this._images.get(url);
-        if (img != undefined && img != null) {
+        if (tex) return tex;
+        let img = area ? this._images.get(url) : null;
+        if (img && area) {
             let newTex = new PIXI.Texture(img, new PIXI.Rectangle(area.x, area.y, area.width, area.height));
             if (newTex) this._textures.set(texId, newTex);
             if (newTex) return newTex;
         }
         return null;
+    }
+
+    setTexture(texId: string, texObj: any) {
+        if (texObj == undefined || texObj == null) return;
+        let tex = this._textures.get(texId);
+        if (tex && tex != texObj) tex.destroy(false);
+        this._textures.set(texId, texObj);
     }
 
     loadTexture(url: string, area: any, callback: (texture: any)=>void) {

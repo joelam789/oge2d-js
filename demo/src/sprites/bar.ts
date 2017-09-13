@@ -1,5 +1,9 @@
 export class SpriteBar {
 	prepareTexture(sprite) {
+		let texId = sprite.scene.name + "." + (sprite.origin ? sprite.origin.name : sprite.name);
+        let texObj = sprite.game.lib("image").getTexture(texId);
+		if (texObj) return texObj;
+		
 		let bgcolor = -1;
 		if (sprite.components["custom-display"] && sprite.components["custom-display"].color) {
 			let colorCode: string = sprite.components["custom-display"].color.toString();
@@ -11,6 +15,9 @@ export class SpriteBar {
 		graph.beginFill(bgcolor);
 		graph.drawRect(0, 0, 1, 1);
 		graph.endFill();
-		return graph.generateCanvasTexture();
+		texObj = graph.generateCanvasTexture();
+
+		sprite.game.lib("image").setTexture(texId, texObj);
+        return texObj;
 	}
 }

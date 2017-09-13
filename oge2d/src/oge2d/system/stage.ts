@@ -14,6 +14,7 @@ export class Stage implements Updater {
 
     private _tilesets:  { [name: string]: any }  = { };
     private _tilemaps:  { [name: string]: any }  = { };
+    private _gamemaps:  { [name: string]: any }  = { };
 
     init(game: Game): boolean {
         this._game = game;
@@ -91,7 +92,10 @@ export class Stage implements Updater {
                         if (maxX > stage.maxX) stage.maxX = maxX;
                         if (maxY > stage.maxY) stage.maxY = maxY;
                         stage.tilemap = tilemap;
-                        container.addChild(stage.tilemap.display);
+                        if (tilemap) {
+                            stage.gamemap = this._gamemaps[tilemapName];
+                            container.addChild(stage.tilemap.display);
+                        }
                         if (callback) callback();
                     });
                 } else {
@@ -111,7 +115,10 @@ export class Stage implements Updater {
                 if (maxX > stage.maxX) stage.maxX = maxX;
                 if (maxY > stage.maxY) stage.maxY = maxY;
                 stage.tilemap = tilemap;
-                container.addChild(stage.tilemap.display);
+                if (tilemap) {
+                    stage.gamemap = this._gamemaps[tilemapName];
+                    container.addChild(stage.tilemap.display);
+                }
                 if (callback) callback();
             });
         } else {
@@ -457,6 +464,8 @@ export class Stage implements Updater {
                 tilemap.sprites.push(tileSprite);
             }
 
+            tilemap.tilecosts = [];
+
             this.loadTilesets(tilemap.tilesetNames, (tilesets) => {
 
                 tilemap.tilesets = [];
@@ -464,7 +473,26 @@ export class Stage implements Updater {
                     tilemap.tilesets.push(this._tilesets[tilesetName]);
                 }
 
+                for (let i=0; i<tilemap.cells.length; i++) {                
+                    let cost = 0;
+                    let cell = tilemap.cells[i];
+                    if (cell.cost != undefined) cost = cell.cost;
+                    else for (let k=0; k<cell.ids.length; k+=2) {
+                        let tilesetId = cell.ids[k];
+                        let tileId = cell.ids[k+1];
+                        if (tilesetId >= 0 && tileId >= 0) {
+                            let tile = tilemap.tilesets[tilesetId].tiles[tileId];
+                            if (tile.cost != undefined) {
+                                cost = tile.cost;
+                                break;
+                            }
+                        }
+                    }
+                    tilemap.tilecosts.push(cost);
+                }
+
                 this._tilemaps[tilemapName] = tilemap;
+                this._gamemaps[tilemapName] = new GameMap(tilemap);
                 if (callback) callback(tilemap);
                 return;
                 
@@ -573,3 +601,324 @@ export class Stage implements Updater {
 	
 }
 
+export class StepNode {
+    idx: number = -1;  // the step's index in the path (a path consists of steps)
+    col: number = -1; // the position of the step (on a tile) in the map
+    row: number = -1; // the position of the step (on a tile) in the map
+    prior: StepNode = null; // its previous step
+}
+
+export class ResultNode { // a result of a step
+    idx: number = -1;  // the node's index
+    dist: number = -1; // current distance to the destination (after take the step)
+    step: StepNode = null; // the related step (which leads to the result)
+    next: ResultNode = null; // its next node
+}
+
+// i do not merge "result" and "step" into one record
+// actually i also need to put them into two different linked lists
+// coz i think this could help to describe/understand Dynamic Programming more easily
+
+export class PathFinder {
+
+    tilemap: any = null;
+
+    eight: boolean = false;
+
+    steps: Array<StepNode> = null;
+    footprints: Array<ResultNode> = null;
+
+    openQueue: ResultNode = null;
+    closedQueue: ResultNode = null;
+
+    travelCosts: Array<number> = null;
+
+    constructor(tilemap) {
+        this.tilemap = tilemap;
+        this.travelCosts = new Array<number>(tilemap.tilecosts.length);
+    }
+
+    clear() {
+        this.steps = [];
+        this.footprints = [];
+        this.openQueue = null;
+        this.closedQueue = null;
+        this.travelCosts.fill(0);
+    }
+
+    dist(startX: number, startY: number, endX: number, endY: number) {
+        return Math.abs(endX - startX) + Math.abs(endY - startY);
+    }
+    
+    private add(footprint: ResultNode) { // put an open path to open queue
+        if (!footprint) return;
+        let prior: ResultNode = null;
+        let current: ResultNode = this.openQueue;
+        while (current != null && footprint.idx + footprint.dist > current.idx + current.dist) {
+            prior = current;
+            current = current.next;
+        }
+        // the best is always at the top (this.openQueue)
+        if (prior) prior.next = footprint;
+        else this.openQueue = footprint;
+        footprint.next = current;
+    }
+    
+    private archive(footprint: ResultNode) { // put a closed path to closed queue
+        if (!footprint) return;
+        let prior: ResultNode = null;
+        let current: ResultNode = this.closedQueue;
+        while (current != null) {
+            // longer is worse, shorter is better (we are going to find out the shortest way)
+            let worse = footprint.dist == current.dist ? footprint.idx > current.idx : footprint.dist > current.dist;
+            if (worse) {
+                prior = current;
+                current = current.next;
+            } else break;
+        }
+        // the best is always at the top (this.closedQueue)
+        if (prior) prior.next = footprint;
+        else this.closedQueue = footprint;
+        footprint.next = current;
+    }
+
+    private pop(): ResultNode { // get current best open path
+        let top = this.openQueue;
+        if (this.openQueue) this.openQueue = this.openQueue.next;
+        if (top) top.next = null;
+        return top;
+    }
+
+    private createStep(prior: StepNode, column: number, row: number): StepNode {
+        let step = new StepNode();
+        step.idx = prior ? prior.idx + 1 : 1;
+        step.col = column;
+        step.row = row;
+        step.prior = prior;
+        this.steps.push(step);
+        return step;
+    }
+
+    private createFootprint(step: StepNode, dist: number): ResultNode {
+        let footprint = new ResultNode();
+        footprint.idx = step ? step.idx : 0;
+        footprint.step = step;
+        footprint.dist = dist;
+        footprint.next = null;
+        this.footprints.push(footprint);
+        return footprint;
+    }
+
+    private test(startX: number, startY: number, endX: number, endY: number, prior: StepNode): boolean {
+
+        if (startX < 0 || startY < 0 
+            || startX >= this.tilemap.columnCount
+            || startY >= this.tilemap.rowCount) return false; // out of the map
+
+        let idx = this.tilemap.columnCount * startY + startX;
+        if (this.tilemap.tilecosts[idx] < 0) return false; // inaccessible
+        
+        let len = 1;
+        if (prior) len = prior.idx + 1;
+        if (this.travelCosts[idx] > 0 && len >= this.travelCosts[idx]) return false; // not the best so far
+        
+        this.travelCosts[idx] = len;
+
+        let step = this.createStep(prior, startX, startY);
+        let footprint = this.createFootprint(step, this.dist(startX, startY, endX, endY));
+
+        this.add(footprint);
+
+        return true;
+    }
+
+    private getFootprint(startX: number, startY: number, endX: number, endY: number): ResultNode {
+        if (!this.test(startX, startY, endX, endY, null)) return null;
+        let footprint = this.pop(); // get current best open path
+        while (footprint) { // continue to process the best open path if it exists (not null)
+            let step = footprint.step;
+            if (step) {
+
+                let x = step.col;
+                let y = step.row;
+                if (x == endX && y == endY) {
+                    this.archive(footprint); // archive the closed path (reached the destination already)
+                    break; // no need to continue
+                }
+
+                let up    = this.test(x,   y-1, endX, endY, step);
+                let right = this.test(x+1, y,   endX, endY, step);
+                let down  = this.test(x,   y+1, endX, endY, step);
+                let left  = this.test(x-1, y,   endX, endY, step);
+
+                let isOpen = up && right && down && left; // all of its neighbor cells are accessible
+
+                if (this.eight) {
+
+                    let upRight = false, downRight = false, downLeft = false, upLeft = false;
+
+                    if (up || right)   upRight   = this.test(x+1, y-1, endX, endY, step);
+                    if (down || right) downRight = this.test(x+1, y+1, endX, endY, step);
+                    if (down || left)  downLeft  = this.test(x-1, y+1, endX, endY, step);
+                    if (up || left)    upLeft    = this.test(x-1, y-1, endX, endY, step);
+
+                    let needToArchive = !isOpen;
+
+                    if ((!needToArchive) && (up || right))   needToArchive = needToArchive || !upRight;
+                    if ((!needToArchive) && (down || right)) needToArchive = needToArchive || !downRight;
+                    if ((!needToArchive) && (down || left))  needToArchive = needToArchive || !downLeft;
+                    if ((!needToArchive) && (up || left))    needToArchive = needToArchive || !upLeft;
+
+                    if (needToArchive) this.archive(footprint);
+
+                } else {
+
+                    if (!isOpen) this.archive(footprint); // archive it if it is not an open path
+
+                }
+            }
+            footprint = this.pop(); // keep trying to get current best open path
+        }
+        return this.closedQueue; // return the best
+    }
+
+    find(startX: number, startY: number, endX: number, endY: number): Array<any> {
+        this.clear();
+        let best = this.getFootprint(startX, startY, endX, endY);
+        let step = best ? best.step : null;
+        let path = step ? new Array<any>(step.idx) : null;
+        let idx = step ? step.idx : -1;
+        while (step) {
+            idx--;
+            if (idx >= 0) path[idx] = {x: step.col, y: step.row};
+            step = step.prior;
+        }
+        return path;
+    }
+    
+}
+
+export class VisitNode {
+    mp: number = -1;  // the explorer's movement points left when get here (reach this node)
+    col: number = -1; // the position of the node (a tile) in the map
+    row: number = -1; // the position of the node (a tile) in the map
+    next: VisitNode = null; // its next node
+}
+
+export class RangeFinder {
+    
+    tilemap: any = null;
+
+    nodes: Array<VisitNode> = null;
+
+    current: VisitNode = null;
+    next: VisitNode = null;
+
+    history: Array<number> = null;
+
+    constructor(tilemap) {
+        this.tilemap = tilemap;
+        this.history = new Array<number>(tilemap.tilecosts.length);
+    }
+
+    clear() {
+        this.nodes = [];
+        this.current = null;
+        this.next = null;
+        this.history.fill(-1);
+    }
+
+    private add(col: number, row: number, mp: number): VisitNode { // add a visit node
+        let node = new VisitNode();
+        node.mp = mp;
+        node.col = col;
+        node.row = row;
+        node.next = this.next;
+        this.next = node;
+        return this.next;
+    }
+
+    private test(col: number, row: number, mp: number): boolean {
+        if (col < 0 || row < 0 
+            || col >= this.tilemap.columnCount
+            || row >= this.tilemap.rowCount) return false; // out of the map
+
+        let idx = this.tilemap.columnCount * row + col;
+        let cost = this.tilemap.tilecosts[idx];
+        if (cost < 0 || cost > mp) return false; // inaccessible
+
+        let rest = mp - cost;
+        if (this.history[idx] > rest) return false; // not the best so far
+
+        this.history[idx] = rest;
+        this.add(col, row, rest);
+    }
+
+    private travel(col: number, row: number, mp: number) {
+        // add start point to node list
+        this.add(col, row, mp);
+        this.history[this.tilemap.columnCount * row + col] = mp;
+        // start to travel...
+        while(this.next) {
+            this.current = this.next;
+            this.next = null;
+            while(this.current) {
+                let x = this.current.col;
+                let y = this.current.row;
+                let rest = this.current.mp;
+                this.test(x,   y-1, rest);
+                this.test(x+1, y,   rest);
+                this.test(x,   y+1, rest);
+                this.test(x-1, y,   rest);
+                this.current = this.current.next;
+            }
+        }
+    }
+
+    find(x: number, y: number, mp: number): Array<any> {
+        this.clear();
+        this.travel(x, y, mp);
+        let range = new Array<any>();
+        for(let i=0; i<this.tilemap.columnCount; i++) {
+            for(let j=0; j<this.tilemap.rowCount; j++) {
+                if (this.history[this.tilemap.columnCount * j + i] >= 0) {
+                    range.push({x: i, y: j});
+                }
+            }
+        }
+        return range;
+    }
+}
+
+export class GameMap {
+    tilemap: any = null;
+    pathFinder: PathFinder = null;
+    rangeFinder: RangeFinder = null;
+    constructor(tilemap) {
+        this.tilemap = tilemap;
+        this.pathFinder = new PathFinder(tilemap);
+        this.rangeFinder = new RangeFinder(tilemap);
+    }
+    pixelToTile(x: number, y: number) {
+        return this.tilemap 
+                ? { x: Math.floor(x/this.tilemap.tileWidth), 
+                    y: Math.floor(y/this.tilemap.tileHeight) }
+                : null;
+    }
+    tileToPixel(x: number, y: number) {
+        return this.tilemap 
+                ? { x: x * this.tilemap.tileWidth + Math.floor(this.tilemap.tileWidth / 2), 
+                    y: y * this.tilemap.tileHeight + Math.floor(this.tilemap.tileHeight / 2) }
+                : null;
+    }
+    align(x: number, y: number) {
+        let pos = this.pixelToTile(x, y);
+        return pos ? this.tileToPixel(pos.x, pos.y) : null;
+    }
+    findPath(startX: number, startY: number, endX: number, endY: number): Array<any> {
+        return this.pathFinder.find(startX, startY, endX, endY);
+    }
+    findRange(x: number, y: number, mp: number): Array<any> {
+        return this.rangeFinder.find(x, y, mp);
+    }
+}

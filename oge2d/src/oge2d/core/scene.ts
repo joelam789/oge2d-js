@@ -472,8 +472,7 @@ export class Scene {
 
     call(functionName: string, ...args: any[]) {
         if (this.script && this.script[functionName]) {
-            let params = [];
-            Array.prototype.push.apply(params, args);
+            let params = Array.from(args);
             return Reflect.apply(this.script[functionName], this.script, params);
         }
         return undefined;

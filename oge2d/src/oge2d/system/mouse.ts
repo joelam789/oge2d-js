@@ -108,7 +108,10 @@ export class Mouse implements Updater {
                         if (eventName.length > 0) {
                             eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substr(1);
                             let ctx = this.getSceneMouseContext(scene, eventName);
-                            view.on(action, ctx.emit);
+                            if (ctx.active === false) {
+                                view.on(action, ctx.emit);
+                                ctx.active = true;
+                            }
                         }
                     }
                 }
@@ -130,7 +133,10 @@ export class Mouse implements Updater {
                     if (eventName.length > 0) {
                         eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substr(1);
                         let ctx = this.getSceneMouseContext(scene, eventName);
-                        view.off(action, ctx.emit);
+                        if (ctx.active === true) {
+                            view.off(action, ctx.emit);
+                            ctx.active = false;
+                        }
                     }
                 }
             }
@@ -157,7 +163,10 @@ export class Mouse implements Updater {
                         if (eventName.length > 0) {
                             eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substr(1);
                             let ctx = this.getSceneSpriteMouseContext(sprite, eventName, mouse.shareable === true);
-                            view.on(action, ctx.emit);
+                            if (ctx.active === false) {
+                                view.on(action, ctx.emit);
+                                ctx.active = true;
+                            }
                         }
                     }
                 }
@@ -178,7 +187,10 @@ export class Mouse implements Updater {
                     if (eventName.length > 0) {
                         eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substr(1);
                         let ctx = this.getSceneSpriteMouseContext(sprite, eventName, mouse.shareable === true);
-                        view.off(action, ctx.emit);
+                        if (ctx.active === true) {
+                            view.off(action, ctx.emit);
+                            ctx.active = false;
+                        }
                     }
                 }
             }
@@ -203,6 +215,7 @@ export class Mouse implements Updater {
 export class MouseContext {
     event: string = "";
     target: any = null;
+    active: boolean = false;
     shareable: boolean = false;
     emit(eventData) {
         eventData.stopped = this.shareable == false;
