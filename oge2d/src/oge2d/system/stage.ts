@@ -148,6 +148,14 @@ export class Stage implements Updater {
     activate(scene: Scene) {
         let stage = scene.components["stage"];
 		if (stage) {
+            if (stage.follow) {
+                let target = scene.sprites[stage.follow];
+                let location = target ? target.components["stage"] : null;
+                if (location) {
+                    stage.x = Math.round(location.x - scene.game.width / 2);
+                    stage.y = Math.round(location.y - scene.game.height / 2);
+                }
+            }
             if (!isNaN(stage.x)) {
                 if (stage.x < 0) stage.x = 0;
                 if (stage.x > stage.maxX) stage.x = stage.maxX;

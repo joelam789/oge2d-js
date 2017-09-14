@@ -105,7 +105,9 @@ export class Display implements Updater {
                     if (imagelib) {
                         imagelib.loadTexture("img/" + imgName, graphic.area, (tex) => {
                             if (tex) {
-                                let pixispr = new PIXI.Sprite(tex);
+                                let pixispr = graphic.slice && graphic.slice.length >= 4 
+                                                ? new PIXI.mesh.NineSlicePlane(tex, graphic.slice[0], graphic.slice[1], graphic.slice[2], graphic.slice[3])
+                                                : new PIXI.Sprite(tex);
                                 this.applySpriteProperties(pixispr, display);
                                 display.object = pixispr;
                             }
@@ -287,7 +289,7 @@ export class Display implements Updater {
         this.updateAnimationState(scene);
     }
 
-    applySpriteProperties(pixispr: PIXI.Sprite, properties: any) {
+    applySpriteProperties(pixispr: PIXI.Sprite | PIXI.mesh.NineSlicePlane, properties: any) {
         for (let item of Object.keys(properties)) {
             if (item == "object") continue;
             if (item == "animation") continue;
@@ -312,7 +314,14 @@ export class Display implements Updater {
             }
             if (pixispr[item] != undefined) {
                 if (typeof properties[item] == "object") {
-                    for (let subitem of Object.keys(properties[item])) pixispr[item][subitem] = properties[item][subitem];
+                    for (let subitem of Object.keys(properties[item])) {
+                        if (pixispr[item][subitem] != undefined) {
+                            if (typeof properties[item][subitem] == "object") {
+                                for (let subitem2 of Object.keys(properties[item][subitem]))
+                                    pixispr[item][subitem][subitem2] = properties[item][subitem][subitem2];
+                            } else pixispr[item][subitem] = properties[item][subitem];
+                        }
+                    }
                 } else pixispr[item] = properties[item];
             }
         }
