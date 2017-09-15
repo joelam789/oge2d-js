@@ -92,7 +92,10 @@ export class Display implements Updater {
                 let graphic = sprite.components["graphic"];
                 let animation = sprite.components["animation"];
                 if (text) {
-                    let pixispr = new PIXI.Text(text.content ? text.content.toString() : "", text.style ? text.style : undefined);
+                    let textContent: string = text.content && text.content.length > 0 
+                                            ? (Array.isArray(text.content) ? text.content.join("\n") : text.content.toString()) : "";
+                    text.content = textContent;
+                    let pixispr = new PIXI.Text(textContent, text.style ? text.style : undefined);
                     this.applySpriteProperties(pixispr, display);
                     display.object = pixispr;
                     if (callback) callback();
@@ -261,10 +264,10 @@ export class Display implements Updater {
                     let animation = sprite.components["animation"];
                     this.applySpriteProperties(display.object, display);
                     if (text) {
-                        if (text.content != undefined && text.content != null) {
-                            let str = text.content.toString();
-                            if (str != display.object.text) display.object.text = str;
-                        }
+                        let textContent: string = text.content && text.content.length > 0 
+                                            ? (Array.isArray(text.content) ? text.content.join("\n") : text.content.toString()) : "";
+                        text.content = textContent;
+                        if (textContent != display.object.text) display.object.text = textContent;
                     } else if (animation) {
                         if (animation.hasOwnProperty("loop"))
                             display.object.loop = animation.loop;

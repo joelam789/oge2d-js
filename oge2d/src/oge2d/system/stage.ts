@@ -627,6 +627,8 @@ export class ResultNode { // a result of a step
 // actually i also need to put them into two different linked lists
 // coz i think this could help to describe/understand Dynamic Programming more easily
 
+type GetCostFunc = (cellX: number, cellY: number, defaultValue: number) => number;
+
 export class PathFinder {
 
     tilemap: any = null;
@@ -717,14 +719,15 @@ export class PathFinder {
         return footprint;
     }
 
-    private test(startX: number, startY: number, endX: number, endY: number, prior: StepNode): boolean {
-
+    private test(startX: number, startY: number, endX: number, endY: number,
+                    prior: StepNode, getCost?: GetCostFunc): boolean {
         if (startX < 0 || startY < 0 
             || startX >= this.tilemap.columnCount
             || startY >= this.tilemap.rowCount) return false; // out of the map
 
         let idx = this.tilemap.columnCount * startY + startX;
-        if (this.tilemap.tilecosts[idx] < 0) return false; // inaccessible
+        let cost = getCost ? getCost(startX, startY, this.tilemap.tilecosts[idx]) : this.tilemap.tilecosts[idx];
+        if (cost < 0) return false; // inaccessible
         
         let len = 1;
         if (prior) len = prior.idx + 1;
@@ -740,8 +743,9 @@ export class PathFinder {
         return true;
     }
 
-    private getFootprint(startX: number, startY: number, endX: number, endY: number): ResultNode {
-        if (!this.test(startX, startY, endX, endY, null)) return null;
+    private getFootprint(startX: number, startY: number, endX: number, endY: number, getCost?: GetCostFunc): ResultNode {
+        // add start point to path (assume start point is always accessible)
+        if (!this.test(startX, startY, endX, endY, null, (cx,cy,val)=>{return 0;})) return null;
         let footprint = this.pop(); // get current best open path
         while (footprint) { // continue to process the best open path if it exists (not null)
             let step = footprint.step;
@@ -754,10 +758,10 @@ export class PathFinder {
                     break; // no need to continue
                 }
 
-                let up    = this.test(x,   y-1, endX, endY, step);
-                let right = this.test(x+1, y,   endX, endY, step);
-                let down  = this.test(x,   y+1, endX, endY, step);
-                let left  = this.test(x-1, y,   endX, endY, step);
+                let up    = this.test(x,   y-1, endX, endY, step, getCost);
+                let right = this.test(x+1, y,   endX, endY, step, getCost);
+                let down  = this.test(x,   y+1, endX, endY, step, getCost);
+                let left  = this.test(x-1, y,   endX, endY, step, getCost);
 
                 let isOpen = up && right && down && left; // all of its neighbor cells are accessible
 
@@ -765,10 +769,10 @@ export class PathFinder {
 
                     let upRight = false, downRight = false, downLeft = false, upLeft = false;
 
-                    if (up || right)   upRight   = this.test(x+1, y-1, endX, endY, step);
-                    if (down || right) downRight = this.test(x+1, y+1, endX, endY, step);
-                    if (down || left)  downLeft  = this.test(x-1, y+1, endX, endY, step);
-                    if (up || left)    upLeft    = this.test(x-1, y-1, endX, endY, step);
+                    if (up || right)   upRight   = this.test(x+1, y-1, endX, endY, step, getCost);
+                    if (down || right) downRight = this.test(x+1, y+1, endX, endY, step, getCost);
+                    if (down || left)  downLeft  = this.test(x-1, y+1, endX, endY, step, getCost);
+                    if (up || left)    upLeft    = this.test(x-1, y-1, endX, endY, step, getCost);
 
                     let needToArchive = !isOpen;
 
@@ -790,9 +794,10 @@ export class PathFinder {
         return this.closedQueue; // return the best
     }
 
-    find(startX: number, startY: number, endX: number, endY: number): Array<any> {
+    find(startX: number, startY: number, endX: number, endY: number,
+            includeStart: boolean = true, getCost?: GetCostFunc): Array<any> {
         this.clear();
-        let best = this.getFootprint(startX, startY, endX, endY);
+        let best = this.getFootprint(startX, startY, endX, endY, getCost);
         let step = best ? best.step : null;
         let path = step ? new Array<any>(step.idx) : null;
         let idx = step ? step.idx : -1;
@@ -801,6 +806,7 @@ export class PathFinder {
             if (idx >= 0) path[idx] = {x: step.col, y: step.row};
             step = step.prior;
         }
+        if (!includeStart && path && path.length > 0) path.shift();
         return path;
     }
     
@@ -846,26 +852,30 @@ export class RangeFinder {
         return this.next;
     }
 
-    private test(col: number, row: number, mp: number): boolean {
+    private test(col: number, row: number, mp: number, getCost?: GetCostFunc): boolean {
         if (col < 0 || row < 0 
             || col >= this.tilemap.columnCount
             || row >= this.tilemap.rowCount) return false; // out of the map
 
         let idx = this.tilemap.columnCount * row + col;
-        let cost = this.tilemap.tilecosts[idx];
+        let cost = getCost ? getCost(col, row, this.tilemap.tilecosts[idx]) : this.tilemap.tilecosts[idx];
         if (cost < 0 || cost > mp) return false; // inaccessible
 
         let rest = mp - cost;
-        if (this.history[idx] > rest) return false; // not the best so far
+        if (this.history[idx] >= rest) return false; // not the best so far
 
-        this.history[idx] = rest;
+        this.history[idx] = rest; // update it with a new/better mp
+
+        // maybe it's visited before, but now it gains a better mp
+        // so we need to process it again (create a new node for it)
         this.add(col, row, rest);
+
+        return true;
     }
 
-    private travel(col: number, row: number, mp: number) {
-        // add start point to node list
-        this.add(col, row, mp);
-        this.history[this.tilemap.columnCount * row + col] = mp;
+    private travel(col: number, row: number, mp: number, getCost?: GetCostFunc) {
+        // add start point to node list (assume start point is always accessible and costs 0 mp)
+        if (!this.test(col, row, mp, (cx,cy,val)=>{return 0;})) return;
         // start to travel...
         while(this.next) {
             this.current = this.next;
@@ -874,24 +884,23 @@ export class RangeFinder {
                 let x = this.current.col;
                 let y = this.current.row;
                 let rest = this.current.mp;
-                this.test(x,   y-1, rest);
-                this.test(x+1, y,   rest);
-                this.test(x,   y+1, rest);
-                this.test(x-1, y,   rest);
+                this.test(x,   y-1, rest, getCost);
+                this.test(x+1, y,   rest, getCost);
+                this.test(x,   y+1, rest, getCost);
+                this.test(x-1, y,   rest, getCost);
                 this.current = this.current.next;
             }
         }
     }
 
-    find(x: number, y: number, mp: number): Array<any> {
+    find(x: number, y: number, mp: number, includeStart: boolean = true, getCost?: GetCostFunc): Array<any> {
         this.clear();
-        this.travel(x, y, mp);
+        this.travel(x, y, mp, getCost);
         let range = new Array<any>();
         for(let i=0; i<this.tilemap.columnCount; i++) {
             for(let j=0; j<this.tilemap.rowCount; j++) {
-                if (this.history[this.tilemap.columnCount * j + i] >= 0) {
-                    range.push({x: i, y: j});
-                }
+                if (!includeStart && i == x && j == y) continue;
+                if (this.history[this.tilemap.columnCount * j + i] >= 0) range.push({x: i, y: j});
             }
         }
         return range;
@@ -923,10 +932,11 @@ export class GameMap {
         let pos = this.pixelToTile(x, y);
         return pos ? this.tileToPixel(pos.x, pos.y) : null;
     }
-    findPath(startX: number, startY: number, endX: number, endY: number): Array<any> {
-        return this.pathFinder.find(startX, startY, endX, endY);
+    findPath(startX: number, startY: number, endX: number, endY: number,
+                includeStart: boolean = true, getCost?: GetCostFunc): Array<any> {
+        return this.pathFinder.find(startX, startY, endX, endY, includeStart, getCost);
     }
-    findRange(x: number, y: number, mp: number): Array<any> {
-        return this.rangeFinder.find(x, y, mp);
+    findRange(x: number, y: number, mp: number, includeStart: boolean = true, getCost?: GetCostFunc): Array<any> {
+        return this.rangeFinder.find(x, y, mp, includeStart, getCost);
     }
 }
