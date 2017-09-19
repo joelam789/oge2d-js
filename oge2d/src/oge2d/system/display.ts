@@ -363,11 +363,15 @@ export class Display implements Updater {
     }
 
     updateDisplayParentNode(scene: Scene) {
-        let container = null;
+        let sprites = scene.spriteList;
+        let stage = scene.components["stage"];
         let display = scene.components["display"];
-        if (display && display.object) container = display.object;
-        for (let sprite of scene.spriteList) {
-            this.updateSpriteParentNode(sprite, container);
+        let sceneContainer = null, stageContainer = null;
+        if (stage && stage.display) stageContainer = stage.display;
+        if (display && display.object) sceneContainer = display.object;
+        for (let sprite of sprites) {
+            this.updateSpriteParentNode(sprite,
+                sprite.components.stage && stageContainer ? stageContainer : sceneContainer);
         }
     }
 

@@ -44,6 +44,9 @@ export class Stage implements Updater {
             return;
         }
 
+        let sceneContainer = container;
+        container = new PIXI.Container();
+
         let tilemapName: string = stage.map ? stage.map.toString() : "";
         let idx = 0, maxX = 0, maxY = 0;
 
@@ -96,9 +99,17 @@ export class Stage implements Updater {
                             stage.gamemap = this._gamemaps[tilemapName];
                             container.addChild(stage.tilemap.display);
                         }
+                        if (container.children && container.children.length > 0) {
+                            stage.display = container;
+                            sceneContainer.addChild(container);
+                        }
                         if (callback) callback();
                     });
                 } else {
+                    if (container.children && container.children.length > 0) {
+                        stage.display = container;
+                        sceneContainer.addChild(container);
+                    }
                     if (callback) callback();
                 }
                 
@@ -119,9 +130,17 @@ export class Stage implements Updater {
                     stage.gamemap = this._gamemaps[tilemapName];
                     container.addChild(stage.tilemap.display);
                 }
+                if (container.children && container.children.length > 0) {
+                    stage.display = container;
+                    sceneContainer.addChild(container);
+                }
                 if (callback) callback();
             });
         } else {
+            if (container.children && container.children.length > 0) {
+                stage.display = container;
+                sceneContainer.addChild(container);
+            }
             if (callback) callback();
         }
 		
