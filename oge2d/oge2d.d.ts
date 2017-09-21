@@ -41,8 +41,8 @@ declare module OGE2D {
 	    reset(): void;
 	    pause(...signals: string[]): number;
 	    resume(...signals: string[]): number;
-	    wait(target: number | string): number;
-		signal(value: string): number;
+	    wait(target?: number | string): number;
+		signal(value?: string): number;
 	    next(): any;
 	}
 	

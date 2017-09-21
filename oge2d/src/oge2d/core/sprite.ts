@@ -114,7 +114,8 @@ export class Plot {
         return 0;
     }
 
-    wait(target: number | string): number {
+    wait(target?: number | string): number {
+        if (target == undefined) return this.pause("::common::");
         if (typeof target == "string") {
             return this.pause(target);
         } else {
@@ -124,8 +125,8 @@ export class Plot {
         }
     }
 
-    signal(value: string): number {
-        return this.resume(value);
+    signal(value?: string): number {
+        return value ? this.resume(value) : this.resume("::common::");
     }
 
     next(): any {

@@ -239,8 +239,12 @@ export class Stage implements Updater {
                 if (location) {
                     let newX = Math.round(location.x - scene.game.width / 2);
                     let newY = Math.round(location.y - scene.game.height / 2);
-                    if (newX >= 0 && newX <= stage.maxX) stage.x = newX;
-                    if (newY >= 0 && newY <= stage.maxY) stage.y = newY;
+                    //if (newX >= 0 && newX <= stage.maxX) stage.x = newX;
+                    //if (newY >= 0 && newY <= stage.maxY) stage.y = newY;
+                    if (newX > stage.maxX) stage.x = stage.maxX;
+                    else if (newX < 0) stage.x = 0; else stage.x = newX;
+                    if (newY > stage.maxY) stage.y = stage.maxY;
+                    else if (newY < 0) stage.y = 0; else stage.y = newY;
                 }
             }
             
@@ -283,6 +287,26 @@ export class Stage implements Updater {
         } : pos;
     }
 
+    follow(scene: Scene, spriteName: string) {
+        let stage = scene.components["stage"];
+		if (stage) {
+            let sprite = scene.sprites[spriteName];
+            if (sprite) stage.follow = spriteName;
+            if (sprite && stage.follow) {
+                stage.scrolling = false;
+                let location = sprite ? sprite.components["stage"] : null;
+                if (location) {
+                    stage.x = Math.round(location.x - scene.game.width / 2);
+                    stage.y = Math.round(location.y - scene.game.height / 2);
+                    if (stage.x < 0) stage.x = 0;
+                    if (stage.x > stage.maxX) stage.x = stage.maxX;
+                    if (stage.y < 0) stage.y = 0;
+                    if (stage.y > stage.maxY) stage.y = stage.maxY;
+                }
+            }
+        }
+    }
+
     setPos(x: number, y: number, target?: any) {
         let components = target ? target.components : this._game.scene.components;
         let stage = components ? components["stage"] : null;
@@ -306,7 +330,7 @@ export class Stage implements Updater {
 		}
 		return stage;
 	}
-	wait(targetX: number, targetY: number, callback: (sce?: Scene)=>void) {
+	wait(targetX: number, targetY: number, callback: (currentScene?: Scene)=>void) {
         let scene = this._game.scene;
 		let stage = scene.components["stage"];
 		if (stage) {
@@ -316,15 +340,20 @@ export class Stage implements Updater {
             stage.callback = callback;
         }
 	}
-	scroll(speedX: number, speedY: number) {
+	scroll(speedX: number | boolean, speedY?: number) {
         let scene = this._game.scene;
 		var stage = scene.components["stage"];
 		if (stage) {
-            stage.scrolling = true;
-            stage.speedX = speedX;
-		    stage.speedY = speedY;
+            if (typeof speedX == "number") {
+                stage.scrolling = true;
+                stage.speedX = speedX;
+                stage.speedY = speedY ? speedY : 0;
+            } else {
+                stage.scrolling = speedX === true;
+            }
+            if (stage.scrolling === true) stage.follow = null;
         }
-	}
+    }
 	loop(beginX: number, beginY: number, endX: number, endY: number) {
         let scene = this._game.scene;
 		let stage = scene.components["stage"];
