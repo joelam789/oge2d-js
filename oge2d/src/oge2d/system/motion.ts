@@ -19,15 +19,16 @@ export class Motion implements Updater {
 	update(scene: Scene, time: number) {
         if (scene.paused) return;
         let spriteList = scene.spriteList;
-        for (let sprite of spriteList) {
+        for (let i=0; i<=spriteList.length; i++) {
 
-            let motion = sprite.active ? sprite.components["motion"] : null;
+			let target = i == spriteList.length ? scene : spriteList[i];
+            let motion = (i == spriteList.length || target.active) ? target.components["motion"] : null;
             if (motion == undefined || motion == null) continue;
             
             if (motion.state == 0) continue;
             if (motion.state == 1 && motion.speed > 0) {
                 
-                let pos = this.getSpritePos(sprite);
+                let pos = this.getTargetPos(target);
                 if (pos == undefined || pos == null) continue;
 
                 if (motion.style == 0) {
@@ -50,7 +51,7 @@ export class Motion implements Updater {
             }
             if (motion.state == 2 && motion.speed > 0) {
                 
-                let pos = this.getSpritePos(sprite);
+                let pos = this.getTargetPos(target);
                 if (pos == undefined || pos == null) continue;
                 
                 let dataX: Array<number> = motion.dataX;
@@ -61,7 +62,7 @@ export class Motion implements Updater {
                 if (idx < dataX.length) {
                     pos.x = dataX[idx];
                     pos.y = dataY[idx];
-                    if (motion.onStep) motion.onStep(sprite, idx, dataX.length);
+                    if (motion.onStep) motion.onStep(target, idx, dataX.length);
                     motion.current += motion.speed;
                 } else {
                     pos.x = dataX[dataX.length - 1];
@@ -74,9 +75,9 @@ export class Motion implements Updater {
                 
                 motion.state = 0;
                 
-                let callback: (spr:Sprite)=>void = motion.onEnd;
-                if (callback) callback(sprite);
-                else if (this._event) this._event.addEvent(sprite, "onMotionDone");
+                let callback: (obj:any)=>void = motion.onEnd;
+                if (callback) callback(target);
+                else if (this._event) this._event.addEvent(target, "onMotionDone");
                 
                 if (motion.state == 0) motion.callback = null;
             }
@@ -114,28 +115,28 @@ export class Motion implements Updater {
 		};
 	}
 
-    getSpritePos(sprite: Sprite): any {
-        let pos = sprite.components["stage"];
+    getTargetPos(target: any): any {
+        let pos = target.components["stage"];
         if (pos) return pos;
-        pos = sprite.components["display"];
+        pos = target.components["display"];
         if (pos) return pos.object;
         return null;
     }
 
-    moveTo(sprite: Sprite, x: number, y: number, speed: number,
-			onEnd?: (spr:Sprite)=>void, onStep?: (spr:Sprite, currentX:number, currentY:number)=>void) {
-		let pos = this.getSpritePos(sprite);
+    moveTo(target: any, x: number, y: number, speed: number,
+			onEnd?: (obj:any)=>void, onStep?: (obj:any, currentX:number, currentY:number)=>void) {
+		let pos = this.getTargetPos(target);
 		if (pos == undefined || pos == null || (pos.x == x && pos.y == y)) {
-			if (onEnd) onEnd(sprite);
+			if (onEnd) onEnd(target);
 			return;
 		}
-        return this.pathTo(sprite, x, y, speed, null, null, onEnd, onStep);
+        return this.pathTo(target, x, y, speed, null, null, onEnd, onStep);
     }
 
-    pathTo(sprite: Sprite, x: number, y: number, speed: number, dataX?: Array<number>, dataY?: Array<number>, 
-			onEnd?: (spr:Sprite)=>void, onStep?: (spr:Sprite, currentX:number, currentY:number)=>void) {
+    pathTo(target: any, x: number, y: number, speed: number, dataX?: Array<number>, dataY?: Array<number>, 
+			onEnd?: (obj:any)=>void, onStep?: (obj:any, currentX:number, currentY:number)=>void) {
         
-		let motion = sprite.components["motion"];
+		let motion = target.components["motion"];
 		if (motion == undefined || motion == null) motion = this.createMotionData();
 
 		motion.targetX = x;
@@ -152,39 +153,39 @@ export class Motion implements Updater {
 			if (motion.state == 2) motion.current = 0;
 		}
 
-        sprite.components["motion"] = motion;
+        target.components["motion"] = motion;
 	}
 
-    moveToNode(sprite: Sprite, nodeIndex: number, onEnd?: (spr:Sprite)=>void, 
-                onNode?: (spr:Sprite,nodeIdx:number,toX:number,toY:number)=>void) {
+    moveToNode(target: any, nodeIndex: number, onEnd?: (obj:any)=>void, 
+                onNode?: (obj:any,nodeIdx:number,toX:number,toY:number)=>void) {
         
-		let motionPath = sprite.components["path"];
+		let motionPath = target.components["path"];
         if (motionPath) {
             if (motionPath.state <= 0 || nodeIndex * 2 >= motionPath.nodes.length) {
                 motionPath.state = 0;
-                if (onEnd) onEnd(sprite);
+                if (onEnd) onEnd(target);
                 return;
             }
         } else {
-            if (onEnd) onEnd(sprite);
+            if (onEnd) onEnd(target);
 			return;
         }
 		let targetX: number = motionPath.nodes[nodeIndex * 2] + motionPath.offsetX;
 		let targetY: number = motionPath.nodes[nodeIndex * 2 + 1] + motionPath.offsetY;
-		if (onNode) onNode(sprite, nodeIndex - 1, targetX, targetY);
-		this.pathTo(sprite, targetX, targetY, motionPath.speed, 
-            motionPath.listX[nodeIndex], motionPath.listY[nodeIndex], (spr) => {
-			this.moveToNode(spr, nodeIndex + 1, onEnd, onNode);
+		if (onNode) onNode(target, nodeIndex - 1, targetX, targetY);
+		this.pathTo(target, targetX, targetY, motionPath.speed, 
+            motionPath.listX[nodeIndex], motionPath.listY[nodeIndex], (targetObj) => {
+			this.moveToNode(targetObj, nodeIndex + 1, onEnd, onNode);
 		});
 	}
 	
-	applyPath(sprite: Sprite, offsetX: number, offsetY: number, speed: number, nodes: Array<number>, 
-				onEnd?: (spr:Sprite)=>void, onNode?: (spr:Sprite,nodeIdx:number,toX:number,toY:number)=>void) {
+	applyPath(target: any, offsetX: number, offsetY: number, speed: number, nodes: Array<number>, 
+				onEnd?: (obj:any)=>void, onNode?: (obj:any,nodeIdx:number,toX:number,toY:number)=>void) {
                 
-		let motionPath = sprite.components["path"];
+		let motionPath = target.components["path"];
 		if (motionPath == undefined || motionPath == null) motionPath = this.createPathData();
 
-        sprite.components["path"] = motionPath;
+        target.components["path"] = motionPath;
 
 		motionPath.state = 0;
 		motionPath.offsetX = offsetX;
@@ -207,14 +208,14 @@ export class Motion implements Updater {
 		motionPath.nodes = data;
 		motionPath.speed = speed > 0 ? speed : 0 - speed;
 		
-		let pos = this.getSpritePos(sprite);
+		let pos = this.getTargetPos(target);
 		if (pos == undefined || pos == null) return;
 		
 		pos.x = offsetX + data[0];
 		pos.y = offsetY + data[1];
 		
 		if (data.length <= 2) {
-			if (onEnd) onEnd(sprite);
+			if (onEnd) onEnd(target);
 			return;
 		}
 		
@@ -239,7 +240,7 @@ export class Motion implements Updater {
 		motionPath.listY = listY;
 		
 		motionPath.state = 1;
-		this.moveToNode(sprite, 1, onEnd, onNode);
+		this.moveToNode(target, 1, onEnd, onNode);
 	}
 	
 	getMotionAngle(currentX: number, currentY: number, targetX: number, targetY: number): number {
@@ -262,11 +263,11 @@ export class Motion implements Updater {
 		
 	}
 	
-	moveOutside(sprite: Sprite, speed: number, angle: number, 
+	moveOutside(target: any, speed: number, angle: number, 
                 left: number, top: number, right: number, bottom: number,
-                onEnd?: (spr:Sprite)=>void, onStep?: (spr:Sprite, currentX:number, currentY:number)=>void) {
+                onEnd?: (obj:any)=>void, onStep?: (obj:any, currentX:number, currentY:number)=>void) {
 
-		let pos = this.getSpritePos(sprite);
+		let pos = this.getTargetPos(target);
 		if (pos == undefined || pos == null) return;
 
 		let posX: number = pos.x;
@@ -286,7 +287,7 @@ export class Motion implements Updater {
 			targetY = bottom;
 			targetX = posX - Math.abs(posY - targetY) / Math.tan(angle * Math.PI / 180);
 		}
-		this.moveTo(sprite, targetX, targetY, speed, onEnd, onStep);
+		this.moveTo(target, targetX, targetY, speed, onEnd, onStep);
 	}
 	
 	generateBeeline(x1: number, y1: number, x2: number, y2: number,

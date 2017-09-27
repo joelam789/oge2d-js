@@ -115,18 +115,18 @@ export class Plot {
     }
 
     wait(target?: number | string): number {
-        if (target == undefined) return this.pause("::common::");
+        if (target == undefined) return this.pause("::::");
         if (typeof target == "string") {
             return this.pause(target);
         } else {
             if (target <= 0) return;
-            this._spr.scene.timeout(target, () => this.resume("::waiting::"));
-            return this.pause("::waiting::");
+            this._spr.scene.timeout(target, () => this.resume("::timer::"));
+            return this.pause("::timer::");
         }
     }
 
     signal(value?: string): number {
-        return value ? this.resume(value) : this.resume("::common::");
+        return value ? this.resume(value) : this.resume("::::");
     }
 
     next(): any {
