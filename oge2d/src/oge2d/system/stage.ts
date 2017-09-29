@@ -47,6 +47,11 @@ export class Stage implements Updater {
         let sceneContainer = container;
         container = new PIXI.Container();
 
+        //container.pivot.x = this._game.width / 2;
+        //container.pivot.y = this._game.height / 2;
+        //container.position.x = container.pivot.x;
+        //container.position.y = container.pivot.y;
+
         let tilemapName: string = stage.map ? stage.map.toString() : "";
         let idx = 0, maxX = 0, maxY = 0;
 
@@ -279,11 +284,11 @@ export class Stage implements Updater {
         }
     }
 
-    transform(pos: any) {
+    transform(pos: any, fromScreen: boolean = true) {
         let stage = this._game.scene.components["stage"];
         return stage ? {
-            x: stage.x + pos.x,
-            y: stage.y + pos.y
+            x: fromScreen ? pos.x + stage.x : pos.x - stage.x,
+            y: fromScreen ? pos.y + stage.y : pos.y - stage.y,
         } : pos;
     }
 
@@ -308,6 +313,61 @@ export class Stage implements Updater {
                     }
                 }
             }
+        }
+    }
+
+    zoom(scene: Scene, rate: number | boolean, rateY?: number, x?: number, y?: number) {
+        let stage = scene.get("stage");
+        let container = stage ? stage.display : null;
+        if (container == undefined || container == null) return;
+        if (typeof rate == "boolean") {
+            if (rate === false) {
+                container.scale.x = 1;
+                container.scale.y = 1;
+            }
+        } else if (rate > 0) {
+            let scaleX = rate;
+            let scaleY = rateY && rateY > 0 ? rateY : rate;
+            let posX = x == undefined ? this._game.width / 2 : x;
+            let posY = y == undefined ? this._game.height / 2 : y;
+            container.scale.x = scaleX;
+            container.scale.y = scaleY;
+            container.pivot.x = posX;
+            container.pivot.y = posY;
+            container.position.x = container.pivot.x;
+            container.position.y = container.pivot.y;
+        }
+    }
+
+    zoomTo(scene: Scene, scaleX: number, scaleY: number, posX: number, posY: number,
+            time?: number, callback?: ()=>void) {
+
+        let stage = scene.get("stage");
+        let tween = scene.sys("tween") as any;
+        let container = stage && tween ? stage.display : null;
+        if (container == undefined || container == null) return;
+
+        container.pivot.x = posX;
+        container.pivot.y = posY;
+        container.position.x = container.pivot.x;
+        container.position.y = container.pivot.y;
+
+        tween.get(container.scale)
+        .to({x: scaleX, y: scaleY}, time)
+        .call(() => {
+            if (callback) callback();
+        });
+
+    }
+
+    setPivot(scene: Scene, x: number, y: number) {
+        let stage = scene.get("stage");
+        let container = stage ? stage.display : null;
+        if (container) {
+            container.pivot.x = x;
+            container.pivot.y = y;
+            container.position.x = container.pivot.x;
+            container.position.y = container.pivot.y;
         }
     }
 
