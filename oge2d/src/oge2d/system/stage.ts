@@ -165,6 +165,7 @@ export class Stage implements Updater {
             stage.waiting = false;
             stage.looping = false;
             stage.scrolling = false;
+            stage.shake = null;
             stage.callback = null;
         }
     }
@@ -279,6 +280,60 @@ export class Stage implements Updater {
                     if (display.object.visible == false) display.object.visible = true;
                 } else {
                     if (display.object.visible == true) display.object.visible = false;
+                }
+            }
+        }
+
+        if (stage.shake) {
+            stage.shake.total++;
+            let stageDisplay = stage ? stage.display : null;
+            if (stageDisplay && stage.shake.speed > 0 && stage.shake.total % (11 - stage.shake.speed) == 0) {
+                if (stageDisplay.position.x != stageDisplay.pivot.x) stageDisplay.position.x = stageDisplay.pivot.x;
+                else if (stage.shake.minX || stage.shake.maxX)
+                    stageDisplay.position.x = stageDisplay.pivot.x + this.getRandomInt(stage.shake.minX, stage.shake.maxX);
+                if (stageDisplay.position.y != stageDisplay.pivot.y) stageDisplay.position.y = stageDisplay.pivot.y;
+                else if (stage.shake.minY || stage.shake.maxY)
+                    stageDisplay.position.y = stageDisplay.pivot.y + this.getRandomInt(stage.shake.minY, stage.shake.maxY);
+                stage.shake.count++;
+                if (stage.shake.times > 0 && stage.shake.times == stage.shake.count) {
+                    if (stage.shake.callback) stage.shake.callback();
+                    this.shake(scene, false);
+                }
+            }
+        }
+    }
+
+    getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+
+    shake(scene: Scene, speed: number | boolean, 
+            minY: number = 0, maxY: number = 0, minX: number = 0, maxX: number = 0,
+            times: number = 0, callback: ()=>void = null) {
+        let stage = scene.components["stage"];
+		if (stage) {
+            if (typeof speed == "boolean") {
+                if (speed === false) {
+                    stage.shake = null;
+                    let container = stage ? stage.display : null;
+                    if (container) {
+                        container.position.x = container.pivot.x;
+                        container.position.y = container.pivot.y;
+                    }
+                } else if (speed === true) {
+                    this.shake(scene, 9, 1, 10, 1, 10);
+                }
+            } else {
+                stage.shake = {
+                    count: 0,
+                    total: 0,
+                    times: times,
+                    callback: callback,
+                    speed: speed > 10 ? 10 : speed,
+                    minX: minX,
+                    minY: minY,
+                    maxX: maxX > minX ? maxX : minX,
+                    maxY: maxY > minY ? maxY : minY
                 }
             }
         }
