@@ -265,39 +265,39 @@ export class Stage implements Updater {
             if (stage.tilemap) {
                 this.updateTilemapView(scene);
             }
-            
-        }
-        let spriteList = scene.spriteList;
-        for (let sprite of spriteList) {
-            let display = sprite.components["display"];
-            if (display && display.object) {
-                if (sprite.active) {
-                    let location = sprite.components["stage"];
-                    if (location) {
-                        display.object.x = Math.round(location.x - stage.x);
-                        display.object.y = Math.round(location.y - stage.y);
+
+            let spriteList = scene.spriteList;
+            for (let sprite of spriteList) {
+                let display = sprite.components["display"];
+                if (display && display.object) {
+                    if (sprite.active) {
+                        let location = sprite.components["stage"];
+                        if (location) {
+                            display.object.x = Math.round(location.x - stage.x);
+                            display.object.y = Math.round(location.y - stage.y);
+                        }
+                        if (display.object.visible == false) display.object.visible = true;
+                    } else {
+                        if (display.object.visible == true) display.object.visible = false;
                     }
-                    if (display.object.visible == false) display.object.visible = true;
-                } else {
-                    if (display.object.visible == true) display.object.visible = false;
                 }
             }
-        }
-
-        if (stage.shake) {
-            stage.shake.total++;
-            let stageDisplay = stage ? stage.display : null;
-            if (stageDisplay && stage.shake.speed > 0 && stage.shake.total % (11 - stage.shake.speed) == 0) {
-                if (stageDisplay.position.x != stageDisplay.pivot.x) stageDisplay.position.x = stageDisplay.pivot.x;
-                else if (stage.shake.minX || stage.shake.maxX)
-                    stageDisplay.position.x = stageDisplay.pivot.x + this.getRandomInt(stage.shake.minX, stage.shake.maxX);
-                if (stageDisplay.position.y != stageDisplay.pivot.y) stageDisplay.position.y = stageDisplay.pivot.y;
-                else if (stage.shake.minY || stage.shake.maxY)
-                    stageDisplay.position.y = stageDisplay.pivot.y + this.getRandomInt(stage.shake.minY, stage.shake.maxY);
-                stage.shake.count++;
-                if (stage.shake.times > 0 && stage.shake.times == stage.shake.count) {
-                    if (stage.shake.callback) stage.shake.callback();
-                    this.shake(scene, false);
+    
+            if (stage.shake) {
+                stage.shake.total++;
+                let stageDisplay = stage ? stage.display : null;
+                if (stageDisplay && stage.shake.speed > 0 && stage.shake.total % (11 - stage.shake.speed) == 0) {
+                    if (stageDisplay.position.x != stageDisplay.pivot.x) stageDisplay.position.x = stageDisplay.pivot.x;
+                    else if (stage.shake.minX || stage.shake.maxX)
+                        stageDisplay.position.x = stageDisplay.pivot.x + this.getRandomInt(stage.shake.minX, stage.shake.maxX);
+                    if (stageDisplay.position.y != stageDisplay.pivot.y) stageDisplay.position.y = stageDisplay.pivot.y;
+                    else if (stage.shake.minY || stage.shake.maxY)
+                        stageDisplay.position.y = stageDisplay.pivot.y + this.getRandomInt(stage.shake.minY, stage.shake.maxY);
+                    stage.shake.count++;
+                    if (stage.shake.times > 0 && stage.shake.times == stage.shake.count) {
+                        if (stage.shake.callback) stage.shake.callback();
+                        this.shake(scene, false);
+                    }
                 }
             }
         }

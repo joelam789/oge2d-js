@@ -47,10 +47,8 @@ export class Mouse implements Updater {
         this._stage = game.components["display"].object;
         this._interaction = game.components["display"].plugins.interaction;
 
-        let isIOS = (navigator.userAgent.indexOf('OS 9') >= 0 || navigator.userAgent.indexOf('OS 10') >= 0)
-					&& (navigator.userAgent.indexOf('iPad') >= 0 
-						|| navigator.userAgent.indexOf('iPhone') >= 0
-						|| navigator.userAgent.indexOf('Mobile') >= 0);
+        let isIOS = navigator.userAgent.indexOf('Mobile') >= 0 &&
+				    (navigator.userAgent.indexOf('iPad') >= 0 || navigator.userAgent.indexOf('iPhone') >= 0);
         if (isIOS) {
             let audiolib = this._game.libraries["audio"];
             if (audiolib) {

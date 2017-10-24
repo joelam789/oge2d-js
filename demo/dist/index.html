@@ -111,22 +111,14 @@
                             <td style="width: 50%;">
                                 <div style="width: 100%;">
                                     <div class="round-button"><div class="round-button-circle">
-                                        <a href="#" class="round-button" 
-                                            onmousedown="window.vjoystick.b2 = true;"
-                                            onmouseup="window.vjoystick.b2 = false;"
-                                            ontouchstart="window.vjoystick.b2 = true;"
-                                            ontouchend="window.vjoystick.b2 = false;">BOMB</a>
+                                        <a href="#" class="round-button" id="vbtn2">BOMB</a>
                                     </div></div>
                                 </div>
                             </td>
                             <td style="width: 50%;">
                                 <div style="width: 100%;">
                                     <div class="round-button"><div class="round-button-circle">
-                                        <a href="#" class="round-button" 
-                                            onmousedown="window.vjoystick.b1 = true;"
-                                            onmouseup="window.vjoystick.b1 = false;"
-                                            ontouchstart="window.vjoystick.b1 = true;"
-                                            ontouchend="window.vjoystick.b1 = false;">SHOOT</a>
+                                        <a href="#" class="round-button" id="vbtn1">SHOOT</a>
                                     </div></div>
                                 </div>
                             </td>
@@ -135,6 +127,27 @@
                 </td>
             </tr>
         </table>
+
+        <script>
+            function bindGameButton(btnid) {
+                var btnobj = document.getElementById(btnid);
+                if (btnobj) {
+                    btnobj.onmousedown = btnobj.ontouchstart = function(e) {
+                        e.preventDefault();
+                        if (e.target.id.indexOf("1") >= 0) window.vjoystick.b1 = true;
+                        else window.vjoystick.b2 = true;
+                    };
+                    btnobj.onmouseup = btnobj.ontouchend = function(e) {
+                        e.preventDefault();
+                        e.preventDefault();
+                        if (e.target.id.indexOf("1") >= 0) window.vjoystick.b1 = false;
+                        else window.vjoystick.b2 = false;
+                    };
+                }
+            }
+            bindGameButton("vbtn1");
+            bindGameButton("vbtn2");
+        </script>
         
     </body>
 </html>
