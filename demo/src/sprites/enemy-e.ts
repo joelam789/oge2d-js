@@ -30,7 +30,7 @@ export class SpriteEnemyE {
 		let jsonlib = scene.game.lib("json");
 		let pathData = jsonlib.getJson("json/paths/hill.json");
 		if (pathData == undefined || pathData == null) return;
-		let enemy = script.call(this, "getFreeEnemy", [scene, "enemy-e1"]);
+		let enemy = script.call(this, "getFreeEnemy", scene, "enemy-e1");
 		if (enemy) {
 			enemy.active = true;
 			enemy.components.shooting.hp = enemy.components.shooting.maxhp;

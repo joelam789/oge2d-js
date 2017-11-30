@@ -91,7 +91,7 @@ export class Audio {
 		if (this._context && urls && urls.length > 0) {
             this._loadedMusics = [];
 			this._loadingMusicUrls = [];
-			Array.prototype.push.apply(this._loadingMusicUrls, urls);
+			this._loadingMusicUrls.push(...urls);
 			this._musicsToLoad = this._loadingMusicUrls.length;
 			this.loadMusicsOneByOne(callback, progress);
         } else {
@@ -102,7 +102,7 @@ export class Audio {
 	private loadMusicsOneByOne(callback: (loaded: Array<Music>)=>void, progress?: (current: number, total: number)=>void) {
 		if (this._loadingMusicUrls.length <= 0) {
             let list = [];
-			Array.prototype.push.apply(list, this._loadedMusics);
+			list.push(...this._loadedMusics);
             this._loadedMusics = [];
             callback(list);
         } else {
@@ -150,7 +150,7 @@ export class Audio {
 		if (this._context && urls && urls.length > 0) {
             this._loadedSounds = [];
 			this._loadingSoundUrls = [];
-			Array.prototype.push.apply(this._loadingSoundUrls, urls);
+			this._loadingSoundUrls.push(...urls);
 			this._soundsToLoad = this._loadingSoundUrls.length;
 			this.loadSoundsOneByOne(callback, progress);
         } else {
@@ -161,7 +161,7 @@ export class Audio {
 	private loadSoundsOneByOne(callback: (loaded: Array<Sound>)=>void, progress?: (current: number, total: number)=>void) {
 		if (this._loadingSoundUrls.length <= 0) {
             let list = [];
-			Array.prototype.push.apply(list, this._loadedSounds);
+			list.push(...this._loadedSounds);
             this._loadedSounds = [];
             callback(list);
         } else {

@@ -6,7 +6,7 @@ export class SpriteEnemyB {
 		let jsonlib = scene.game.lib("json");
 		let pathData = jsonlib.getJson("json/paths/circle.json");
 		if (pathData == undefined || pathData == null) return;
-		let enemy = script.call(this, "getFreeEnemy", [scene, "enemy-b1"]);
+		let enemy = script.call(this, "getFreeEnemy", scene, "enemy-b1");
 		if (enemy) {
 			motion.applyPath(enemy, x, y, speed, pathData.nodes, (spr) => enemy.active = false, 
 			(spr, index, nextx, nexty) => {

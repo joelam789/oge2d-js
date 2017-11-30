@@ -66,7 +66,7 @@ export class Game {
             else secondSystems.push(value);
         });
 
-        if (config.basics) Array.prototype.push.apply(this.basics, config.basics);
+        if (config.basics) this.basics.push(...config.basics);
 
         this.preloadPacks(config.packs, () => {
 
@@ -179,8 +179,7 @@ export class Game {
 
     call(functionName: string, ...args: any[]) {
         if (this.script && this.script[functionName]) {
-            let params = Array.from(args);
-            return Reflect.apply(this.script[functionName], this.script, params);
+            return this.script[functionName](...args);
         }
         return undefined;
     }

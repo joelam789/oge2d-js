@@ -54,7 +54,7 @@ export class Scene {
     init(config: any, callback: (scene: Scene)=>void, progress?: (percentage: number)=>void) {
         let systemNames: Array<string> = [], systemObjects: Array<any> = [];
         let displaySystemObject = null, eventSystemObject = null;
-        if (this.game.basics) Array.prototype.push.apply(systemNames, this.game.basics);
+        if (this.game.basics) systemNames.push(...this.game.basics);
         if (config.systems) {
             for (let systemName of config.systems) 
                 if (systemNames.indexOf(systemName) < 0) systemNames.push(systemName);
@@ -472,8 +472,7 @@ export class Scene {
 
     call(functionName: string, ...args: any[]) {
         if (this.script && this.script[functionName]) {
-            let params = Array.from(args);
-            return Reflect.apply(this.script[functionName], this.script, params);
+            return this.script[functionName](...args);
         }
         return undefined;
     }
@@ -498,7 +497,7 @@ export class Scene {
             }
             if (timers.length != this._timers.length) {
                 this._timers = [];
-                if (timers.length > 0) Array.prototype.push.apply(this._timers, timers);
+                if (timers.length > 0) this._timers.push(...timers);
             }
         }
         for (let system of this._systems) {

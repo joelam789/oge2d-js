@@ -7,7 +7,7 @@ export class SpriteEnemyF {
 		let target = player.get("display").object;
 		let posX = target.x, posY = target.y;
 		let targetX = posX + Math.round(Math.random() * 32) * (Math.random() > 0.5 ? 1 : -1);
-		let enemy = script.call(this, "getFreeEnemy", [scene, "enemy-f1"]);
+		let enemy = script.call(this, "getFreeEnemy", scene, "enemy-f1");
 		if (enemy != null) {
 			enemy.components.display.object.x = targetX;
 			enemy.components.display.object.y = -20;

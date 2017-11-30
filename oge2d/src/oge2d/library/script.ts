@@ -119,10 +119,10 @@ export class Script {
         } else return null;
     }
 
-    call(script: any, functionName: string, args?: any[]) {
+    call(script: any, functionName: string, ...args: any[]) {
         if (script) {
-            if (script[functionName]) return Reflect.apply(script[functionName], script, args);
-            else return this.call(script.base, functionName, args);
+            if (script[functionName]) return script[functionName](...args);
+            else return this.call(script.base, functionName, ...args);
         }
         return undefined;
     }

@@ -51,9 +51,8 @@ export class Sprite {
 
     call(functionName: string, ...args: any[]) {
         if (this.script && this.script.helper) {
-            let params = Array.from(args);
             this.script.helper.caller = this.name; // just for reference...
-            return this.script.helper.call(this.script, functionName, params);
+            return this.script.helper.call(this.script, functionName, ...args);
         }
     }
 

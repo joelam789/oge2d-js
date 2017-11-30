@@ -33,7 +33,7 @@ export class SpriteEnemyD {
 
 	go(scene: OGE2D.Scene, x: number, y: number, direction: string) {
 		let script = scene.game.lib("script");
-		let enemy = script.call(this, "getFreeEnemy", [scene, "enemy-d1"]);
+		let enemy = script.call(this, "getFreeEnemy", scene, "enemy-d1");
 		let stage: any = scene.sys("stage");
 		if (enemy) {
 			enemy.components.shooting.hp = enemy.components.shooting.maxhp;

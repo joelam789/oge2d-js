@@ -104,7 +104,7 @@ export class Preload {
 
     loadPacks(urls: Array<string>, callback: ()=>void, progress?: (current: number, total: number, url?: string)=>void) {
         this._loadingPacks = [];
-        Array.prototype.push.apply(this._loadingPacks, urls);
+        this._loadingPacks.push(...urls);
         this.totalPackCount = this._loadingPacks.length;
         this.loadedPackCount = 0;
         this.loadPacksOneByOne(callback, progress);

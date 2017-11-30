@@ -147,7 +147,7 @@ export class Texture {
 		if (urls && urls.length > 0) {
             this._loadedImages = [];
 			this._loadingImageUrls = [];
-			Array.prototype.push.apply(this._loadingImageUrls, urls);
+			this._loadingImageUrls.push(...urls);
             this._imagesToLoad = this._loadingImageUrls.length;
 			this.loadImagesOneByOne(callback, progress);
         } else {
@@ -158,7 +158,7 @@ export class Texture {
 	private loadImagesOneByOne(callback: (loaded: Array<any>)=>void, progress?: (current: number, total: number)=>void) {
 		if (this._loadingImageUrls.length <= 0) {
             let list = [];
-			Array.prototype.push.apply(list, this._loadedImages);
+			list.push(...this._loadedImages);
             this._loadedImages = [];
             callback(list);
         } else {

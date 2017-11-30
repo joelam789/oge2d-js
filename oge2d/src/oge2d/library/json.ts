@@ -29,7 +29,7 @@ export class Json {
     loadJsons(urls: Array<string>, callback: (objs: Array<any>)=>void, progress?: (current: number, total: number)=>void) {
 		this._loadedObjects = [];
         this._loadingObjectUrls = [];
-        Array.prototype.push.apply(this._loadingObjectUrls, urls);
+        this._loadingObjectUrls.push(...urls);
         this._objectsToLoad = this._loadingObjectUrls.length;
         this.loadJsonsOneByOne(callback, progress);
 	}
@@ -37,7 +37,7 @@ export class Json {
 	private loadJsonsOneByOne(callback: (loaded: Array<any>)=>void, progress?: (current: number, total: number)=>void) {
 		if (this._loadingObjectUrls.length <= 0) {
             let list = [];
-			Array.prototype.push.apply(list, this._loadedObjects);
+			list.push(...this._loadedObjects);
             this._loadedObjects = [];
             callback(list);
         } else {

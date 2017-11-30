@@ -18,7 +18,7 @@ export class SpriteEnemyA {
 		let jsonlib = scene.game.libraries["json"];
 		let pathData = jsonlib.getJson("json/paths/deepv.json");
 		if (pathData == undefined || pathData == null) return;
-		let enemy = script.call(this, "getFreeEnemy", [scene, "enemy-a1"]);
+		let enemy = script.call(this, "getFreeEnemy", scene, "enemy-a1");
 		if (enemy) {
 			enemy.components.display.animation.reset("down");
 			enemy.components.display.animation.play();
