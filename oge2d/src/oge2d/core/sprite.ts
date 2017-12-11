@@ -13,6 +13,7 @@ export class Sprite {
     origin: Sprite = null;
 
     script: any = null;
+    proxy: any = null;
     plot: Plot = null;
 
     template: string = "";
@@ -20,6 +21,12 @@ export class Sprite {
     components: any = { };
 
     private _active: boolean = false;
+
+    constructor(scene: Scene, name: string) {
+        this.game = scene.game;
+        this.scene = scene;
+        this.name = name;
+    }
 
     get active(): boolean {
         return this._active;
@@ -37,12 +44,6 @@ export class Sprite {
             let eventSystem: any = this.scene.systems["event"];
             if (eventSystem) eventSystem.callEvent(this, "onDeactivate");
         }
-    }
-
-    constructor(scene: Scene, name: string) {
-        this.game = scene.game;
-        this.scene = scene;
-        this.name = name;
     }
 
     get(componentName: string) {

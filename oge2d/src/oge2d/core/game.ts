@@ -17,6 +17,7 @@ export class Game {
     deltaTime: number = 0;
 
     script: any = null;
+    proxy: any = null;
 
     scenes: { [name: string]: Scene } = { };
     systems: { [name: string]: Updater } = { };
@@ -75,6 +76,16 @@ export class Game {
                 scriptlib.loadGameScript(this.libraries["systemjs"], this.name, (loadedScript) => {
                     this.script = loadedScript;
                     this.script.owner = this;
+                    if (this.script) {
+                        let win = window as any;
+                        if (win.Proxy) {
+                            this.proxy = new win.Proxy(this.script, {
+                                get: function(target, name) {
+                                    return target.helper.get(target, name);
+                                }
+                            });
+                        }
+                    }
                     for (let item of firstSystems) if (item.init) item.init(this);
                     for (let item of secondSystems) if (item.init) item.init(this);
                     if (eventSystem) eventSystem.callEvent(this, "onInit");

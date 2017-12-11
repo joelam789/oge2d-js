@@ -13,6 +13,7 @@ export class Scene {
     paused: boolean = false;
 
     script: any = null;
+    proxy: any = null;
 
     private _systems: Array<Updater> = [];
     private _sprites: Array<Sprite> = [];
@@ -90,6 +91,16 @@ export class Scene {
                 scriptlib.loadSceneScript(this.game.libraries["systemjs"], this.name, (loadedScript) => {
                     this.script = loadedScript;
                     this.script.owner = this;
+                    if (this.script) {
+                        let win = window as any;
+                        if (win.Proxy) {
+                            this.proxy = new win.Proxy(this.script, {
+                                get: function(target, name) {
+                                    return target.helper.get(target, name);
+                                }
+                            });
+                        }
+                    }
                     let eventSystem: any = this.systems["event"];
                     if (eventSystem) eventSystem.callEvent(this, "onInit");
                     this.loadSprites(() => {
@@ -205,6 +216,16 @@ export class Scene {
     }
 
     private addNewSpriteWithClones(newSprite: Sprite, isActive: boolean, total: number, callback: (loaded: Sprite)=>void) {
+        if (newSprite.script) {
+            let win = window as any;
+            if (win.Proxy) {
+                newSprite.proxy = new win.Proxy(newSprite.script, {
+                    get: function(target, name) {
+                        return target.helper.get(target, name);
+                    }
+                });
+            }
+        }
         if (total == undefined || isNaN(total) || total <= 1) {
             this.addNewSprite(newSprite, isActive, callback);
             return;
