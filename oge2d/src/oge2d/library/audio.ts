@@ -44,7 +44,13 @@ export class Audio {
 		}
         if (this._context == undefined || this._context == null)
 			console.error("No Web Audio API Supported");
-    }
+	}
+	
+	static setGainValue(gain, value, ctx) {
+		if (gain.setValueAtTime && ctx) {
+			gain.setValueAtTime(value, ctx.currentTime);
+		} else gain.value = value;
+	}
 
 	playDummy() { // for iOS only ...
 		this._isPlayingDummy = true;
@@ -55,7 +61,7 @@ export class Audio {
 			this._dummyGain = this._context.createGain();
 			this._dummyAudioSource.connect(this._dummyGain);
 			this._dummyGain.connect(this._context.destination);
-			this._dummyGain.gain.value = 0; // make sure no noise comes form it
+			Audio.setGainValue(this._dummyGain.gain, 0, this._context); // make sure no noise comes form it
 			if (this._dummyAudioSource) this._dummyAudioSource.start();
 		}
 	}
@@ -255,7 +261,7 @@ export class Music {
 	set volume(value: number) {
 		let volumeValue = value < 0 ? 0 : (value > 1 ? 1 : value);
 		if (this._volume == volumeValue) return;
-		if (this._gain) this._gain.gain.value = volumeValue;
+		if (this._gain) Audio.setGainValue(this._gain.gain, volumeValue, this._context);
 		this._volume = volumeValue;
 	}
 
@@ -316,7 +322,7 @@ export class Music {
 		if (this._gain == undefined || this._gain == null) return;
 		this._channel.connect(this._gain);
 		this._gain.connect(this._context.destination);
-		this._gain.gain.value = this._volume;
+		Audio.setGainValue(this._gain.gain, this._volume, this._context);
 		if (this._pauseTime > 0) {
 			this._startTime = this._context.currentTime - this._pauseTime;
             this._channel.start(0, this._pauseTime);
@@ -402,7 +408,7 @@ export class Sound {
 	set volume(value: number) {
 		let volumeValue = value < 0 ? 0 : (value > 1 ? 1 : value);
 		if (this._volume == volumeValue) return;
-		this._gains.forEach((gain, key) => gain.gain.value = volumeValue);
+		this._gains.forEach((gain, key) => Audio.setGainValue(gain.gain, volumeValue, this._context));
 		this._volume = volumeValue;
 	}
 
@@ -447,7 +453,7 @@ export class Sound {
 		if (gain == undefined || gain == null) return;
 		channel.connect(gain);
 		gain.connect(this._context.destination);
-		gain.gain.value = this._volume;
+		Audio.setGainValue(gain.gain, this._volume, this._context);
         this._gains.set(channel, gain);
 
         channel.start(0);

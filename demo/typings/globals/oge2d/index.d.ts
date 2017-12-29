@@ -20,7 +20,8 @@ declare module OGE2D {
 	    game: Game;
 	    scene: Scene;
 	    origin: Sprite;
-	    script: any;
+		script: any;
+		proxy: any;
 	    plot: Plot;
 	    template: string;
 	    components: any;
@@ -41,8 +42,8 @@ declare module OGE2D {
 	    reset(): void;
 	    pause(...signals: string[]): number;
 	    resume(...signals: string[]): number;
-	    wait(target: number | string): number;
-		signal(value: string): number;
+	    wait(target?: number | string): number;
+		signal(value?: string): number;
 	    next(): any;
 	}
 	
@@ -51,7 +52,8 @@ declare module OGE2D {
 	    name: string;
 	    ticks: number;
 	    paused: boolean;
-	    script: any;
+		script: any;
+		proxy: any;
 	    private _systems;
 	    private _sprites;
 	    private _timers;
@@ -115,7 +117,8 @@ declare module OGE2D {
 	    fps: number;
 	    ticks: number;
 	    deltaTime: number;
-	    script: any;
+		script: any;
+		proxy: any;
 	    scenes: {
 	        [name: string]: Scene;
 	    };
@@ -126,12 +129,16 @@ declare module OGE2D {
 	        [name: string]: any;
 	    };
 	    components: any;
-	    basics: Array<string>;
+		basics: Array<string>;
+		private _lastScene;
+		private _nextScene;
 	    private _currentScene;
 	    private _loadingScenes;
 	    private _scenesToLoad;
 	    constructor(name: string);
-	    scene: Scene;
+		readonly lastScene: Scene;
+		readonly nextScene: Scene;
+		scene: Scene;
 	    init(config: any, systems: Map<string, any>, libraries: Map<string, any>, callback: (game: Game) => void): void;
 	    private preloadPacks(packs, callback);
 	    private loadScenesOneByOne(callback, progress?);

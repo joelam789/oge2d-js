@@ -129,12 +129,16 @@ declare module OGE2D {
 	        [name: string]: any;
 	    };
 	    components: any;
-	    basics: Array<string>;
+		basics: Array<string>;
+		private _lastScene;
+		private _nextScene;
 	    private _currentScene;
 	    private _loadingScenes;
 	    private _scenesToLoad;
 	    constructor(name: string);
-	    scene: Scene;
+		readonly lastScene: Scene;
+		readonly nextScene: Scene;
+		scene: Scene;
 	    init(config: any, systems: Map<string, any>, libraries: Map<string, any>, callback: (game: Game) => void): void;
 	    private preloadPacks(packs, callback);
 	    private loadScenesOneByOne(callback, progress?);

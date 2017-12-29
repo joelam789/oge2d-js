@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/pixijs/pixi-display/25a2a0e06269c6fde4241308a54727bffb9405d2/bin/pixi-layers.d.ts",
+    "raw": "github:pixijs/pixi-display/bin/pixi-layers.d.ts#25a2a0e06269c6fde4241308a54727bffb9405d2",
+    "typings": "https://raw.githubusercontent.com/pixijs/pixi-display/25a2a0e06269c6fde4241308a54727bffb9405d2/bin/pixi-layers.d.ts"
+  }
+}

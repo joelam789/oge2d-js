@@ -1,8 +1,8 @@
 {
   "resolution": "main",
   "tree": {
-    "src": "https://raw.githubusercontent.com/pixijs/pixi-typescript/e141acabcbb231adbba2522adc15dda5a605fc86/pixi.js.d.ts",
-    "raw": "github:pixijs/pixi-typescript/pixi.js.d.ts#e141acabcbb231adbba2522adc15dda5a605fc86",
-    "typings": "https://raw.githubusercontent.com/pixijs/pixi-typescript/e141acabcbb231adbba2522adc15dda5a605fc86/pixi.js.d.ts"
+    "src": "https://raw.githubusercontent.com/pixijs/pixi-typescript/624b0b2766135e99681cffb9a48ca4b9e7696039/pixi.js.d.ts",
+    "raw": "github:pixijs/pixi-typescript/pixi.js.d.ts#624b0b2766135e99681cffb9a48ca4b9e7696039",
+    "typings": "https://raw.githubusercontent.com/pixijs/pixi-typescript/624b0b2766135e99681cffb9a48ca4b9e7696039/pixi.js.d.ts"
   }
 }

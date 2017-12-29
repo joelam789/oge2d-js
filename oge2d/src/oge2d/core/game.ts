@@ -26,6 +26,8 @@ export class Game {
 
     basics: Array<string> = []; // the names of the basic systems
 
+    private _lastScene: Scene = null;
+    private _nextScene: Scene = null;
     private _currentScene: Scene = null;
     private _loadingScenes: Array<string> = [ ];
 
@@ -34,24 +36,47 @@ export class Game {
     constructor(name: string) {
         this.name = name;
     }
+
+    get lastScene(): Scene {
+        return this._lastScene;
+    }
+    
+    get nextScene(): Scene {
+        return this._nextScene;
+    }
     
     get scene(): Scene {
         return this._currentScene;
     }
     set scene(value: Scene) {
         if (value) {
+            this._nextScene = value;
             if (this._currentScene) {
                 for (let system of this._currentScene.systemList)
                     if (system.deactivate) system.deactivate(this._currentScene); // disable old scene
                 let eventSystem: any = this.systems["event"];
-                if (eventSystem) eventSystem.callEvent(this._currentScene, "onDeactivate");
+                if (eventSystem) {
+                    let sprites = this._currentScene.spriteList;
+                    for (let spr of sprites) {
+                        if (spr.active) eventSystem.callEvent(spr, "onSceneDeactivate");
+                    }
+                    eventSystem.callEvent(this._currentScene, "onDeactivate");
+                }
             }
+            this._lastScene = this._currentScene;
+            this._nextScene = null;
             this._currentScene = value;
             if (this._currentScene) {
                 for (let system of this._currentScene.systemList)
                     if (system.activate) system.activate(this._currentScene); // enable new scene
                 let eventSystem: any = this.systems["event"];
-                if (eventSystem) eventSystem.callEvent(this._currentScene, "onActivate");
+                if (eventSystem) {
+                    eventSystem.callEvent(this._currentScene, "onActivate");
+                    let sprites = this._currentScene.spriteList;
+                    for (let spr of sprites) {
+                        if (spr.active) eventSystem.callEvent(spr, "onSceneActivate");
+                    }
+                }
             }
         }
     }

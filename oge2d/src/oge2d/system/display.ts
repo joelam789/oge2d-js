@@ -22,6 +22,7 @@ export class Display implements Updater {
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
         //PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.HIGH;
         this._pixi = new PIXI.Application(display.width, display.height);
+        this._pixi.stage = new PIXI.display.Stage();
         this._pixi.renderer.roundPixels = true;
         this._game.width = this._pixi.screen.width;
         this._game.height = this._pixi.screen.height;
@@ -31,20 +32,23 @@ export class Display implements Updater {
         display.plugins = this._pixi.renderer.plugins;
         if (display.layers) {
             let idx = 0, layers: { [name: string]: any }  = { };
-            this._pixi.stage.displayList = new PIXI.DisplayList();
+            (this._pixi.stage as any).group.enableSort = true;
             for (let key of Object.keys(display.layers)) {
                 if (key.length > 0) {
                     idx++;
                     if (display.layers[key] == "default") {
-                        layers[key] = new PIXI.DisplayGroup(idx, (spr) => {
+                        layers[key] = new PIXI.display.Group(idx, (spr) => {
                             spr.zOrder = -spr.y * 10000 - spr.x;
                         });
+                        this._pixi.stage.addChild(new PIXI.display.Layer(layers[key]));
                     } else {
                         if (display.layers[key] && game.script && game.script[display.layers[key]]) {
-                            layers[key] = new PIXI.DisplayGroup(idx, true);
-                            layers[key].on('add', game.script[display.layers[key]]);
+                            layers[key] = new PIXI.display.Group(idx, true);
+                            layers[key].on('sort', game.script[display.layers[key]]);
+                            this._pixi.stage.addChild(new PIXI.display.Layer(layers[key]));
                         } else {
-                            layers[key] = new PIXI.DisplayGroup(idx, false);
+                            layers[key] = new PIXI.display.Group(idx, false);
+                            this._pixi.stage.addChild(new PIXI.display.Layer(layers[key]));
                         }
                     }
                 }
@@ -311,7 +315,7 @@ export class Display implements Updater {
             if (item == "layer") {
                 if (this._game.components["display"].layers 
                     && this._game.components["display"].layers[properties[item].toString()]) {
-                    pixispr.displayGroup = this._game.components["display"].layers[properties[item].toString()];
+                    pixispr.parentGroup = this._game.components["display"].layers[properties[item].toString()];
                 }
                 continue;
             }

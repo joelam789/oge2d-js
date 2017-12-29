@@ -27,7 +27,11 @@ export class Transition implements Updater {
         this._dark.scale.set(game.width, game.height);
         let layers = game.components["display"].layers;
         let keys = layers ? Object.keys(layers) : [];
-        if (keys.length > 0) this._dark.displayGroup = new PIXI.DisplayGroup(keys.length + 1, false);
+        //if (keys.length > 0) this._dark.displayGroup = new PIXI.DisplayGroup(keys.length + 1, false);
+        if (keys.length > 0) {
+            this._dark.parentGroup = new PIXI.display.Group(keys.length + 1, false);
+            this._stage.addChild(new PIXI.display.Layer(this._dark.parentGroup));
+        }
         return true;
     }
 
