@@ -1,8 +1,8 @@
 {
   "resolution": "main",
   "tree": {
-    "src": "https://raw.githubusercontent.com/pixijs/pixi-display/25a2a0e06269c6fde4241308a54727bffb9405d2/bin/pixi-layers.d.ts",
-    "raw": "github:pixijs/pixi-display/bin/pixi-layers.d.ts#25a2a0e06269c6fde4241308a54727bffb9405d2",
-    "typings": "https://raw.githubusercontent.com/pixijs/pixi-display/25a2a0e06269c6fde4241308a54727bffb9405d2/bin/pixi-layers.d.ts"
+    "src": "https://raw.githubusercontent.com/pixijs/pixi-display/8f0ce8777811b75b86231c0b53657987efb9977b/dist/pixi-layers.d.ts",
+    "raw": "github:pixijs/pixi-display/dist/pixi-layers.d.ts#8f0ce8777811b75b86231c0b53657987efb9977b",
+    "typings": "https://raw.githubusercontent.com/pixijs/pixi-display/8f0ce8777811b75b86231c0b53657987efb9977b/dist/pixi-layers.d.ts"
   }
 }

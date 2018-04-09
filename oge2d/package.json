@@ -9,13 +9,15 @@
   "author": "joelam",
   "license": "MIT",
   "devDependencies": {
+    "@types/core-js": "^0.9.46",
+    "@types/tweenjs": "^0.6.27",
     "del": "^3.0.0",
     "gulp": "^3.9.1",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-typescript": "^3.2.2",
     "run-sequence": "^1.2.2",
     "systemjs-builder": "^0.16.10",
-    "typescript": "^2.5.2",
+    "typescript": "^2.8.1",
     "typings": "^2.1.1"
   }
 }

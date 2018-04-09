@@ -1,8 +1,5 @@
 {
   "name": "shooting",
   "dependencies": {},
-  "globalDependencies": {
-    "core-js": "registry:dt/core-js#0.9.0+20170324193834",
-    "pixi.js": "github:pixijs/pixi-typescript/pixi.js.d.ts#624b0b2766135e99681cffb9a48ca4b9e7696039"
-  }
+  "globalDependencies": {}
 }
