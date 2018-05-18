@@ -4,13 +4,11 @@
       <div class="container-fluid" style="user-select: none;">
         <div class="row">
           <div class="col-lg-3">
-            <div class="row">
-              <div class="col-lg-8">
+            <div class="row form-inline">
+              <div class="form-group">
                 <select class="form-control" value.bind="selectedTilesetName" change.delegate="changeCurrentTileset()">
                     <option repeat.for="item of tilesets" value.bind="item.name">${item.name}</option>
                 </select>
-              </div>
-              <div class="col-lg-1">
                 <button class="btn btn-default" type="button" disabled.bind="tileWidth == 0 || tileHeight == 0" click.trigger="openSelectTilesetDlg()">+</button>
               </div>
             </div>

@@ -6,9 +6,12 @@
           <div class="col-lg-3">
             <div class="row">
               <div class="btn-group">
-                <a href="javascript:;" class="btn btn-default" click.trigger="editTile()" i18n="tileset.edit">Edit</a>
-                <a href="javascript:;" class="btn btn-default" click.trigger="removeTiles()" i18n="tileset.remove">Remove</a>
-                <a href="javascript:;" class="btn btn-default" click.trigger="clear()" i18n="tileset.clear">Clear</a>
+                <a href="javascript:;" class="${image.src.length > 0 ? 'btn btn-default' : 'btn btn-default disabled'}" 
+                  click.trigger="editTile()" i18n="tileset.edit">Edit</a>
+                <a href="javascript:;" class="${image.src.length > 0 ? 'btn btn-default' : 'btn btn-default disabled'}" 
+                  click.trigger="removeTiles()" i18n="tileset.remove">Remove</a>
+                <a href="javascript:;" class="${image.src.length > 0 ? 'btn btn-default' : 'btn btn-default disabled'}" 
+                  click.trigger="clear()" i18n="tileset.clear">Clear</a>
               </div>
             </div>
             <div class="row">&nbsp;</div>
