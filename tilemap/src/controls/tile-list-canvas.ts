@@ -9,7 +9,12 @@ export class TileListCanvas {
     @bindable tileset: any = null;
 
     @observable columnCount = 8;
-    selectedTiles = [];
+    selectedRects = [];
+
+    isMouseDown: boolean = false;
+    startRect: any = null;
+    endRect: any = null;
+    currentRect: any = { x: 0, y: 0, w: 0, h: 0 };
 
     tileRect: any = null;
 
@@ -38,45 +43,67 @@ export class TileListCanvas {
         return this._canvas;
     }
 
-    get currentTileRect() {
+    getCurrentTileRect(tileset, rects) {
         let selectedTile = null;
         let canvas = this.canvas;
         let x = 0, y = 0;
-        for (let tile of this.tileset.tiles) {
-            for (let i=this.selectedTiles.length - 1; i >= 0; i--) {
-                let rect = this.selectedTiles[i];
+        for (let tile of tileset.tiles) {
+            for (let i=rects.length - 1; i >= 0; i--) {
+                let rect = rects[i];
                 if (rect.x == x && rect.y == y) {
                     selectedTile = tile;
                     break;
                 }
             }
             if (selectedTile) break;
-            x += this.tileset.tileWidth;
+            x += tileset.tileWidth;
             if (x >= canvas.width) {
                 x = 0;
-                y += this.tileset.tileHeight;
+                y += tileset.tileHeight;
             }
         }
         return selectedTile ? {x: selectedTile.offsets[0], y: selectedTile.offsets[1], 
-                                w: this.tileset.tileWidth, h: this.tileset.tileHeight} : null;
+                                w: tileset.tileWidth, h: tileset.tileHeight} : null;
         
     }
 
-    get currentTileIndex() {
-        let selectedTile = null;
-        let canvas = this.canvas;
-        let index = -1, x = 0, y = 0;
-        if (this.selectedTiles && this.selectedTiles.length > 0) {
+    getCurrentTileRects() {
+
+        let rects = [], keys = [];
+        if (this.startRect && this.endRect) {
+            for (let x = this.startRect.x; x <= this.endRect.x; x += this.tileset.tileWidth) {
+                for (let y = this.startRect.y; y <= this.endRect.y; y += this.tileset.tileHeight) {
+                    let rect = {x: x, y: y, w: this.tileset.tileWidth, h: this.tileset.tileHeight};
+                    let key = rect.x + "," + rect.y;
+                    if (keys.indexOf(key) < 0) {
+                        keys.push(key);
+                        rects.push(rect);
+                    }
+                }
+            }
+        } else {
+            for (let rect of this.selectedRects) {
+                let key = rect.x + "," + rect.y;
+                if (keys.indexOf(key) < 0) {
+                    keys.push(key);
+                    rects.push(rect);
+                    break;
+                }
+            }
+        }
+
+        let selectedTiles = [];
+        if (this.tileset && this.tileset.tiles && this.tileset.tiles.length > 0) {
+            let canvas = this.canvas;
+            let x = 0, y = 0;
             for (let tile of this.tileset.tiles) {
-                index++;
-                for (let i=this.selectedTiles.length - 1; i >= 0; i--) {
-                    let rect = this.selectedTiles[i];
+                for (let i=rects.length - 1; i >= 0; i--) {
+                    let rect = rects[i];
                     if (rect.x == x && rect.y == y) {
-                        selectedTile = tile;
+                        selectedTiles.push(tile);
                         break;
                     }
                 }
-                if (selectedTile) break;
                 x += this.tileset.tileWidth;
                 if (x >= canvas.width) {
                     x = 0;
@@ -84,7 +111,124 @@ export class TileListCanvas {
                 }
             }
         }
+
+        let selectedTileSrcRects = [];
+        for (let tile of selectedTiles) {
+            selectedTileSrcRects.push( {x: tile.offsets[0], y: tile.offsets[1], 
+                w: this.tileset.tileWidth, h: this.tileset.tileHeight} );
+        }
+
+        return selectedTileSrcRects;
+        
+    }
+
+    get currentTileRect() {
+        return this.getCurrentTileRect(this.tileset, this.selectedRects);
+        
+    }
+
+    getCurrentTileIndex(tileset, rects) {
+        let selectedTile = null;
+        let canvas = this.canvas;
+        let index = -1, x = 0, y = 0;
+        if (rects && rects.length > 0) {
+            for (let tile of tileset.tiles) {
+                index++;
+                for (let i=rects.length - 1; i >= 0; i--) {
+                    let rect = rects[i];
+                    if (rect.x == x && rect.y == y) {
+                        selectedTile = tile;
+                        break;
+                    }
+                }
+                if (selectedTile) break;
+                x += tileset.tileWidth;
+                if (x >= canvas.width) {
+                    x = 0;
+                    y += tileset.tileHeight;
+                }
+            }
+        }
         return selectedTile ? index : -1;
+    }
+
+    getCurrentTileIndexes() {
+
+        let rects = [], keys = [];
+        if (this.startRect && this.endRect) {
+            for (let x = this.startRect.x; x <= this.endRect.x; x += this.tileset.tileWidth) {
+                for (let y = this.startRect.y; y <= this.endRect.y; y += this.tileset.tileHeight) {
+                    let rect = {x: x, y: y, w: this.tileset.tileWidth, h: this.tileset.tileHeight};
+                    let key = rect.x + "," + rect.y;
+                    if (keys.indexOf(key) < 0) {
+                        keys.push(key);
+                        rects.push(rect);
+                    }
+                }
+            }
+        } else {
+            for (let rect of this.selectedRects) {
+                let key = rect.x + "," + rect.y;
+                if (keys.indexOf(key) < 0) {
+                    keys.push(key);
+                    rects.push(rect);
+                    break;
+                }
+            }
+        }
+
+        let selectedIndexes = [];
+        if (this.tileset && this.tileset.tiles && this.tileset.tiles.length > 0) {
+            let canvas = this.canvas;
+            let index = -1, x = 0, y = 0;
+            for (let tile of this.tileset.tiles) {
+                index++;
+                for (let i=rects.length - 1; i >= 0; i--) {
+                    let rect = rects[i];
+                    if (rect.x == x && rect.y == y) {
+                        let idx = index;
+                        selectedIndexes.push(idx);
+                        break;
+                    }
+                }
+                x += this.tileset.tileWidth;
+                if (x >= canvas.width) {
+                    x = 0;
+                    y += this.tileset.tileHeight;
+                }
+            }
+        }
+
+        return selectedIndexes;
+        
+    }
+
+    get currentTileIndex() {
+        return this.getCurrentTileIndex(this.tileset, this.selectedRects);
+    }
+
+    getSelectedRects() {
+        let rects = [], keys = [];
+        for (let rect of this.selectedRects) {
+            let key = rect.x + "," + rect.y;
+            if (keys.indexOf(key) < 0) {
+                keys.push(key);
+                rects.push(rect);
+            }
+        }
+        if (this.startRect && this.endRect) {
+            for (let x = this.startRect.x; x <= this.endRect.x; x += this.tileset.tileWidth) {
+                for (let y = this.startRect.y; y <= this.endRect.y; y += this.tileset.tileHeight) {
+                    let rect = {x: x, y: y, w: this.tileset.tileWidth, h: this.tileset.tileHeight};
+                    let key = rect.x + "," + rect.y;
+                    if (keys.indexOf(key) < 0) {
+                        keys.push(key);
+                        rects.push(rect);
+                    }
+                }
+            }
+        }
+        return rects;
     }
 
     attached() {
@@ -96,16 +240,24 @@ export class TileListCanvas {
     }
 
     private tilesetChanged(newValue, oldValue) {
-        this.selectedTiles = [];
+        this.startRect = null;
+        this.endRect = null;
+        let rect = null;
+        if (this.selectedRects.length == 1) rect = this.selectedRects[0];
+        this.selectedRects = [];
+        if (rect) this.selectedRects.push(rect);
         this.refresh();
     }
 
     private columnCountChanged(newValue, oldValue) {
-        this.selectedTiles = [];
+        this.selectedRects = [];
+        this.startRect = null;
+        this.endRect = null;
         this.refresh();
     }
 
-    private getRect(posX: number, posY: number) {
+
+    getRect(posX: number, posY: number) {
 
         let rect = this.tileset ? { x: 0, y: 0, w: this.tileset.tileWidth, h: this.tileset.tileHeight }
                                 :  { x: 0, y: 0, w: 0, h: 0 }
@@ -130,22 +282,110 @@ export class TileListCanvas {
         return rect;
     }
 
+    onMouseMove(e) {
+        let rect = this.getRect(e.offsetX, e.offsetY);
+        if (rect.w <= 0 || rect.h <= 0) return;
+
+        if (rect.x == this.currentRect.x && rect.y == this.currentRect.y
+            && rect.w == this.currentRect.w && rect.h == this.currentRect.h) return;
+        
+        this.currentRect.x = rect.x;
+        this.currentRect.y = rect.y;
+        this.currentRect.w = rect.w;
+        this.currentRect.h = rect.h;
+
+        if (this.isMouseDown 
+            && this.startRect && this.endRect 
+            && e.ctrlKey !== true) {
+            if (!this.endRect) this.endRect = { x: 0, y: 0, w: 0, h: 0 };
+            this.endRect.x = this.currentRect.x;
+            this.endRect.y = this.currentRect.y;
+            this.endRect.w = this.currentRect.w;
+            this.endRect.h = this.currentRect.h;
+            this.refresh();
+        }
+    }
+
+    onMouseDown(e) {
+        //console.log(e);
+        let rect = this.getRect(e.offsetX, e.offsetY);
+        if (rect.w <= 0 || rect.h <= 0) return;
+
+        if (!this.startRect) this.startRect = { x: 0, y: 0, w: 0, h: 0 };
+        if (!this.endRect) this.endRect = { x: 0, y: 0, w: 0, h: 0 };
+
+        this.startRect.x = this.currentRect.x;
+        this.startRect.y = this.currentRect.y;
+        this.startRect.w = this.currentRect.w;
+        this.startRect.h = this.currentRect.h;
+
+        this.endRect.x = this.currentRect.x;
+        this.endRect.y = this.currentRect.y;
+        this.endRect.w = this.currentRect.w;
+        this.endRect.h = this.currentRect.h;
+
+        if (this.startRect.w <= 0 || this.startRect.h <= 0) return;
+
+        this.isMouseDown = true;
+
+        if (e.ctrlKey === true) {
+            let idx = -1;
+            for (let i=0; i<this.selectedRects.length; i++) {
+                if (this.selectedRects[i].x == rect.x && this.selectedRects[i].y == rect.y) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx < 0) this.selectedRects.push(rect);
+            else this.selectedRects.splice(idx, 1);
+            this.startRect = null;
+            this.endRect = null;
+        } else {
+            this.selectedRects = [];
+            this.selectedRects.push(rect);
+        }
+        this.refresh();  
+    }
+
+    onMouseUp(e) {
+
+        if (!this.endRect) this.endRect = { x: 0, y: 0, w: 0, h: 0 };
+        
+        this.endRect.x = this.currentRect.x;
+        this.endRect.y = this.currentRect.y;
+        this.endRect.w = this.currentRect.w;
+        this.endRect.h = this.currentRect.h;
+
+        this.isMouseDown = false;
+
+        if (e.ctrlKey === true) {
+            this.startRect = null;
+            this.endRect = null;
+        }
+
+        let event = new CustomEvent('tile-click', {
+            detail: e,
+            bubbles: true
+        });
+        this.element.dispatchEvent(event);
+    }
+
     private onTileClick(e) {
         let rect = this.getRect(e.offsetX, e.offsetY);
         if (rect.w > 0 && rect.h > 0) {
             if (e.ctrlKey === true) {
                 let idx = -1;
-                for (let i=0; i<this.selectedTiles.length; i++) {
-                    if (this.selectedTiles[i].x == rect.x && this.selectedTiles[i].y == rect.y) {
+                for (let i=0; i<this.selectedRects.length; i++) {
+                    if (this.selectedRects[i].x == rect.x && this.selectedRects[i].y == rect.y) {
                         idx = i;
                         break;
                     }
                 }
-                if (idx < 0) this.selectedTiles.push(rect);
-                else this.selectedTiles.splice(idx, 1);
+                if (idx < 0) this.selectedRects.push(rect);
+                else this.selectedRects.splice(idx, 1);
             } else {
-                this.selectedTiles = [];
-                this.selectedTiles.push(rect);
+                this.selectedRects = [];
+                this.selectedRects.push(rect);
             }
             this.refresh();
         }
@@ -184,8 +424,8 @@ export class TileListCanvas {
                             x, y, this.tileset.tileWidth, this.tileset.tileHeight);
             let frameCount = tile.offsets.length / 2;
             if (frameCount > 1) {
-                ctx.font = "bold 8pt Arial";
-                ctx.fillStyle = 'red';
+                ctx.font = "bold 8pt arial, serif";
+                ctx.fillStyle = 'rgba(255,0,255,0.8)';
                 ctx.fillText(frameCount.toString(), x+2, y+10);
             }
             x += this.tileset.tileWidth;
@@ -195,9 +435,14 @@ export class TileListCanvas {
             }
         }
         ctx.lineWidth = 2;
-        if (this.selectedTiles.length > 0) {
+        //console.log(this.selectedRects);
+        if (this.startRect && this.endRect) {
+            ctx.strokeStyle = 'rgba(255,0,255,0.8)';
+            ctx.strokeRect(this.startRect.x, this.startRect.y, 
+                this.endRect.x + this.endRect.w - this.startRect.x, this.endRect.y + this.endRect.h - this.startRect.y);
+        } else if (this.selectedRects.length > 0) {
             ctx.strokeStyle = 'yellow';
-            for (let rect of this.selectedTiles) ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+            for (let rect of this.selectedRects) ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
         }
     }
 

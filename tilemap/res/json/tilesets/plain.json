@@ -1,0 +1,90 @@
+{
+	"name": "plain",
+	"image": "tilesets/plain.png",
+	"tileWidth": 32,
+	"tileHeight": 32,
+	"tiles": [
+		{
+			"offsets": [32,0]
+		},
+		{
+			"offsets": [32,128]
+		},
+		{
+			"offsets": [0,512]
+		},
+		{
+			"offsets": [32,352]
+		},
+		{
+			"offsets": [32,320]
+		},
+		{
+			"offsets": [32,288]
+		},
+		{
+			"offsets": [512,128]
+		},
+		{
+			"offsets": [416,128]
+		},
+		{
+			"offsets": [512,224]
+		},
+		{
+			"offsets": [32,192]
+		},
+		{
+			"offsets": [256,192]
+		},
+		{
+			"offsets": [32,256]
+		},
+		{
+			"offsets": [32,256]
+		},
+		{
+			"offsets": [32,224]
+		},
+		{
+			"offsets": [32,192]
+		},
+		{
+			"offsets": [416,64]
+		},
+		{
+			"offsets": [256,192]
+		},
+		{
+			"offsets": [416,32]
+		},
+		{
+			"offsets": [32,64]
+		},
+		{
+			"offsets": [32,320]
+		},
+		{
+			"offsets": [32,32]
+		},
+		{
+			"offsets": [32,160]
+		},
+		{
+			"offsets": [32,128]
+		},
+		{
+			"offsets": [32,96]
+		},
+		{
+			"offsets": [512,160]
+		},
+		{
+			"offsets": [416,96]
+		},
+		{
+			"offsets": [512,192]
+		}
+	],
+	"columnCount": "9"
+}

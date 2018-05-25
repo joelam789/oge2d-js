@@ -1,0 +1,36 @@
+{
+	"name": "woods",
+	"image": "tilesets/woods.png",
+	"tileWidth": 32,
+	"tileHeight": 32,
+	"tiles": [
+		{
+			"offsets": [224,0]
+		},
+		{
+			"offsets": [192,128]
+		},
+		{
+			"offsets": [224,96]
+		},
+		{
+			"offsets": [192,32]
+		},
+		{
+			"offsets": [224,128]
+		},
+		{
+			"offsets": [192,96]
+		},
+		{
+			"offsets": [224,32]
+		},
+		{
+			"offsets": [192,64]
+		},
+		{
+			"offsets": [192,224]
+		}
+	],
+	"columnCount": "3"
+}

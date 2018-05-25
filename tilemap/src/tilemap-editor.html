@@ -15,7 +15,7 @@
             <div class="row">&nbsp;</div>
             <div class="row">
               <tile-list-canvas view-model.ref="tileListCanvas" style="width: 100%; height: ${maxListCanvasHeight}px; overflow: auto;"
-                image.bind="tilesetImage" tileset.bind="tileset"></tile-list-canvas>
+                image.bind="tilesetImage" tileset.bind="tileset" tile-click.delegate="updateCursorImage()"></tile-list-canvas>
             </div>
           </div>
           <div class="col-lg-9">
@@ -39,7 +39,7 @@
                 <div class="col-lg-2">
                     <div class="form-group">
                         <div class="checkbox">
-                          <label><input type="checkbox" value="line" checked.bind="lineFlags"><span i18n="tilemap.show-lines">Show lines</span></label>
+                          <label><input type="checkbox" value="grid" checked.bind="gridFlags"><span i18n="tilemap.show-grids">Show grids</span></label>
                         </div>
                     </div>
                   </div>
@@ -49,8 +49,8 @@
                 <canvas id="tilemap-bg" style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
                 <canvas id="tilemap-map" style="position: absolute; left: 0; top: 0; z-index: 2;"></canvas>
                 <canvas id="tilemap-tile" style="position: absolute; left: 0; top: 0; z-index: 3; opacity: 0.5; pointer-events:none;"></canvas>
-                <canvas id="tilemap-line" style="position: absolute; left: 0; top: 0; z-index: 4; opacity: 0.5; pointer-events:none; visibility: ${lineFlags.length != 0 ? 'visible' : 'hidden'}"></canvas>
-                <canvas id="cursor-rect" width="1" height="1" style="position: absolute; left: 0; top: 0; z-index: 5; pointer-events:none; visibility: hidden;"></canvas>
+                <canvas id="tilemap-grid" style="position: absolute; left: 0; top: 0; z-index: 4; opacity: 0.5; pointer-events:none; visibility: ${gridFlags.length != 0 ? 'visible' : 'hidden'}"></canvas>
+                <canvas id="cursor-rect" width="1" height="1" style="position: absolute; left: 0; top: 0; z-index: 5; pointer-events:none; visibility: hidden; opacity: 0.5"></canvas>
               </div>
             </div>
           </div>

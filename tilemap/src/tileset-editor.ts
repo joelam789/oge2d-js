@@ -271,17 +271,17 @@ export class TilesetEditorPage {
 
     editTile() {
 
-        let selectedTiles = this.listControl ? this.listControl.selectedTiles : null;
+        let selectedTileRects = this.listControl ? this.listControl.getSelectedRects() : null;
 
-        if (selectedTiles == undefined || selectedTiles == null) selectedTiles = [];
+        if (selectedTileRects == undefined || selectedTileRects == null) selectedTileRects = [];
         if (this.tileset.tiles == undefined || this.tileset.tiles == null) this.tileset.tiles = [];
-        if (selectedTiles.length <= 0 || this.tileset.tiles.length <= 0) return;
+        if (selectedTileRects.length <= 0 || this.tileset.tiles.length <= 0) return;
         
         let selectedTile = null;
         let x = 0, y = 0;
         for (let tile of this.tileset.tiles) {
-            for (let i=selectedTiles.length - 1; i >= 0; i--) {
-                let rect = selectedTiles[i];
+            for (let i=selectedTileRects.length - 1; i >= 0; i--) {
+                let rect = selectedTileRects[i];
                 if (rect.x == x && rect.y == y) {
                     selectedTile = tile;
                     break;
@@ -355,11 +355,11 @@ export class TilesetEditorPage {
     }
 
     removeTiles() {
-        let selectedTiles = this.listControl ? this.listControl.selectedTiles : null;
+        let selectedTileRects = this.listControl ? this.listControl.getSelectedRects() : null;
 
-        if (selectedTiles == undefined || selectedTiles == null) selectedTiles = [];
+        if (selectedTileRects == undefined || selectedTileRects == null) selectedTileRects = [];
         if (this.tileset.tiles == undefined || this.tileset.tiles == null) this.tileset.tiles = [];
-        if (selectedTiles.length <= 0 || this.tileset.tiles.length <= 0) return;
+        if (selectedTileRects.length <= 0 || this.tileset.tiles.length <= 0) return;
 
         let tileset = JSON.parse(JSON.stringify(this.tileset));
 
@@ -368,7 +368,7 @@ export class TilesetEditorPage {
         let x = 0, y = 0;
         for (let tile of tileset.tiles) {
             let selected = false;
-            for (let rect of selectedTiles) {
+            for (let rect of selectedTileRects) {
                 if (rect.x == x && rect.y == y) {
                     selected = true;
                     break;

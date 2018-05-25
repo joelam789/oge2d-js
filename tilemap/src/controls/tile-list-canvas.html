@@ -5,6 +5,10 @@
         </div>
     </div>
     <div class="row" style="margin-left: 2px;">
-        <canvas click.trigger="onTileClick($event)" dblclick.trigger="onTileDoubleClick($event)"></canvas>
+        <!-- <canvas click.trigger="onTileClick($event)" dblclick.trigger="onTileDoubleClick($event)"></canvas> -->
+        <canvas mousedown.delegate="onMouseDown($event)" 
+                mousemove.delegate="onMouseMove($event)"
+                mouseup.delegate="onMouseUp($event)"
+                dblclick.delegate="onTileDoubleClick($event)"></canvas>
     </div>
 </template>

@@ -35,7 +35,7 @@ export class TilemapEditorPage {
 
     tilemap: any = {};
     tilemapBg: HTMLCanvasElement = null;
-    tilemapLines: HTMLCanvasElement = null;
+    tilemapGrids: HTMLCanvasElement = null;
     tilemapCanvas: HTMLCanvasElement = null;
     tilemapTileCanvas: HTMLCanvasElement = null;
     cursorCanvas: HTMLCanvasElement = null;
@@ -48,7 +48,7 @@ export class TilemapEditorPage {
 
     currentRect: any = { x: 0, y: 0, w: 0, h: 0 };
 
-    lineFlags = [];
+    gridFlags = [];
     replacementFlags = [];
 
     selectedArea: any = null;
@@ -80,7 +80,7 @@ export class TilemapEditorPage {
         this.tilesetControl = (this as any).tileListCanvas;
         this.tilesetCanvas = this.tilesetControl.canvas;
         this.tilemapBg = document.getElementById("tilemap-bg") as HTMLCanvasElement;
-        this.tilemapLines = document.getElementById("tilemap-line") as HTMLCanvasElement;
+        this.tilemapGrids = document.getElementById("tilemap-grid") as HTMLCanvasElement;
         this.tilemapCanvas = document.getElementById("tilemap-map") as HTMLCanvasElement;
         this.tilemapTileCanvas = document.getElementById("tilemap-tile") as HTMLCanvasElement;
         this.cursorCanvas = document.getElementById("cursor-rect") as HTMLCanvasElement;
@@ -176,32 +176,64 @@ export class TilemapEditorPage {
         this.currentRect.w = rect.w;
         this.currentRect.h = rect.h;
 
+        if (this.gridFlags.length > 0) {
+            if (this.cursorCanvas) this.cursorCanvas.style.visibility = "hidden";
+            return;
+        }
+
         if (this.cursorCanvas) {
             this.cursorCanvas.style.left = rect.x + 'px';
             this.cursorCanvas.style.top = rect.y + 'px';
         }
 
-        if (this.isMouseDown) {
+        let needUpdateAreaRect = this.isMouseDown;
+        if (this.tilesetControl && this.tilesetControl.startRect && this.tilesetControl.endRect) {
+            if (this.tilesetControl.startRect.x != this.tilesetControl.endRect.x
+                || this.tilesetControl.startRect.y != this.tilesetControl.endRect.y) needUpdateAreaRect = false;
+        }
+
+        if (e.shiftKey === true && this.isMouseDown) needUpdateAreaRect = true;
+
+        if (needUpdateAreaRect) {
             this.endRect.x = this.currentRect.x;
             this.endRect.y = this.currentRect.y;
             this.endRect.w = this.currentRect.w;
             this.endRect.h = this.currentRect.h;
             this.refreshTilemapTiles(e.shiftKey === true);
         }
+
+        this.updateCursorImage(e.shiftKey === true);
     }
 
     onMouseDown(e) {
-        this.startRect.x = this.currentRect.x;
-        this.startRect.y = this.currentRect.y;
-        this.startRect.w = this.currentRect.w;
-        this.startRect.h = this.currentRect.h;
 
-        this.endRect.x = this.currentRect.x;
-        this.endRect.y = this.currentRect.y;
-        this.endRect.w = this.currentRect.w;
-        this.endRect.h = this.currentRect.h;
+        if (this.gridFlags.length > 0) {
+            this.isMouseDown = true;
+            return;
+        }
 
-        if (this.startRect.w <= 0 || this.startRect.h <= 0) return;
+        let needUpdateAreaRect = true;
+        if (this.tilesetControl && this.tilesetControl.startRect && this.tilesetControl.endRect) {
+            if (this.tilesetControl.startRect.x != this.tilesetControl.endRect.x
+                || this.tilesetControl.startRect.y != this.tilesetControl.endRect.y) needUpdateAreaRect = false;
+        }
+
+        if (e.shiftKey === true) needUpdateAreaRect = true;
+
+        if (needUpdateAreaRect) {
+
+            this.startRect.x = this.currentRect.x;
+            this.startRect.y = this.currentRect.y;
+            this.startRect.w = this.currentRect.w;
+            this.startRect.h = this.currentRect.h;
+
+            this.endRect.x = this.currentRect.x;
+            this.endRect.y = this.currentRect.y;
+            this.endRect.w = this.currentRect.w;
+            this.endRect.h = this.currentRect.h;
+
+            if (this.startRect.w <= 0 || this.startRect.h <= 0) return;
+        }
 
         this.isMouseDown = true;
 
@@ -210,10 +242,32 @@ export class TilemapEditorPage {
 
     onMouseUp(e) {
 
-        this.endRect.x = this.currentRect.x;
-        this.endRect.y = this.currentRect.y;
-        this.endRect.w = this.currentRect.w;
-        this.endRect.h = this.currentRect.h;
+        if (this.gridFlags.length > 0) {
+            this.isMouseDown = false;
+            //console.log(e.button);
+            //console.log(this.currentRect);
+            if (this.currentRect.w > 0 && this.currentRect.h > 0) {
+                if (e.button == 0) this.addTileCost(this.currentRect.x, this.currentRect.y, 1);
+                else if (e.button == 2) this.addTileCost(this.currentRect.x, this.currentRect.y, -1);
+            }
+            this.refreshTilemapGrids();
+            return;
+        }
+
+        let needUpdateAreaRect = true;
+        if (this.tilesetControl && this.tilesetControl.startRect && this.tilesetControl.endRect) {
+            if (this.tilesetControl.startRect.x != this.tilesetControl.endRect.x
+                || this.tilesetControl.startRect.y != this.tilesetControl.endRect.y) needUpdateAreaRect = false;
+        }
+
+        if (e.shiftKey === true) needUpdateAreaRect = true;
+
+        if (needUpdateAreaRect) {
+            this.endRect.x = this.currentRect.x;
+            this.endRect.y = this.currentRect.y;
+            this.endRect.w = this.currentRect.w;
+            this.endRect.h = this.currentRect.h;
+        }
 
         this.isMouseDown = false;
 
@@ -383,24 +437,58 @@ export class TilemapEditorPage {
         }
     }
 
-    refreshTilemapLines() {
-        if (this.tilemapLines) {
-            let ctx = this.tilemapLines.getContext('2d');
+    refreshTilemapGrids() {
+        if (this.tilemapGrids) {
+            let ctx = this.tilemapGrids.getContext('2d');
             if (ctx) {
-                ctx.clearRect(0, 0, this.tilemapLines.width, this.tilemapLines.height);
-                this.tilemapLines.width = this.tileWidth * this.columnCount;
-                this.tilemapLines.height = this.tileHeight * this.rowCount;
+                ctx.clearRect(0, 0, this.tilemapGrids.width, this.tilemapGrids.height);
+                this.tilemapGrids.width = this.tileWidth * this.columnCount;
+                this.tilemapGrids.height = this.tileHeight * this.rowCount;
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = 'white';
-                for (let i=0; i < this.tilemapLines.height; i += this.tileHeight) {
+                ctx.strokeStyle = 'black';
+                for (let i=0; i < this.tilemapGrids.height; i += this.tileHeight) {
                     ctx.moveTo(0,i);
-                    ctx.lineTo(this.tilemapLines.width, i);
+                    ctx.lineTo(this.tilemapGrids.width, i);
                     ctx.stroke();
                 }
-                for (let i=0; i < this.tilemapLines.width; i += this.tileWidth) {
+                for (let i=0; i < this.tilemapGrids.width; i += this.tileWidth) {
                     ctx.moveTo(i,0);
-                    ctx.lineTo(i,this.tilemapLines.height);
+                    ctx.lineTo(i,this.tilemapGrids.height);
                     ctx.stroke();
+                }
+
+                ctx.font = 'bold ' + (this.tileWidth / 2) + 'px arial, serif';
+                ctx.fillStyle = 'white';
+
+                let x= 0, y = 0, pos = 0;
+                for (let row=0; row<this.tilemap.rowCount; row++) {
+                    for (let col=0; col<this.tilemap.columnCount; col++) {
+                        let cell = this.tilemap.cells[pos];
+                        if (cell.cost != undefined) {
+                            if (cell.cost >= 0) {
+                                ctx.fillStyle = 'white';
+                                ctx.fillRect(x+2, y+2, this.tileWidth - 4, this.tileHeight - 4);
+                                ctx.fillStyle = 'black';
+                            } else {
+                                ctx.fillStyle = 'red';
+                                ctx.fillRect(x+2, y+2, this.tileWidth - 4, this.tileHeight - 4);
+                                ctx.fillStyle = 'white';
+                            }
+                            //ctx.fillStyle = cell.cost >= 0 ? 'green' : 'red';
+                            let cost = cell.cost.toString();
+                            let text = ctx.measureText(cost);
+                            //let textHeight = (text as any).actualBoundingBoxDescent - (text as any).actualBoundingBoxAscent;
+                            let textHeight = 0 - (this.tileHeight / 4);
+                            ctx.fillText(cost, x+(this.tileWidth-text.width)/2, y+(this.tileHeight-textHeight)/2);
+                        } else {
+                            ctx.fillStyle = 'white';
+                            ctx.fillRect(x+2, y+2, this.tileWidth - 4, this.tileHeight - 4);
+                        }
+                        pos++;
+                        x += this.tileWidth;
+                    }
+                    x = 0;
+                    y += this.tileHeight;
                 }
             }
         }
@@ -414,7 +502,7 @@ export class TilemapEditorPage {
                 ctx.strokeStyle = "red";
                 ctx.strokeRect(this.startRect.x, this.startRect.y, 
                     this.endRect.x + this.endRect.w - this.startRect.x, this.endRect.y + this.endRect.h - this.startRect.y);
-            } else {
+            } else if (this.startRect.w > 0 && this.endRect.w > 0) {
                 let tileRect = this.isMouseDown && this.tilesetControl ? this.tilesetControl.currentTileRect : null;
                 if (tileRect && this.isMouseDown && this.tilesetControl.tileset && this.tilesetControl.image) {
                     for (let x = this.startRect.x; x <= this.endRect.x; x += tileRect.w) {
@@ -441,42 +529,102 @@ export class TilemapEditorPage {
             }
         }
         if (tilesetIndex < 0 && remove !== true) return;
-        let tileIndex = this.tilesetControl.currentTileIndex;
-        if (tileIndex < 0  && remove !== true) return;
 
-        //console.log("tilesetIndex: " + tilesetIndex + " , tileIndex: " + tileIndex);
+        let onlyOneTile = this.cursorCanvas.width == this.tileWidth && this.cursorCanvas.height == this.tileHeight;
 
-        let x= 0, y = 0, pos = 0;
-        for (let row=0; row<this.tilemap.rowCount; row++) {
-            for (let col=0; col<this.tilemap.columnCount; col++) {
-                if (x >= this.startRect.x && x <= this.endRect.x && y >= this.startRect.y && y <= this.endRect.y) {
-                    let cell = this.tilemap.cells[pos];
-                    if (remove === true) {
-                        if (cell.ids.length >= 4) {
-                            cell.ids.length = cell.ids.length - 2;
+        if (onlyOneTile) {
+
+            let tileIndex = this.tilesetControl.currentTileIndex;
+            if (tileIndex < 0  && remove !== true) return;
+
+            //console.log("tilesetIndex: " + tilesetIndex + " , tileIndex: " + tileIndex);
+
+            let x= 0, y = 0, pos = 0;
+            for (let row=0; row<this.tilemap.rowCount; row++) {
+                for (let col=0; col<this.tilemap.columnCount; col++) {
+                    if (x >= this.startRect.x && x <= this.endRect.x && y >= this.startRect.y && y <= this.endRect.y) {
+                        let cell = this.tilemap.cells[pos];
+                        if (remove === true) {
+                            if (cell.ids.length >= 4) {
+                                cell.ids.length = cell.ids.length - 2;
+                            } else {
+                                cell.ids = [-1, -1];
+                            }
                         } else {
-                            cell.ids = [-1, -1];
+                            if (replacement || cell.ids[0] == -1) {
+                                cell.ids = [tilesetIndex, tileIndex];
+                            } else {
+                                cell.ids.push(tilesetIndex);
+                                cell.ids.push(tileIndex);
+                            }
+                            if (cell.cost == undefined) {
+                                if (tilesetIndex >= 0 && tileIndex >= 0) {
+                                    let tileset = this.tilesets[tilesetIndex];
+                                    let tile = tileset.obj.tiles[tileIndex];
+                                    cell.cost = tile.cost == undefined ? 0 : tile.cost;
+                                } else {
+                                    cell.cost = 0;
+                                }
+                            }
                         }
-                    } else {
+                        //console.log("added: [" + tilesetIndex + ", " + tileIndex + "] => [" + row + ", " + col + "]");
+                    }
+                    pos++;
+                    x += this.tileWidth;
+                }
+                x = 0;
+                y += this.tileHeight;
+            }
+
+        } else {
+
+            if (remove === true) return;
+
+            let tileIndexes = this.tilesetControl.getCurrentTileIndexes();
+            if (tileIndexes.length <= 0) return;
+
+            let startRect = { x: this.currentRect.x, y: this.currentRect.y, w: this.tileWidth, h: this.tileHeight };
+            let endRect = { x: this.currentRect.x + this.cursorCanvas.width - this.tileWidth, 
+                y: this.currentRect.y + this.cursorCanvas.height - this.tileHeight, w: this.tileWidth, h: this.tileHeight };
+
+            let x= 0, y = 0, pos = 0, idx = -1;
+            for (let row=0; row<this.tilemap.rowCount; row++) {
+                for (let col=0; col<this.tilemap.columnCount; col++) {
+                    if (x >= startRect.x && x <= endRect.x && y >= startRect.y && y <= endRect.y) {
+                        idx++;
+                        let tileIndex = tileIndexes[idx];
+                        let cell = this.tilemap.cells[pos];
                         if (replacement || cell.ids[0] == -1) {
                             cell.ids = [tilesetIndex, tileIndex];
                         } else {
                             cell.ids.push(tilesetIndex);
                             cell.ids.push(tileIndex);
                         }
+                        if (cell.cost == undefined) {
+                            if (tilesetIndex >= 0 && tileIndex >= 0) {
+                                let tileset = this.tilesets[tilesetIndex];
+                                let tile = tileset.obj.tiles[tileIndex];
+                                cell.cost = tile.cost == undefined ? 0 : tile.cost;
+                            } else {
+                                cell.cost = 0;
+                            }
+                        }
                     }
-                    //console.log("added: [" + tilesetIndex + ", " + tileIndex + "] => [" + row + ", " + col + "]");
+                    pos++;
+                    x += this.tileWidth;
                 }
-                pos++;
-                x += this.tileWidth;
+                x = 0;
+                y += this.tileHeight;
             }
-            x = 0;
-            y += this.tileHeight;
+
         }
 
         this.record();
 
         this.refreshTilemapDisplay();
+
+        this.startRect = { x: 0, y: 0, w: 0, h: 0 };
+        this.endRect = { x: 0, y: 0, w: 0, h: 0 };
         
     }
 
@@ -535,20 +683,72 @@ export class TilemapEditorPage {
         this.applyCurrentTiles(true);
     }
 
-    refreshTilemap() {
-        //console.log("refreshing tilemap...");
-        if (this.cursorCanvas) {
-            this.cursorCanvas.style.visibility = "visible";
-            this.cursorCanvas.width = this.tileWidth;
-            this.cursorCanvas.height = this.tileHeight;
-            let ctx = this.cursorCanvas.getContext('2d');
-            if (ctx) {
-                ctx.clearRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = 'rgba(255,0,255,0.7)'; // fuchsia
-                ctx.strokeRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
+    updateCursorImage(going2remove?: boolean) {
+
+        let canvasWidth = this.tileWidth;
+        let canvasHeight = this.tileHeight;
+        let tileRects = this.tilesetControl ? this.tilesetControl.getCurrentTileRects() : null;
+        if (going2remove === true) tileRects = null;
+        if (this.cursorCanvas && tileRects && tileRects.length > 0 && this.tilesetControl.tileset && this.tilesetControl.image) {
+            
+            if (this.tilesetControl.startRect && this.tilesetControl.endRect) {
+
+                canvasWidth = this.tilesetControl.endRect.x + this.tilesetControl.endRect.w - this.tilesetControl.startRect.x;
+                canvasHeight = this.tilesetControl.endRect.y + this.tilesetControl.endRect.h - this.tilesetControl.startRect.y;
+
+                this.cursorCanvas.style.visibility = "visible";
+                this.cursorCanvas.width = canvasWidth;
+                this.cursorCanvas.height = canvasHeight;
+                let ctx = this.cursorCanvas.getContext('2d');
+
+                let x = 0, y = 0, idx = 0;
+                while (ctx && idx < tileRects.length && y < canvasHeight) {
+                    let tile = tileRects[idx];
+                    ctx.drawImage(this.tilesetControl.image, tile.x, tile.y, tile.w, tile.h, x, y, tile.w, tile.h);
+                    x += this.tileWidth;
+                    if (x >= canvasWidth) {
+                        x = 0;
+                        y += this.tileHeight;
+                    }
+                    idx++;
+                }
+
+            } else {
+
+                this.cursorCanvas.style.visibility = "visible";
+                this.cursorCanvas.width = canvasWidth;
+                this.cursorCanvas.height = canvasHeight;
+                let ctx = this.cursorCanvas.getContext('2d');
+
+                let tile = tileRects[0];
+                ctx.drawImage(this.tilesetControl.image, tile.x, tile.y, tile.w, tile.h, 0, 0, tile.w, tile.h);
+
+            }
+
+        } else {
+
+            if (this.cursorCanvas) {
+                this.cursorCanvas.style.visibility = "visible";
+                this.cursorCanvas.width = canvasWidth;
+                this.cursorCanvas.height = canvasHeight;
+                let ctx = this.cursorCanvas.getContext('2d');
+                if (ctx) {
+                    ctx.clearRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
+                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = 'rgba(255,0,255,0.8)'; // fuchsia
+                    ctx.strokeRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
+                }
             }
         }
+
+        
+    }
+
+    refreshTilemap() {
+        //console.log("refreshing tilemap...");
+
+        this.updateCursorImage();
+        
         if (this.tilemapCanvas) {
             this.tilemapCanvas.width = this.tileWidth * this.columnCount;
             this.tilemapCanvas.height = this.tileHeight * this.rowCount;
@@ -560,7 +760,7 @@ export class TilemapEditorPage {
         }
         this.refreshTilemapBg();
         this.refreshTilemapDisplay();
-        this.refreshTilemapLines();
+        this.refreshTilemapGrids();
 
         this.changeCurrentTileset();
     }
@@ -591,24 +791,65 @@ export class TilemapEditorPage {
             }
             if (tilesetNames.length > 0) {
                 this.loadTilesets(tilesetNames, () => {
-                    this.tilemap = JSON.parse(JSON.stringify(tilemap));
-                    if (this.tilemap.bgcolor == undefined) this.tilemap.bgcolor = "#00000000";
-                    this.refreshTilemap();
+                    this.reloadTilemap(tilemap);
                     if (callback) callback();
                 });
             } else {
-                this.tilemap = JSON.parse(JSON.stringify(tilemap));
-                if (this.tilemap.bgcolor == undefined) this.tilemap.bgcolor = "#00000000";
-                this.refreshTilemap();
+                this.reloadTilemap(tilemap);
                 if (callback) callback();
             }
         } else {
-            this.tilemap = JSON.parse(JSON.stringify(tilemap));
-            if (this.tilemap.bgcolor == undefined) this.tilemap.bgcolor = "#00000000";
-            this.refreshTilemap();
+            this.reloadTilemap(tilemap);
             if (callback) callback();
         }
         
+    }
+
+    addTileCost(posx, posy, value) {
+        let x= 0, y = 0, pos = 0;
+        for (let row=0; row<this.tilemap.rowCount; row++) {
+            for (let col=0; col<this.tilemap.columnCount; col++) {
+                if (x == posx && y == posy) {
+                    let cell = this.tilemap.cells[pos];
+                    if (cell.cost == undefined) cell.cost = 0;
+                    cell.cost += value;
+                    return;
+                }
+                pos++;
+                x += this.tileWidth;
+            }
+            x = 0;
+            y += this.tileHeight;
+        }
+    }
+
+    reloadTilemap(tilemap) {
+        this.tilemap = JSON.parse(JSON.stringify(tilemap));
+        if (this.tilemap.bgcolor == undefined) this.tilemap.bgcolor = "#00000000";
+
+        let x= 0, y = 0, pos = 0;
+        for (let row=0; row<this.tilemap.rowCount; row++) {
+            for (let col=0; col<this.tilemap.columnCount; col++) {
+                let cell = this.tilemap.cells[pos];
+                if (cell.cost == undefined && cell.ids.length >= 2) {
+                    let tilesetIndex = cell.ids[cell.ids.length - 2];
+                    let tileIndex = cell.ids[cell.ids.length - 1];
+                    if (tilesetIndex >= 0 && tileIndex >= 0) {
+                        let tileset = this.tilesets[tilesetIndex];
+                        let tile = tileset.obj.tiles[tileIndex];
+                        cell.cost = tile.cost == undefined ? 0 : tile.cost;
+                    } else {
+                        cell.cost = 0;
+                    }
+                }
+                pos++;
+                x += this.tileWidth;
+            }
+            x = 0;
+            y += this.tileHeight;
+        }
+
+        this.refreshTilemap();
     }
 
     openTilemap(tilemapName: string) {

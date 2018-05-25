@@ -1,0 +1,52 @@
+{
+	"name": "sea",
+	"image": "tilesets/main",
+	"tileWidth": 32,
+	"tileHeight": 32,
+	"tiles": [
+		{
+			"speed": 0.1,
+			"offsets": [268,367,301,367]
+		},
+		{
+			"offsets": [301,367]
+		},
+		{
+			"offsets": [102,500]
+		},
+		{
+			"offsets": [134,500]
+		},
+		{
+			"offsets": [102,532]
+		},
+		{
+			"offsets": [134,532]
+		},
+		{
+			"offsets": [168,500]
+		},
+		{
+			"offsets": [200,500]
+		},
+		{
+			"offsets": [168,532]
+		},
+		{
+			"offsets": [200,532]
+		},
+		{
+			"offsets": [232,500]
+		},
+		{
+			"offsets": [264,500]
+		},
+		{
+			"offsets": [232,532]
+		},
+		{
+			"offsets": [264,532]
+		}
+	],
+	"columnCount": "2"
+}

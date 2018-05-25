@@ -1,0 +1,45 @@
+{
+	"name": "road",
+	"image": "tilesets/road.png",
+	"tileWidth": 32,
+	"tileHeight": 32,
+	"tiles": [
+		{
+			"offsets": [576,256]
+		},
+		{
+			"offsets": [576,0]
+		},
+		{
+			"offsets": [576,352]
+		},
+		{
+			"offsets": [576,384]
+		},
+		{
+			"offsets": [576,96]
+		},
+		{
+			"offsets": [576,384]
+		},
+		{
+			"offsets": [576,288]
+		},
+		{
+			"offsets": [576,224]
+		},
+		{
+			"offsets": [576,320]
+		},
+		{
+			"offsets": [576,128]
+		},
+		{
+			"offsets": [576,160]
+		},
+		{
+			"offsets": [576,192]
+		}
+	],
+	"columnCount": "3"
+}

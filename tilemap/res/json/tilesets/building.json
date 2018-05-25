@@ -1,0 +1,63 @@
+{
+	"name": "building",
+	"image": "tilesets/building.png",
+	"tileWidth": 32,
+	"tileHeight": 32,
+	"tiles": [
+		{
+			"offsets": [224,32]
+		},
+		{
+			"offsets": [224,0]
+		},
+		{
+			"offsets": [256,32]
+		},
+		{
+			"offsets": [256,0]
+		},
+		{
+			"offsets": [256,160]
+		},
+		{
+			"offsets": [256,192]
+		},
+		{
+			"offsets": [288,192]
+		},
+		{
+			"offsets": [288,224]
+		},
+		{
+			"offsets": [288,160]
+		},
+		{
+			"offsets": [128,288]
+		},
+		{
+			"offsets": [288,96]
+		},
+		{
+			"offsets": [288,256]
+		},
+		{
+			"offsets": [128,0]
+		},
+		{
+			"offsets": [96,288]
+		},
+		{
+			"offsets": [96,224]
+		},
+		{
+			"offsets": [128,32]
+		},
+		{
+			"offsets": [96,160]
+		},
+		{
+			"offsets": [96,128]
+		}
+	],
+	"columnCount": "9"
+}

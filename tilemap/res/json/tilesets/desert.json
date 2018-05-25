@@ -1,0 +1,36 @@
+{
+	"name": "desert",
+	"image": "tilesets/desert.png",
+	"tileWidth": 32,
+	"tileHeight": 32,
+	"tiles": [
+		{
+			"offsets": [64,192]
+		},
+		{
+			"offsets": [160,128]
+		},
+		{
+			"offsets": [160,96]
+		},
+		{
+			"offsets": [160,64]
+		},
+		{
+			"offsets": [160,32]
+		},
+		{
+			"offsets": [160,160]
+		},
+		{
+			"offsets": [128,192]
+		},
+		{
+			"offsets": [128,160]
+		},
+		{
+			"offsets": [128,128]
+		}
+	],
+	"columnCount": "3"
+}
