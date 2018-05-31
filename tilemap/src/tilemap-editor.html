@@ -20,14 +20,15 @@
           </div>
           <div class="col-lg-9">
             <div class="row">
-                <div class="col-lg-7 text-right">
+                <div class="col-lg-6 text-right">
                   <div class="btn-group">
                       <a href="javascript:;" click.trigger="undo()" class="btn btn-default" i18n="tilemap.undo">Undo</a>
                       <a href="javascript:;" click.trigger="redo()" class="btn btn-default" i18n="tilemap.redo">Redo</a>
                   </div>
                 </div>
-                <div class="col-lg-1">
+                <div class="col-lg-2">
                   <button type="button" class="btn btn-default" click.trigger="fillUp()" i18n="tilemap.fill-up">Fill up</button>
+                  <button type="button" class="btn btn-default" click.trigger="setCost()" i18n="tilemap.cost" disabled.bind="gridFlags.length == 0">Cost</button>
                 </div>
                 <div class="col-lg-2">
                   <div class="form-group">

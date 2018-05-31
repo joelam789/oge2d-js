@@ -1,5 +1,5 @@
 
-import { autoinject } from 'aurelia-framework';
+import { autoinject, BindingEngine } from 'aurelia-framework';
 import { EventAggregator, Subscription } from 'aurelia-event-aggregator';
 import { Router } from 'aurelia-router';
 
@@ -13,6 +13,7 @@ import { NewTilemapDlg } from "./popups/tilemap/new-tilemap";
 import { SaveTilemapDlg } from "./popups/tilemap/save-tilemap";
 import { SelectTilesetDlg } from "./popups/tileset/select-tileset";
 import { SelectTilemapDlg } from "./popups/tilemap/select-tilemap";
+import { SetCostDlg } from "./popups/tilemap/set-cost";
 
 import { HttpClient } from "./http-client";
 import { App } from './app';
@@ -61,9 +62,14 @@ export class TilemapEditorPage {
     private _loadingTilesets: Array<string> = [];
 
     constructor(public dialogService: DialogService, public router: Router, 
-                public i18n: I18N, public eventChannel: EventAggregator) {
+        public binding: BindingEngine, public i18n: I18N, public eventChannel: EventAggregator) {
 
         this.subscribers = [];
+    }
+
+    private gridFlagsChanged() {
+        console.log("gridFlagsChanged");
+        this.refreshTilemapGrids();
     }
 
     activate(parameters, routeConfig) {
@@ -92,6 +98,11 @@ export class TilemapEditorPage {
         }
 
         this.subscribers = [];
+
+        this.subscribers.push(this.binding
+            .collectionObserver(this.gridFlags)
+            .subscribe(() => this.gridFlagsChanged()));
+
         this.subscribers.push(this.eventChannel.subscribe(UI.CreateNewFile, data => this.openNewTilemapDlg()));
         this.subscribers.push(this.eventChannel.subscribe(UI.OpenFile, data => this.openSelectTilemapDlg()));
         this.subscribers.push(this.eventChannel.subscribe(UI.SaveFile, data => this.saveTilemap()));
@@ -121,6 +132,7 @@ export class TilemapEditorPage {
         if (this.tilemap && this.tilemap.cells && this.tilemap.cells.length > 0) {
             this.histRecords.length = this.histCursor + 1;
             this.histRecords[this.histRecords.length] = JSON.parse(JSON.stringify(this.tilemap));
+            console.log(this.tilemap);
             this.histCursor = this.histRecords.length - 1;
         }
     }
@@ -176,14 +188,19 @@ export class TilemapEditorPage {
         this.currentRect.w = rect.w;
         this.currentRect.h = rect.h;
 
-        if (this.gridFlags.length > 0) {
-            if (this.cursorCanvas) this.cursorCanvas.style.visibility = "hidden";
-            return;
-        }
+        let going2remove = e.shiftKey === true;
+        let showingGrids = this.gridFlags.length > 0;
+        if (showingGrids) going2remove = false;
 
-        if (this.cursorCanvas) {
-            this.cursorCanvas.style.left = rect.x + 'px';
-            this.cursorCanvas.style.top = rect.y + 'px';
+        if (showingGrids) {
+            if (this.cursorCanvas) this.cursorCanvas.style.visibility = "hidden";
+            if (!this.isMouseDown) return;
+        } else {
+            if (this.cursorCanvas) {
+                this.cursorCanvas.style.left = rect.x + 'px';
+                this.cursorCanvas.style.top = rect.y + 'px';
+                this.cursorCanvas.style.visibility = "visible";
+            }
         }
 
         let needUpdateAreaRect = this.isMouseDown;
@@ -192,25 +209,31 @@ export class TilemapEditorPage {
                 || this.tilesetControl.startRect.y != this.tilesetControl.endRect.y) needUpdateAreaRect = false;
         }
 
-        if (e.shiftKey === true && this.isMouseDown) needUpdateAreaRect = true;
+        if (this.isMouseDown) {
+            if (going2remove || showingGrids) needUpdateAreaRect = true;
+        }
 
         if (needUpdateAreaRect) {
             this.endRect.x = this.currentRect.x;
             this.endRect.y = this.currentRect.y;
             this.endRect.w = this.currentRect.w;
             this.endRect.h = this.currentRect.h;
-            this.refreshTilemapTiles(e.shiftKey === true);
+            this.refreshTilemapTiles(going2remove || showingGrids);
         }
 
-        this.updateCursorImage(e.shiftKey === true);
+        this.updateCursorImage(going2remove || showingGrids);
     }
 
     onMouseDown(e) {
 
-        if (this.gridFlags.length > 0) {
-            this.isMouseDown = true;
-            return;
-        }
+        //if (this.gridFlags.length > 0) {
+        //    this.isMouseDown = true;
+        //    return;
+        //}
+
+        let going2remove = e.shiftKey === true;
+        let showingGrids = this.gridFlags.length > 0;
+        if (showingGrids) going2remove = false;
 
         let needUpdateAreaRect = true;
         if (this.tilesetControl && this.tilesetControl.startRect && this.tilesetControl.endRect) {
@@ -218,7 +241,7 @@ export class TilemapEditorPage {
                 || this.tilesetControl.startRect.y != this.tilesetControl.endRect.y) needUpdateAreaRect = false;
         }
 
-        if (e.shiftKey === true) needUpdateAreaRect = true;
+        if (going2remove || showingGrids) needUpdateAreaRect = true;
 
         if (needUpdateAreaRect) {
 
@@ -237,21 +260,29 @@ export class TilemapEditorPage {
 
         this.isMouseDown = true;
 
-        this.refreshTilemapTiles(e.shiftKey === true);
+        this.refreshTilemapTiles(going2remove || showingGrids);
     }
 
     onMouseUp(e) {
 
-        if (this.gridFlags.length > 0) {
-            this.isMouseDown = false;
-            //console.log(e.button);
-            //console.log(this.currentRect);
-            if (this.currentRect.w > 0 && this.currentRect.h > 0) {
-                if (e.button == 0) this.addTileCost(this.currentRect.x, this.currentRect.y, 1);
-                else if (e.button == 2) this.addTileCost(this.currentRect.x, this.currentRect.y, -1);
+        let going2remove = e.shiftKey === true;
+        let showingGrids = this.gridFlags.length > 0;
+        if (showingGrids) going2remove = false;
+
+        if (showingGrids) {
+            if (this.startRect.x >= 0 && this.startRect.y >= 0 && this.startRect.w > 0 && this.startRect.h > 0
+                && this.endRect.x >= 0 && this.endRect.y >= 0 && this.endRect.w > 0 && this.endRect.h > 0
+                && (this.startRect.x != this.endRect.x || this.startRect.y != this.endRect.y)) {
+                    console.log('Selected multiple tiles');
+            } else {
+                this.isMouseDown = false;
+                if (e.ctrlKey === true && this.currentRect.w > 0 && this.currentRect.h > 0) {
+                    if (e.button == 0) this.addTileCost(this.currentRect.x, this.currentRect.y, 1);
+                    else if (e.button == 2) this.addTileCost(this.currentRect.x, this.currentRect.y, -1);
+                }
+                this.refreshTilemapGrids();
+                return;
             }
-            this.refreshTilemapGrids();
-            return;
         }
 
         let needUpdateAreaRect = true;
@@ -260,7 +291,7 @@ export class TilemapEditorPage {
                 || this.tilesetControl.startRect.y != this.tilesetControl.endRect.y) needUpdateAreaRect = false;
         }
 
-        if (e.shiftKey === true) needUpdateAreaRect = true;
+        if (going2remove || showingGrids) needUpdateAreaRect = true;
 
         if (needUpdateAreaRect) {
             this.endRect.x = this.currentRect.x;
@@ -271,8 +302,48 @@ export class TilemapEditorPage {
 
         this.isMouseDown = false;
 
-        this.applyCurrentTiles(e.ctrlKey === true || this.replacementFlags.length > 0, e.shiftKey === true);
-        this.refreshTilemapTiles();
+        if (showingGrids) this.refreshTilemapTiles(showingGrids);
+        else {
+            this.applyCurrentTiles(e.ctrlKey === true || this.replacementFlags.length > 0, going2remove);
+            this.refreshTilemapTiles();
+        }
+    }
+
+    setCost() {
+        let showingGrids = this.gridFlags.length > 0;
+        if (showingGrids) {
+            if (this.startRect.x >= 0 && this.startRect.y >= 0 && this.startRect.w > 0 && this.startRect.h > 0
+                && this.endRect.x >= 0 && this.endRect.y >= 0 && this.endRect.w > 0 && this.endRect.h > 0
+                && (this.startRect.x != this.endRect.x || this.startRect.y != this.endRect.y)) {
+                
+                this.dialogService.open({viewModel: SetCostDlg, model: 0})
+                .whenClosed((response) => {
+                    if (!response.wasCancelled && response.output) {
+                        //console.log(response.output);
+                        let cost = response.output;
+                        let x= 0, y = 0, pos = 0;
+                        for (let row=0; row<this.tilemap.rowCount; row++) {
+                            for (let col=0; col<this.tilemap.columnCount; col++) {
+                                if (x >= this.startRect.x && x <= this.endRect.x && y >= this.startRect.y && y <= this.endRect.y) {
+                                    let cell = this.tilemap.cells[pos];
+                                    if (cell) cell.cost = cost;
+                                    //console.log('cell.cost = ' + cell.cost);
+                                }
+                                pos++;
+                                x += this.tileWidth;
+                            }
+                            x = 0;
+                            y += this.tileHeight;
+                        }
+                        this.refreshTilemapGrids();
+                    } else {
+                        console.log('Give up setting costs of selected tiles');
+                    }
+                });
+
+            }
+        }
+        
     }
 
     loadTileset(tilesetName: string, callback: (tileset: any)=>void) {
@@ -444,8 +515,9 @@ export class TilemapEditorPage {
                 ctx.clearRect(0, 0, this.tilemapGrids.width, this.tilemapGrids.height);
                 this.tilemapGrids.width = this.tileWidth * this.columnCount;
                 this.tilemapGrids.height = this.tileHeight * this.rowCount;
+                /*
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = 'black';
+                ctx.strokeStyle = 'rgba(0,0,0,0.1)';
                 for (let i=0; i < this.tilemapGrids.height; i += this.tileHeight) {
                     ctx.moveTo(0,i);
                     ctx.lineTo(this.tilemapGrids.width, i);
@@ -456,9 +528,12 @@ export class TilemapEditorPage {
                     ctx.lineTo(i,this.tilemapGrids.height);
                     ctx.stroke();
                 }
+                */
 
                 ctx.font = 'bold ' + (this.tileWidth / 2) + 'px arial, serif';
                 ctx.fillStyle = 'white';
+
+                console.log(this.tilemap);
 
                 let x= 0, y = 0, pos = 0;
                 for (let row=0; row<this.tilemap.rowCount; row++) {
@@ -494,11 +569,12 @@ export class TilemapEditorPage {
         }
     }
 
-    refreshTilemapTiles(going2remove?: boolean) {
+    refreshTilemapTiles(showAreaRect?: boolean) {
         let ctx = this.tilemapTileCanvas ? this.tilemapTileCanvas.getContext('2d') : null;
         if (ctx) {
+            this.tilemapTileCanvas.style.opacity = this.gridFlags.length > 0 ? '1.0' : '0.5';
             ctx.clearRect(0, 0, this.tilemapTileCanvas.width, this.tilemapTileCanvas.height);
-            if (going2remove === true) {
+            if (showAreaRect === true) {
                 ctx.strokeStyle = "red";
                 ctx.strokeRect(this.startRect.x, this.startRect.y, 
                     this.endRect.x + this.endRect.w - this.startRect.x, this.endRect.y + this.endRect.h - this.startRect.y);
@@ -557,16 +633,20 @@ export class TilemapEditorPage {
                                 cell.ids.push(tilesetIndex);
                                 cell.ids.push(tileIndex);
                             }
-                            if (cell.cost == undefined) {
-                                if (tilesetIndex >= 0 && tileIndex >= 0) {
-                                    let tileset = this.tilesets[tilesetIndex];
-                                    let tile = tileset.obj.tiles[tileIndex];
-                                    cell.cost = tile.cost == undefined ? 0 : tile.cost;
-                                } else {
-                                    cell.cost = 0;
-                                }
+                        }
+                        if (cell.ids.length >= 2) {
+                            let currentTileIndex = cell.ids[cell.ids.length - 1];
+                            let currentTilesetIndex = cell.ids[cell.ids.length - 2];
+                            if (currentTilesetIndex >= 0 && currentTileIndex >= 0) {
+                                let tileset = this.tilesets[currentTilesetIndex];
+                                let tile = tileset.obj.tiles[currentTileIndex];
+                                console.log('tile.cost = ' + tile.cost);
+                                cell.cost = tile.cost == undefined ? 0 : tile.cost;
+                            } else {
+                                cell.cost = 0;
                             }
                         }
+                        //console.log('cell.cost = ' + cell.cost);
                         //console.log("added: [" + tilesetIndex + ", " + tileIndex + "] => [" + row + ", " + col + "]");
                     }
                     pos++;
@@ -600,15 +680,19 @@ export class TilemapEditorPage {
                             cell.ids.push(tilesetIndex);
                             cell.ids.push(tileIndex);
                         }
-                        if (cell.cost == undefined) {
-                            if (tilesetIndex >= 0 && tileIndex >= 0) {
-                                let tileset = this.tilesets[tilesetIndex];
-                                let tile = tileset.obj.tiles[tileIndex];
+                        if (cell.ids.length >= 2) {
+                            let currentTileIndex = cell.ids[cell.ids.length - 1];
+                            let currentTilesetIndex = cell.ids[cell.ids.length - 2];
+                            if (currentTilesetIndex >= 0 && currentTileIndex >= 0) {
+                                let tileset = this.tilesets[currentTilesetIndex];
+                                let tile = tileset.obj.tiles[currentTileIndex];
+                                //console.log('tile.cost = ' + tile.cost);
                                 cell.cost = tile.cost == undefined ? 0 : tile.cost;
                             } else {
                                 cell.cost = 0;
                             }
                         }
+                        //console.log('cell.cost = ' + cell.cost);
                     }
                     pos++;
                     x += this.tileWidth;
@@ -683,12 +767,12 @@ export class TilemapEditorPage {
         this.applyCurrentTiles(true);
     }
 
-    updateCursorImage(going2remove?: boolean) {
+    updateCursorImage(showingAreaRect?: boolean) {
 
         let canvasWidth = this.tileWidth;
         let canvasHeight = this.tileHeight;
         let tileRects = this.tilesetControl ? this.tilesetControl.getCurrentTileRects() : null;
-        if (going2remove === true) tileRects = null;
+        if (showingAreaRect === true) tileRects = null;
         if (this.cursorCanvas && tileRects && tileRects.length > 0 && this.tilesetControl.tileset && this.tilesetControl.image) {
             
             if (this.tilesetControl.startRect && this.tilesetControl.endRect) {
@@ -727,7 +811,7 @@ export class TilemapEditorPage {
 
         } else {
 
-            if (this.cursorCanvas) {
+            if (this.gridFlags.length == 0 && this.cursorCanvas) {
                 this.cursorCanvas.style.visibility = "visible";
                 this.cursorCanvas.width = canvasWidth;
                 this.cursorCanvas.height = canvasHeight;

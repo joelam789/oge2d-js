@@ -49,7 +49,9 @@
         "redo": "重做",
         "fill-up": "填满",
         "show-grids": "显示格子",
-        "replacement-mode": "替换模式"
+        "replacement-mode": "替换模式",
+        "cost": "数值",
+        "set-cost": "设置格子数值"
     },
 
     "tileset": {

@@ -49,7 +49,9 @@
         "redo": "Redo",
         "fill-up": "Fill up",
         "show-grids": "Show grids",
-        "replacement-mode": "Replacement"
+        "replacement-mode": "Replacement",
+        "cost": "Cost",
+        "set-cost": "Set Cost"
     },
 
     "tileset": {

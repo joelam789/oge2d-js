@@ -5,30 +5,39 @@
 	"tileHeight": 32,
 	"tiles": [
 		{
+			"cost": 2,
 			"offsets": [64,192]
 		},
 		{
+			"cost": 2,
 			"offsets": [160,128]
 		},
 		{
+			"cost": 2,
 			"offsets": [160,96]
 		},
 		{
+			"cost": 2,
 			"offsets": [160,64]
 		},
 		{
+			"cost": 2,
 			"offsets": [160,32]
 		},
 		{
+			"cost": 2,
 			"offsets": [160,160]
 		},
 		{
+			"cost": 2,
 			"offsets": [128,192]
 		},
 		{
+			"cost": 2,
 			"offsets": [128,160]
 		},
 		{
+			"cost": 2,
 			"offsets": [128,128]
 		}
 	],
