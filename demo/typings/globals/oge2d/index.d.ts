@@ -63,6 +63,8 @@ declare module OGE2D {
 	    private _pendingSpriteClones;
 	    private _preloadItemCount;
 	    private _spritesToLoad;
+		private _localSpriteNames;
+		private _spriteSceneNames;
 	    pools: {
 	        [name: string]: Array<Sprite>;
 	    };
@@ -93,6 +95,7 @@ declare module OGE2D {
 	    private extractSpriteTemplate(components, scripts);
 	    private loadSpriteTemplate(templateName, components, scripts, callback);
 	    private reloadSpriteTemplate(templateName);
+		getLocalSpriteNames(): Array<string>;
 	    getFreeSprite(poolName?: string): Sprite;
 	    getFreeSpriteCount(poolName?: string): number;
 	    get(componentName: string): any;

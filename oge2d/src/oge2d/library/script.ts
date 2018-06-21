@@ -5,7 +5,8 @@ export class Script {
 
     private _games: Map<string, any> = new Map<string, any>();
     private _scenes: Map<string, any> = new Map<string, any>();
-    private _sprites: Map<string, any> = new Map<string, any>();
+    private _sprites: Map<string, any> = new Map<string, any>(); // not include sprites in scenes
+    private _modules: Map<string, any> = new Map<string, any>();
 
     private getClassName(fileName: string): string {
         let className: string = "", lastPart = fileName, lastChar = '?', currentChar = '';
@@ -28,19 +29,36 @@ export class Script {
             return;
         }
         let className: string = "Game" + this.getClassName(gameName);
-        loader.import(classPath)
-        .then((loadedModule) => {
-            if (loadedModule.hasOwnProperty(className)) {
-                let newInstance = Object.create(loadedModule[className].prototype);
+
+        let scriptModule = this._modules.get(classPath);
+        if (scriptModule != undefined && scriptModule != null) {
+            if (scriptModule.hasOwnProperty(className)) {
+                let newInstance = Object.create(scriptModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
                 newInstance.helper = this;
                 this._games.set(classPath, newInstance);
                 callback(newInstance);
             } else callback(null);
-        })
-        .catch((reason) => {
-            callback(null);
-        });
+        } else {
+            loader.import(classPath)
+            .then((loadedModule) => {
+                if (loadedModule) this._modules.set(classPath, loadedModule);
+                if (loadedModule && loadedModule.hasOwnProperty(className)) {
+                    let newInstance = Object.create(loadedModule[className].prototype);
+                    newInstance.constructor.apply(newInstance, []);
+                    newInstance.helper = this;
+                    this._games.set(classPath, newInstance);
+                    callback(newInstance);
+                } else callback(null);
+            })
+            .catch((reason) => {
+                console.error("Failed to load game script:");
+                console.error(reason);
+                callback(null);
+            });
+        }
+
+        
     }
 
     loadSceneScript(loader: any, sceneName: string, callback: (loaded: any)=>void) {
@@ -51,19 +69,36 @@ export class Script {
             return;
         }
         let className: string = "Scene" + this.getClassName(sceneName);
-        loader.import(classPath)
-        .then((loadedModule) => {
-            if (loadedModule.hasOwnProperty(className)) {
-                let newInstance = Object.create(loadedModule[className].prototype);
+
+        let scriptModule = this._modules.get(classPath);
+        if (scriptModule != undefined && scriptModule != null) {
+            if (scriptModule.hasOwnProperty(className)) {
+                let newInstance = Object.create(scriptModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
                 newInstance.helper = this;
                 this._scenes.set(classPath, newInstance);
                 callback(newInstance);
             } else callback(null);
-        })
-        .catch((reason) => {
-            callback(null);
-        });
+        } else {
+            loader.import(classPath)
+            .then((loadedModule) => {
+                if (loadedModule) this._modules.set(classPath, loadedModule);
+                if (loadedModule && loadedModule.hasOwnProperty(className)) {
+                    let newInstance = Object.create(loadedModule[className].prototype);
+                    newInstance.constructor.apply(newInstance, []);
+                    newInstance.helper = this;
+                    this._scenes.set(classPath, newInstance);
+                    callback(newInstance);
+                } else callback(null);
+            })
+            .catch((reason) => {
+                console.error("Failed to load scene [" + sceneName + "] script:");
+                console.error(reason);
+                callback(null);
+            });
+        }
+
+        
     }
 
     loadSpriteScript(loader: any, spriteName: string, callback: (loaded: any)=>void) {
@@ -74,42 +109,72 @@ export class Script {
             return;
         }
         let className: string = "Sprite" + this.getClassName(spriteName);
-        loader.import(classPath)
-        .then((loadedModule) => {
-            if (loadedModule.hasOwnProperty(className)) {
-                let newInstance = Object.create(loadedModule[className].prototype);
+
+        let scriptModule = this._modules.get(classPath);
+        if (scriptModule != undefined && scriptModule != null) {
+            if (scriptModule.hasOwnProperty(className)) {
+                let newInstance = Object.create(scriptModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
                 newInstance.helper = this;
                 this._sprites.set(classPath, newInstance);
                 callback(newInstance);
             } else callback(null);
-        })
-        .catch((reason) => {
-            callback(null);
-        });
+        } else {
+            loader.import(classPath)
+            .then((loadedModule) => {
+                if (loadedModule) this._modules.set(classPath, loadedModule);
+                if (loadedModule && loadedModule.hasOwnProperty(className)) {
+                    let newInstance = Object.create(loadedModule[className].prototype);
+                    newInstance.constructor.apply(newInstance, []);
+                    newInstance.helper = this;
+                    this._sprites.set(classPath, newInstance);
+                    callback(newInstance);
+                } else callback(null);
+            })
+            .catch((reason) => {
+                console.error("Failed to load sprite [" + spriteName + "] script:");
+                console.error(reason);
+                callback(null);
+            });
+        }
     }
 
     loadSceneSpriteScript(loader: any, sceneName: string, spriteName: string, callback: (loaded: any)=>void) {
         let classPath: string = "scenes/" + sceneName + "/sprites/"+ spriteName + ".js";
-        let spriteScript = this._sprites.get(classPath);
-        if (spriteScript != undefined && spriteScript != null) {
-            callback(spriteScript);
-            return;
-        }
+        //let spriteScript = this._sprites.get(classPath);
+        //if (spriteScript != undefined && spriteScript != null) {
+        //    callback(spriteScript);
+        //    return;
+        //}
         let className: string = "Scene" + this.getClassName(sceneName) + "Sprite" + this.getClassName(spriteName);
-        loader.import(classPath)
-        .then((loadedModule) => {
-            if (loadedModule.hasOwnProperty(className)) {
-                let newInstance = Object.create(loadedModule[className].prototype);
+
+        let scriptModule = this._modules.get(classPath);
+        if (scriptModule != undefined && scriptModule != null) {
+            if (scriptModule.hasOwnProperty(className)) {
+                let newInstance = Object.create(scriptModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
                 newInstance.helper = this;
-                this._sprites.set(classPath, newInstance);
+                //this._sprites.set(classPath, newInstance);
                 callback(newInstance);
             } else callback(null);
-        })
-        .catch((reason) => {
-            callback(null);
-        });
+        } else {
+            loader.import(classPath)
+            .then((loadedModule) => {
+                if (loadedModule) this._modules.set(classPath, loadedModule);
+                if (loadedModule && loadedModule.hasOwnProperty(className)) {
+                    let newInstance = Object.create(loadedModule[className].prototype);
+                    newInstance.constructor.apply(newInstance, []);
+                    newInstance.helper = this;
+                    //this._sprites.set(classPath, newInstance);
+                    callback(newInstance);
+                } else callback(null);
+            })
+            .catch((reason) => {
+                console.error("Failed to load scene sprite [" + sceneName + " - " + spriteName + "] script:");
+                console.error(reason);
+                callback(null);
+            });
+        }
     }
 
     get(script: any, functionName: string): any {

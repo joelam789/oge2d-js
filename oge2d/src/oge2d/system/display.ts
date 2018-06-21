@@ -32,6 +32,14 @@ export class Display implements Updater {
         display.plugins = this._pixi.renderer.plugins;
         if (display.layers) {
             let idx = 0, layers: { [name: string]: any }  = { };
+            if (Array.isArray(display.layers)) {
+                let layerNames = [ ];
+                layerNames.push(...display.layers);
+                display.layers = { };
+                for (let layerName of layerNames) {
+                    display.layers[layerName] = "";
+                }
+            }
             (this._pixi.stage as any).group.enableSort = true;
             for (let key of Object.keys(display.layers)) {
                 if (key.length > 0) {
@@ -42,7 +50,8 @@ export class Display implements Updater {
                         });
                         this._pixi.stage.addChild(new PIXI.display.Layer(layers[key]));
                     } else {
-                        if (display.layers[key] && game.script && game.script[display.layers[key]]) {
+                        if (display.layers[key] && display.layers[key].length > 0
+                            && game.script && game.script[display.layers[key]]) {
                             layers[key] = new PIXI.display.Group(idx, true);
                             layers[key].on('sort', game.script[display.layers[key]]);
                             this._pixi.stage.addChild(new PIXI.display.Layer(layers[key]));

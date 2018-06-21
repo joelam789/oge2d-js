@@ -115,7 +115,10 @@ export class Game {
                     for (let item of secondSystems) if (item.init) item.init(this);
                     if (eventSystem) eventSystem.callEvent(this, "onInit");
                     this.loadScenes(config.scenes, ()=> {
-                        if (config.scenes && config.scenes.length > 0) this.scene = this.scenes[config.scenes[0]];
+                        if (config.scenes && config.scenes.length > 0) {
+                            let firstSceneName = config.first && config.first.length > 0 ? config.first : config.scenes[0];
+                            if (this.scenes[firstSceneName]) this.scene = this.scenes[firstSceneName];
+                        }
                         callback(this);
                     });
                 });

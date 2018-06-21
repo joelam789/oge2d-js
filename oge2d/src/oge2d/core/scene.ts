@@ -29,6 +29,9 @@ export class Scene {
     private _preloadItemCount: number = 0;
     private _spritesToLoad: number = 0;
 
+    private _localSpriteNames: Array<string>  = [];
+    private _spriteSceneNames: { [name: string]: string }  = { };
+
     pools: { [name: string]: Array<Sprite> }  = { };
 
     sprites: { [name: string]: Sprite }  = { };
@@ -77,8 +80,22 @@ export class Scene {
 
         if (config.components) this.components = config.components;
 
+        this._localSpriteNames = [];
+        if (config.sprites) for (let spriteName of config.sprites) this._localSpriteNames.push(spriteName);
+
+        this._spriteSceneNames = {};
+        for (let spriteName of this._localSpriteNames) this._spriteSceneNames[spriteName] = this.name;
+
+        if (config.scenes) for (let sceneName of config.scenes) {
+            let scene = this.game.scenes[sceneName];
+            if (scene) {
+                let localSpriteNames = scene.getLocalSpriteNames();
+                for (let spriteName of localSpriteNames) this._spriteSceneNames[spriteName] = scene.name;
+            }
+        }
+
         this._loadingSprites = [];
-        if (config.sprites) for (let spriteName of config.sprites) this._loadingSprites.push(spriteName);
+        for (let spriteName of Object.keys(this._spriteSceneNames)) this._loadingSprites.push(spriteName);
         this._spritesToLoad = this._loadingSprites.length;
 
         this._presettingSystems = [];
@@ -274,14 +291,14 @@ export class Scene {
             callback(null);
             return;
         }
-        jsonlib.loadJson("json/scenes/" + this.name + "/sprites/" + spriteName + ".json", (config) => {
+        jsonlib.loadJson("json/scenes/" + this._spriteSceneNames[spriteName] + "/sprites/" + spriteName + ".json", (config) => {
             if (config == undefined || config == null) {
                 callback(null);
                 return;
             }
             let newSprite = new Sprite(this, spriteName);
             if (config.script === true) {
-                scriptlib.loadSceneSpriteScript(this.game.libraries["systemjs"], this.name, spriteName, (newSprScript) => {
+                scriptlib.loadSceneSpriteScript(this.game.libraries["systemjs"], this._spriteSceneNames[spriteName], spriteName, (newSprScript) => {
                     newSprite.script = newSprScript;
                     newSprite.script.owner = newSprite;
                     if (config.template) {
@@ -364,7 +381,7 @@ export class Scene {
         // reload sprites' components
         for (let sprite of this._sprites) {
             if (sprite.origin) continue; // handle clones later
-            let spriteConfig = jsonlib.getJson("json/scenes/" + this.name + "/sprites/" + sprite.name + ".json");
+            let spriteConfig = jsonlib.getJson("json/scenes/" + this._spriteSceneNames[sprite.name] + "/sprites/" + sprite.name + ".json");
             if (spriteConfig == undefined || spriteConfig == null) continue;
             let baseConfig = null, components = null, baseComponents = null;
             if (sprite.template) baseComponents = this.reloadSpriteTemplate(sprite.template);
@@ -446,6 +463,12 @@ export class Scene {
                 return baseComponents;
             } else return config.components;
         } else return config.components;
+    }
+
+    getLocalSpriteNames(): Array<string> {
+        let names = [];
+        names.push(...this._localSpriteNames);
+        return names;
     }
 
     getFreeSprite(poolName?: string): Sprite {

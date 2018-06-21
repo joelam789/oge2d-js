@@ -1,7 +1,7 @@
 {
   "globalDependencies": {
     "pixi-layers": "github:pixijs/pixi-display/dist/pixi-layers.d.ts#8f0ce8777811b75b86231c0b53657987efb9977b",
-    "pixi.js": "github:pixijs/pixi-typescript/pixi.js.d.ts#91e7d20abb43f17f9e34030c1845a7921dfa2e91",
+    "pixi.js": "github:pixijs/pixi-typescript/pixi.js.d.ts#0ca052a8e8bd8ecd0188392f1ebb152cb9e4ad7e",
     "zip.js": "registry:dt/zip.js#2.0.0+20160510002910"
   }
 }

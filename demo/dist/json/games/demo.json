@@ -5,14 +5,7 @@
 		{
 			"width": 640,
 			"height": 480,
-
-			"layers":
-			{
-				"planes": "",
-				"bullets": "",
-				"bombs": "",
-				"labels": ""
-			}
+			"layers": ["planes", "bullets", "bombs", "labels"]
 		},
 
 		"event":
