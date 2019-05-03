@@ -1,44 +1,43 @@
 ﻿
 const del = require('del');
 const gulp = require('gulp');
-const sequence = require('run-sequence');
 const sourcemap = require('gulp-sourcemaps');
 const webserver = require('gulp-webserver');
 
 const transpiler = require('gulp-typescript');
 const tsconfig = transpiler.createProject('tsconfig.json');
 
-gulp.task('clear-all', function () {
+gulp.task('clear-all', async () => {
     del.sync(["./dist/**/*"]);
 });
 
-gulp.task('copy-lib', function () {
+gulp.task('copy-lib', () => {
     return gulp.src([
         "./jspm_packages/**/*"
         ])
         .pipe(gulp.dest("./dist/jspm_packages/"));
 });
 
-gulp.task('copy-index', function () {
+gulp.task('copy-index', () => {
     return gulp.src([
         "./index.html"
         ])
         .pipe(gulp.dest("./dist/"));
 });
 
-gulp.task('copy-module-config', function () {
+gulp.task('copy-module-config', () => {
     return gulp.src(["./config.js"]).pipe(gulp.dest("./dist/"));
 });
 
-gulp.task('backup-module-config', function () {
+gulp.task('backup-module-config', () => {
     return gulp.src(["./config.js"]).pipe(gulp.dest("./tmp/"));
 });
 
-gulp.task('restore-module-config', function () {
+gulp.task('restore-module-config', () => {
     return gulp.src(["./tmp/config.js"]).pipe(gulp.dest("./"));
 });
 
-gulp.task('copy-template', function () {
+gulp.task('copy-template',  () => {
     return gulp.src([
         "./src/**/*.html",
         "./src/**/*.css"
@@ -46,7 +45,7 @@ gulp.task('copy-template', function () {
         .pipe(gulp.dest("./dist/"));
 });
 
-gulp.task('copy-resource', function () {
+gulp.task('copy-resource', () => {
     return gulp.src([
         "./res/**/*"
         ])
@@ -55,7 +54,6 @@ gulp.task('copy-resource', function () {
 
 gulp.task("transpile-ts", () => {
     return gulp.src([
-        "./typings/index.d.ts",
         "./src/**/*.ts"
     ])
     .pipe(sourcemap.init({ loadMaps: true }))
@@ -64,27 +62,28 @@ gulp.task("transpile-ts", () => {
     .pipe(gulp.dest("./dist/"));
 });
 
-gulp.task("watch", function () {
-    return gulp.watch(["./index.html", "./src/**/*", "./res/**/*"], ["build-main"]);
+gulp.task("watch", () => {
+    return gulp.watch(["./index.html", "./src/**/*", "./res/**/*"],
+    gulp.series("build-main"));
 });
 
-gulp.task("build-main", function () {
-    sequence('copy-index',
+gulp.task("build-main", gulp.series(
+             'copy-index',
              'copy-template',
              'copy-resource',
-             'transpile-ts');
-});
+             'transpile-ts')
+);
 
-gulp.task("build-and-watch", function () {
-    sequence('clear-all',
+gulp.task("build-and-watch", gulp.series(
+            'clear-all',
             ['copy-lib', 'copy-index', 'copy-module-config'],
              'copy-template',
              'copy-resource',
              'transpile-ts',
-             'watch');
-});
+             'watch')
+);
 
-gulp.task('start', function() {
+gulp.task('start', () => {
   gulp.src('./')
   .pipe(webserver({
       host: '0.0.0.0',
@@ -92,4 +91,4 @@ gulp.task('start', function() {
     }));
 });
 
-gulp.task('default', ['build-and-watch']);
+gulp.task('default', gulp.series('build-and-watch'));

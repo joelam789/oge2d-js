@@ -7,8 +7,22 @@
 
     <body>
 
+        <script>
+            if (window.Buffer) {
+                window.nodeBuffer = window.Buffer;
+                delete window.Buffer; // disable warning of deprecated usage in system.js
+            }
+        </script>
+
         <script src="jspm_packages/system.js"></script>
         <script src="config.js"></script>
+
+        <script>
+            if (window.nodeBuffer) {
+                window.Buffer = window.nodeBuffer; // restore it after load system.js
+                delete window.nodeBuffer;
+            }
+        </script>
 
         <script src="js/jquery-3.1.1.min.js"></script>
         <script>if (!window.$) window.$ = window.jQuery = require('./js/jquery-3.1.1.min.js');</script>

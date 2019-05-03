@@ -11,6 +11,5 @@
         "removeComments": true,
         "noResolve": false,
         "sourceMap": true
-    },
-    "exclude": [ "node_modules" ]
+    }
 }
