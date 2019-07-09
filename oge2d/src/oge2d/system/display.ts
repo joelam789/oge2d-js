@@ -1,4 +1,7 @@
 
+//import * as PIXI from "pixi.js"
+//import * as PIXI_LAYER from "pixi-layers"
+
 import { Game } from "../core/game";
 import { Scene } from "../core/scene";
 import { Sprite } from "../core/sprite";
@@ -13,7 +16,7 @@ export class Display implements Updater {
     private _game: Game = null;
     private _event: any = null;
     private _pixi: PIXI.Application = null;
-    private _ticker: PIXI.ticker.Ticker = null;
+    private _ticker: PIXI.Ticker = null;
 
     init(game: Game): boolean {
         this._game = game;
@@ -21,9 +24,10 @@ export class Display implements Updater {
         let display = game.components["display"];
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
         //PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.HIGH;
-        this._pixi = new PIXI.Application(display.width, display.height);
+        this._pixi = new PIXI.Application({ width: display.width, height: display.height });
         this._pixi.stage = new PIXI.display.Stage();
-        this._pixi.renderer.roundPixels = true;
+        //this._pixi.renderer.roundPixels = true;
+        PIXI.settings.ROUND_PIXELS = true;
         this._game.width = this._pixi.screen.width;
         this._game.height = this._pixi.screen.height;
         if (game.container) game.container.appendChild(this._pixi.view);
@@ -41,12 +45,16 @@ export class Display implements Updater {
                 }
             }
             (this._pixi.stage as any).group.enableSort = true;
+            let bglayer = new PIXI.display.Group(0, false); // idx = 0
+            this._pixi.stage.addChild(new PIXI.display.Layer(bglayer));
+            display.bglayer = bglayer;
             for (let key of Object.keys(display.layers)) {
                 if (key.length > 0) {
                     idx++;
+                    //console.log("[" + idx + "] = " + key);
                     if (display.layers[key] == "default") {
                         layers[key] = new PIXI.display.Group(idx, (spr) => {
-                            spr.zOrder = -spr.y * 10000 - spr.x;
+                            spr.zOrder = spr.y * 10000 + spr.x;
                         });
                         this._pixi.stage.addChild(new PIXI.display.Layer(layers[key]));
                     } else {
@@ -122,7 +130,7 @@ export class Display implements Updater {
                         imagelib.loadTexture("img/" + imgName, graphic.area, (tex) => {
                             if (tex) {
                                 let pixispr = graphic.slice && graphic.slice.length >= 4 
-                                                ? new PIXI.mesh.NineSlicePlane(tex, graphic.slice[0], graphic.slice[1], graphic.slice[2], graphic.slice[3])
+                                                ? new PIXI.NineSlicePlane(tex, graphic.slice[0], graphic.slice[1], graphic.slice[2], graphic.slice[3])
                                                 : new PIXI.Sprite(tex);
                                 this.applySpriteProperties(pixispr, display);
                                 display.object = pixispr;
@@ -165,7 +173,7 @@ export class Display implements Updater {
                                 if (animation.current && animationContainer.items.has(animation.current.toString())) {
                                     animationContainer.current = animation.current.toString();
                                 } else animationContainer.current = animationNames[0];
-                                let pixispr = new PIXI.extras.AnimatedSprite(animationContainer.items.get(animationContainer.current), true);
+                                let pixispr = new PIXI.AnimatedSprite(animationContainer.items.get(animationContainer.current), true);
                                 this.applySpriteProperties(pixispr, display);
                                 if (animation.hasOwnProperty("loop")) pixispr.loop = animation.loop;
                                 if (animation.hasOwnProperty("speed")) pixispr.animationSpeed = animation.speed;
@@ -305,7 +313,7 @@ export class Display implements Updater {
         this.updateAnimationState(scene);
     }
 
-    applySpriteProperties(pixispr: PIXI.Sprite | PIXI.mesh.NineSlicePlane, properties: any) {
+    applySpriteProperties(pixispr: PIXI.Sprite | PIXI.NineSlicePlane, properties: any) {
         for (let item of Object.keys(properties)) {
             if (item == "object") continue;
             if (item == "animation") continue;
@@ -401,7 +409,7 @@ export class AnimationContainerPixi {
     owner: Sprite = null;
     events: any = null;
     current: string = "";
-    sprite: PIXI.extras.AnimatedSprite = null;
+    sprite: PIXI.AnimatedSprite = null;
     items: Map<string, Array<PIXI.Texture>> = new Map<string, Array<PIXI.Texture>>();
     onComplete: (spr?: Sprite)=>void = null;
     set(animationName: string, force?: boolean) {

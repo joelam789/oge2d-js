@@ -1,3 +1,6 @@
+//import * as PIXI from "pixi.js"
+//import * as PIXI_CG from "@pixi/canvas-graphics"
+
 import { Game } from "../core/game";
 import { Scene } from "../core/scene";
 import { Sprite } from "../core/sprite";
@@ -15,13 +18,22 @@ export class Transition implements Updater {
     init(game: Game): boolean {
         this._game = game;
         this._stage = game.components["display"].object;
-        let graph = new PIXI.Graphics();
-        //graph.x = graph.y = 0;
-        //graph.width = graph.height = 1;
-        graph.beginFill(0);
-        graph.drawRect(0, 0, 1, 1);
-        graph.endFill();
-        this._dark = new PIXI.Sprite(graph.generateCanvasTexture());
+
+        //let graph = new PIXI.Graphics();
+        ////graph.x = graph.y = 0;
+        ////graph.width = graph.height = 1;
+        //graph.beginFill(0);
+        //graph.drawRect(0, 0, 1, 1);
+        //graph.endFill();
+        //this._dark = new PIXI.Sprite(graph.generateCanvasTexture());
+
+        let canv = document.createElement('canvas');
+        canv.width = canv.height = 1;
+        let ctx = canv.getContext('2d');
+        ctx.fillStyle = 'rgba(0, 0, 0, 1)';  // black
+        ctx.fillRect(0, 0, 1, 1);
+        this._dark = new PIXI.Sprite(PIXI.Texture.from(canv));
+
         //this._dark.x = this._dark.y = 0;
         //this._dark.width = this._dark.height = 1;
         this._dark.scale.set(game.width, game.height);

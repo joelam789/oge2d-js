@@ -1,3 +1,5 @@
+//import * as PIXI from "pixi.js"
+
 import { Game } from "../core/game";
 import { Scene } from "../core/scene";
 import { Sprite } from "../core/sprite";
@@ -47,9 +49,10 @@ export class Mouse implements Updater {
         this._stage = game.components["display"].object;
         this._interaction = game.components["display"].plugins.interaction;
 
-        let isIOS = navigator.userAgent.indexOf('Mobile') >= 0 &&
-				    (navigator.userAgent.indexOf('iPad') >= 0 || navigator.userAgent.indexOf('iPhone') >= 0);
-        if (isIOS) {
+        let needPlayDummy = navigator.userAgent.indexOf('Mobile') >= 0 &&
+                            (navigator.userAgent.indexOf('iPad') >= 0 || navigator.userAgent.indexOf('iPhone') >= 0);
+        needPlayDummy = true; // ...
+        if (needPlayDummy) {
             let audiolib = this._game.libraries["audio"];
             if (audiolib) {
                 window.addEventListener("touchend", () => {
@@ -96,7 +99,8 @@ export class Mouse implements Updater {
     activate(scene: Scene) {
         let display = scene.components["display"];
         let mouse = scene.components["mouse"];
-        let view = display ? display.object as PIXI.Container : null;
+        //let view = display ? display.object as PIXI.Container : null;
+        let view = display ? display.object.children[0] as PIXI.Container : null;
         if (mouse && display && display.object && view) {
             if (mouse.enabled) {
                 view.interactive = true;
@@ -122,7 +126,8 @@ export class Mouse implements Updater {
     deactivate(scene: Scene) {
         let display = scene.components["display"];
         let mouse = scene.components["mouse"];
-        let view = display ? display.object as PIXI.Container : null;
+        //let view = display ? display.object as PIXI.Container : null;
+        let view = display ? display.object.children[0] as PIXI.Container : null;
         if (mouse && display && display.object && view) {
             view.interactive = false;
             if (mouse.actions && mouse.actions.length > 0) {

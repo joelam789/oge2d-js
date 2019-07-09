@@ -1,3 +1,6 @@
+//import * as PIXI from "pixi.js"
+//import * as PIXI_CG from "@pixi/canvas-graphics"
+
 import { Game } from "../core/game";
 import { Scene } from "../core/scene";
 import { Sprite } from "../core/sprite";
@@ -46,6 +49,7 @@ export class Stage implements Updater {
 
         let sceneContainer = container;
         container = new PIXI.Container();
+        container.parentGroup = scene.game.components["display"].bglayer;
 
         //container.pivot.x = this._game.width / 2;
         //container.pivot.y = this._game.height / 2;
@@ -612,11 +616,21 @@ export class Stage implements Updater {
                 }
             }
 
-            let graph = new PIXI.Graphics();
-            graph.beginFill(bgcolor);
-            graph.drawRect(0, 0, cellWidth, cellWidth);
-            graph.endFill();
-            tilemap.defaultTileTexture = graph.generateCanvasTexture();
+            //let graph = new PIXI.Graphics();
+            //graph.beginFill(bgcolor);
+            //graph.drawRect(0, 0, cellWidth, cellWidth);
+            //graph.endFill();
+            //tilemap.defaultTileTexture = graph.generateCanvasTexture();
+            //tilemap.defaultTileTextures = [tilemap.defaultTileTexture];
+
+            let canv = document.createElement('canvas');
+            canv.width = cellWidth;
+            canv.height = cellWidth;
+            let ctx = canv.getContext('2d');
+            if (tilemap.bgcolor) ctx.fillStyle = tilemap.bgcolor.toString();
+            else ctx.fillStyle = 'rgba(0, 0, 0, 1)';  // black
+            ctx.fillRect(0, 0, cellWidth, cellWidth);
+            tilemap.defaultTileTexture = PIXI.Texture.from(canv);
             tilemap.defaultTileTextures = [tilemap.defaultTileTexture];
             
             let col: number = tilemap.viewWidth % cellWidth;
@@ -632,7 +646,7 @@ export class Stage implements Updater {
             tilemap.spriteCount = col * row * 2;
 
             for (let i=0; i<tilemap.spriteCount; i++) {
-                let tileSprite = new PIXI.extras.AnimatedSprite(tilemap.defaultTileTextures, true);
+                let tileSprite = new PIXI.AnimatedSprite(tilemap.defaultTileTextures, true);
                 tileSprite.visible = false;
                 if (tilemap.bgcolorOpacity != undefined) tileSprite.alpha = tilemap.bgcolorOpacity;
                 tilemap.display.addChild(tileSprite);

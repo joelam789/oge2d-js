@@ -9,15 +9,12 @@
   "author": "joelam",
   "license": "MIT",
   "devDependencies": {
-    "@types/core-js": "^0.9.46",
-    "@types/tweenjs": "^0.6.27",
-    "del": "^3.0.0",
-    "gulp": "^3.9.1",
-    "gulp-sourcemaps": "^2.6.4",
-    "gulp-typescript": "^3.2.4",
-    "run-sequence": "^1.2.2",
-    "systemjs-builder": "^0.16.13",
-    "typescript": "^2.9.2",
-    "typings": "^2.1.1"
+    "core-js": "^2.6.9",
+    "del": "^5.0.0",
+    "gulp": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-typescript": "^5.0.1",
+    "systemjs-builder": "^0.16.15",
+    "typescript": "^3.5.2"
   }
 }

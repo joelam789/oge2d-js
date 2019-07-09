@@ -1,7 +1,6 @@
 ﻿
 const del = require('del');
 const gulp = require('gulp');
-const sequence = require('run-sequence');
 const sourcemap = require('gulp-sourcemaps');
 
 const Builder = require('systemjs-builder');
@@ -10,7 +9,7 @@ const bundler = new Builder('./dist');
 const transpiler = require('gulp-typescript');
 const tsconfig = transpiler.createProject('tsconfig.json');
 
-gulp.task("bundle", function () {
+gulp.task("bundle", async () => {
 
     bundler.config({
         packages: { ".": { defaultExtension: "js" } }
@@ -35,7 +34,7 @@ gulp.task("bundle", function () {
     
 });
 
-gulp.task('clear-all', function () {
+gulp.task('clear-all', async () => {
     del.sync(["./dist/**/*"]);
 });
 
@@ -50,10 +49,10 @@ gulp.task("transpile-ts", () => {
     .pipe(gulp.dest("./dist/"));
 });
 
-gulp.task("build-and-bundle", function () {
-    sequence('clear-all',
+gulp.task("build-and-bundle", gulp.series(
+			 'clear-all',
              'transpile-ts',
-             'bundle');
-});
+             'bundle')
+);
 
-gulp.task('default', ['build-and-bundle']);
+gulp.task('default', gulp.series('build-and-bundle'));

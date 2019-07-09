@@ -244,7 +244,7 @@ export class Loader {
 
     static blobToBuffer(blob: Blob, callback: (result: ArrayBuffer)=>void) {
         let fileReader = new FileReader();
-        fileReader.onload = () => callback(fileReader.result);
+        fileReader.onload = () => callback(fileReader.result as ArrayBuffer);
         fileReader.readAsArrayBuffer(blob);
     }
 
