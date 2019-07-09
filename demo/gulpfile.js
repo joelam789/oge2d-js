@@ -2,7 +2,6 @@
 const fs = require("fs");
 const del = require('del');
 const gulp = require('gulp');
-const sequence = require('run-sequence');
 const sourcemap = require('gulp-sourcemaps');
 const webserver = require('gulp-webserver');
 const archiver = require('archiver');
@@ -14,7 +13,7 @@ const jsonlint = require("gulp-jsonlint");
 
 const tsconfig = require('gulp-typescript').createProject('tsconfig.json');
 
-gulp.task('pack', function () {
+gulp.task('pack', async () => {
 
     let packSetting = JSON.parse(fs.readFileSync('./app-pack.json', 'utf8'));
     let inputDir = packSetting.inputDir; let outputDir = packSetting.outputDir;
@@ -72,7 +71,7 @@ gulp.task('pack', function () {
     
 });
 
-gulp.task("bundle", function () {
+gulp.task("bundle", async () => {
 
     bundler.config({
         packages: { ".": { defaultExtension: "js" } }
@@ -102,30 +101,30 @@ gulp.task("bundle", function () {
     
 });
 
-gulp.task('clear-all', function () {
+gulp.task('clear-all', async () => {
     del.sync(["./dist/**/*"]);
 });
 
-gulp.task('copy-index', function () {
+gulp.task('copy-index', () => {
     return gulp.src([
         "./index.html"
         ])
         .pipe(gulp.dest("./dist/"));
 });
 
-gulp.task('create-fake-bundle', function () {
+gulp.task('create-fake-bundle', async () => {
     let code = "console.log('fake bundle is loaded');";
     fs.writeFileSync('./dist/shooting.min.js', code, 'utf8');
 });
 
-gulp.task('copy-resource', function () {
+gulp.task('copy-resource', () => {
     return gulp.src([
         "./res/**/*"
         ])
         .pipe(gulp.dest("./dist/"));
 });
 
-gulp.task('copy-game-content', function () {
+gulp.task('copy-game-content', () => {
     return gulp.src([
         "./src/**/*.json"
         ])
@@ -146,42 +145,43 @@ gulp.task("transpile-ts", () => {
 });
 
 gulp.task("watch", function () {
-    return gulp.watch(["./index.html", "./src/**/*", "./res/**/*"], ["build-main"]);
+    return gulp.watch(["./index.html", "./src/**/*", "./res/**/*"],
+    gulp.series("build-main"));
 });
 
-gulp.task("build-main", function () {
-    sequence('copy-index',
+gulp.task("build-main", gulp.series(
+             'copy-index',
              'copy-resource',
              'copy-game-content',
-             'transpile-ts');
-});
+             'transpile-ts')
+);
 
-gulp.task("build-and-watch", function () {
-    sequence('clear-all',
+gulp.task("build-and-watch", gulp.series(
+             'clear-all',
              'copy-index',
              'copy-resource',
              'copy-game-content',
              'create-fake-bundle',
              'transpile-ts',
-             'watch');
-});
+             'watch')
+);
 
-gulp.task("build-and-bundle", function () {
-    sequence('clear-all',
+gulp.task("build-and-bundle", gulp.series(
+             'clear-all',
              'copy-index',
              'copy-resource',
              'copy-game-content',
              'pack',
              'transpile-ts',
-             'bundle');
-});
+             'bundle')
+);
 
-gulp.task("copy-and-pack", function () {
-    sequence('clear-all',
+gulp.task("copy-and-pack", gulp.series(
+             'clear-all',
              'copy-resource',
              'copy-game-content',
-             'pack');
-});
+             'pack')
+);
 
 gulp.task('start', function() {
   gulp.src('./')
@@ -191,4 +191,4 @@ gulp.task('start', function() {
     }));
 });
 
-gulp.task('default', ['build-and-watch']);
+gulp.task('default', gulp.series('build-and-watch'));

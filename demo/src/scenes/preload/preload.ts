@@ -15,7 +15,9 @@ export class ScenePreload {
 			console.log("finished loading packages");
 			scene.game.loadScenes(["menu", "stage1"], () => {
 				console.log("finished loading scenes");
-				if (navigator.userAgent.indexOf('iPad') >= 0 || navigator.userAgent.indexOf('iPhone') >= 0) {
+				let needClickToContinue = navigator.userAgent.indexOf('iPad') >= 0 || navigator.userAgent.indexOf('iPhone') >= 0;
+				needClickToContinue = true; // ...
+				if (needClickToContinue) {
 					scene.components.event["onPointerdown"] = () => scene.game.scene = scene.game.scenes["menu"];
 					message.get("display").object.text += " (click here to continue)";
 				} else scene.game.scene = scene.game.scenes["menu"];
