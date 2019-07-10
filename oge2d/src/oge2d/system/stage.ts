@@ -48,8 +48,8 @@ export class Stage implements Updater {
         }
 
         let sceneContainer = container;
-        container = new PIXI.Container();
-        container.parentGroup = scene.game.components["display"].bglayer;
+        container = display.bgcontainer;
+        //container.removeChildren();
 
         //container.pivot.x = this._game.width / 2;
         //container.pivot.y = this._game.height / 2;
@@ -110,14 +110,12 @@ export class Stage implements Updater {
                         }
                         if (container.children && container.children.length > 0) {
                             stage.display = container;
-                            sceneContainer.addChild(container);
                         }
                         if (callback) callback();
                     });
                 } else {
                     if (container.children && container.children.length > 0) {
                         stage.display = container;
-                        sceneContainer.addChild(container);
                     }
                     if (callback) callback();
                 }
@@ -141,14 +139,12 @@ export class Stage implements Updater {
                 }
                 if (container.children && container.children.length > 0) {
                     stage.display = container;
-                    sceneContainer.addChild(container);
                 }
                 if (callback) callback();
             });
         } else {
             if (container.children && container.children.length > 0) {
                 stage.display = container;
-                sceneContainer.addChild(container);
             }
             if (callback) callback();
         }

@@ -89,6 +89,17 @@ export class Display implements Updater {
                 display = scene.components["display"];
             }
             if (display && (display.object == undefined || display.object == null)) display.object = new PIXI.Container();
+
+            if (display.object && scene.game) {
+                let gameDisplay = scene.game.components["display"];
+                if (gameDisplay.bglayer && (display.bgcontainer == undefined || display.bgcontainer == null)) {
+                    let container = new PIXI.Container();
+                    container.parentGroup = gameDisplay.bglayer;
+                    (display.object as PIXI.Container).addChild(container);
+                    display.bgcontainer = container;
+                }
+            }
+
             this._pauses[scene.name] = false;
         }
         if (callback) callback();

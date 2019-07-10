@@ -72,8 +72,10 @@ export class Mouse implements Updater {
     preset(scene: Scene, callback: ()=>void) {
         let display = scene.components["display"];
         let mouse = scene.components["mouse"];
-        if (mouse && display && display.object && display.object instanceof PIXI.Container) {
-            if (mouse.enabled) (display.object as PIXI.Container).hitArea = new PIXI.Rectangle(0, 0, 
+        if (mouse && display && display.object) {
+            let view = display ? display.object as PIXI.Container : null;
+            if (display && display.bgcontainer) view = display.bgcontainer as PIXI.Container;
+            if (view && mouse.enabled) view.hitArea = new PIXI.Rectangle(0, 0, 
                 this._game.components["display"].width, this._game.components["display"].height);
         }
         if (callback) callback();
@@ -99,8 +101,9 @@ export class Mouse implements Updater {
     activate(scene: Scene) {
         let display = scene.components["display"];
         let mouse = scene.components["mouse"];
-        //let view = display ? display.object as PIXI.Container : null;
-        let view = display ? display.object.children[0] as PIXI.Container : null;
+        let view = display ? display.object as PIXI.Container : null;
+        if (display && display.bgcontainer) view = display.bgcontainer as PIXI.Container;
+        //let view = display ? display.object.children[0] as PIXI.Container : null;
         if (mouse && display && display.object && view) {
             if (mouse.enabled) {
                 view.interactive = true;
@@ -126,8 +129,9 @@ export class Mouse implements Updater {
     deactivate(scene: Scene) {
         let display = scene.components["display"];
         let mouse = scene.components["mouse"];
-        //let view = display ? display.object as PIXI.Container : null;
-        let view = display ? display.object.children[0] as PIXI.Container : null;
+        let view = display ? display.object as PIXI.Container : null;
+        if (display && display.bgcontainer) view = display.bgcontainer as PIXI.Container;
+        //let view = display ? display.object.children[0] as PIXI.Container : null;
         if (mouse && display && display.object && view) {
             view.interactive = false;
             if (mouse.actions && mouse.actions.length > 0) {
