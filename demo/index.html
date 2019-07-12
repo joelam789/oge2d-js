@@ -55,7 +55,11 @@
 
         <script src="js/oge2d.min.js"></script>
 
+        <!--
         <script src="js/virtualjoystick.js"></script>
+        -->
+
+        <script src="js/nipplejs.min.js"></script>
 
         <script src="shooting.min.js"></script>
 
@@ -80,6 +84,7 @@
                     || navigator.userAgent.indexOf('Phone') >= 0
                     || navigator.userAgent.indexOf('Android') >= 0 ) {
                 
+                    /*
                     window.vjoystick = new VirtualJoystick({
                         container: document.getElementById('joystick'),
                         mouseSupport: true,
@@ -87,6 +92,85 @@
 
                     window.vjoystick.b1 = false;
                     window.vjoystick.b2 = false;
+                    */
+
+                    window.vbuttons = {
+                        right: false,
+                        left: false,
+                        down: false,
+                        up: false,
+                        b1: false,
+                        b2: false
+                    }
+
+                    window.vjoystick = nipplejs.create({
+                        zone: document.getElementById('joystick'),
+                        mode: "static",
+                        color: "grey",
+                        size: 200,
+                        position: {left: (window.innerWidth / 4) + "px" , 
+                        top: (window.innerHeight / 2 + 240) + "px"}
+                    });
+
+                    window.vjoystick.on('start', function (evt, nipple) {
+                        nipple.on('move', function (e, data) {
+                            var a = data.angle.degree;
+                            if (a <= 22.5 || a > 360 - 22.5) {
+                                window.vbuttons.right = true;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = false;
+                            }
+                            else if (a > 22.5 && a <= 22.5 + 45) {
+                                window.vbuttons.right = true;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = true;
+                            }
+                            else if (a > 22.5 + 45 && a <= 22.5 + 90) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = true;
+                            }
+                            else if (a > 22.5 + 90 && a <= 22.5 + 135) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = true;
+                                window.vbuttons.up = true;
+                            }
+                            else if (a > 22.5 + 135 && a <= 22.5 + 180) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = true;
+                                window.vbuttons.up = false;
+                            }
+                            else if (a > 22.5 + 180 && a <= 22.5 + 225) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = true;
+                                window.vbuttons.left = true;
+                                window.vbuttons.up = false;
+                            }
+                            else if (a > 22.5 + 225 && a <= 22.5 + 270) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = true;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = false;
+                            }
+                            else if (a > 22.5 + 270 && a <= 22.5 + 315) {
+                                window.vbuttons.right = true;
+                                window.vbuttons.down = true;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = false;
+                            }
+                        });
+                    }).on('end', function (evt, nipple) {
+                        nipple.off('move');
+                        window.vbuttons.right = false;
+                        window.vbuttons.down = false;
+                        window.vbuttons.left = false;
+                        window.vbuttons.up = false;
+                    });
 
                     document.getElementById('joystickbuttons').style.display = 'table';
                 }
@@ -100,9 +184,14 @@
         <div id="game" style="display: none;"></div>
         </center>
 
-        <table id="joystickbuttons" style="position: absolute; left: 0px; top: 0px; z-index: -100; width: 100%; height: 100%; display: none;">
+        <div id="joystick" style="z-index: -100; width: 100%; height: 600px;"></div>
+
+        <table id="joystickbuttons" style="position: absolute; left: 0px; top: 0px; z-index: -101; width: 100%; height: 100%; display: none;">
             <tr style="width: 100%; height: 100%;">
-                <td style="width: 50%;"><div id="joystick" style="width: 100%; height: 100%;">&nbsp;</div></td>
+                <td style="width: 50%;">
+                    <!-- <div id="joystick" style="width: 100%; height: 100%;">&nbsp;</div> -->
+                    <div style="width: 100%; height: 100%;">&nbsp;</div>
+                </td>
                 <td style="width: 50%;">
                     <table style="width: 100%; height: 100%;">
                         <tr style="width: 100%; height: 500px;">
@@ -111,14 +200,14 @@
                         </tr>
                         <tr style="width: 100%;">
                             <td style="width: 50%;">
-                                <div style="width: 100%;">
+                                <div style="width: 80%;">
                                     <div class="round-button"><div class="round-button-circle">
                                         <a href="#" class="round-button" id="vbtn2">BOMB</a>
                                     </div></div>
                                 </div>
                             </td>
                             <td style="width: 50%;">
-                                <div style="width: 100%;">
+                                <div style="width: 80%;">
                                     <div class="round-button"><div class="round-button-circle">
                                         <a href="#" class="round-button" id="vbtn1">SHOOT</a>
                                     </div></div>
@@ -136,14 +225,14 @@
                 if (btnobj) {
                     btnobj.onmousedown = btnobj.ontouchstart = function(e) {
                         e.preventDefault();
-                        if (e.target.id.indexOf("1") >= 0) window.vjoystick.b1 = true;
-                        else window.vjoystick.b2 = true;
+                        if (e.target.id.indexOf("1") >= 0) window.vbuttons.b1 = true;
+                        else window.vbuttons.b2 = true;
                     };
                     btnobj.onmouseup = btnobj.ontouchend = function(e) {
                         e.preventDefault();
                         e.preventDefault();
-                        if (e.target.id.indexOf("1") >= 0) window.vjoystick.b1 = false;
-                        else window.vjoystick.b2 = false;
+                        if (e.target.id.indexOf("1") >= 0) window.vbuttons.b1 = false;
+                        else window.vbuttons.b2 = false;
                     };
                 }
             }

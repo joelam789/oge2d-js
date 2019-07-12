@@ -54,12 +54,12 @@ export class Shooting implements OGE2D.Updater {
 		if (this.profile == undefined || this.profile == null) return;
 		if (this.profile.controllable !== true) return;
 
-		let joystick = (window as any).vjoystick;
-		if (joystick) {
-			let isUp = joystick.up();
-			let isDown = joystick.down();
-			let isLeft = joystick.left();
-			let isRight = joystick.right();
+		let jbuttons = (window as any).vbuttons;
+		if (jbuttons) {
+			let isUp = jbuttons.up;
+			let isDown = jbuttons.down;
+			let isLeft = jbuttons.left;
+			let isRight = jbuttons.right;
 			if (isUp || isDown || isLeft || isRight) {
 				this.keyboard.states["ArrowUp"] = isUp;
 				this.keyboard.states["ArrowDown"] = isDown;
@@ -71,8 +71,8 @@ export class Shooting implements OGE2D.Updater {
 				this.keyboard.states["ArrowLeft"] = false;
 				this.keyboard.states["ArrowRight"] = false;
 			}
-			this.keyboard.states["Control"] = joystick.b1 === true;
-			this.keyboard.states["Shift"] = joystick.b2 === true;
+			this.keyboard.states["Control"] = jbuttons.b1 === true;
+			this.keyboard.states["Shift"] = jbuttons.b2 === true;
 		}
 
 		let display = this.player.components["display"];
