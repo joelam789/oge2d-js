@@ -205,14 +205,45 @@ export class Display implements Updater {
                     } // end if img lib ok
 
                 } else if (sprite.script) {
-                    let texfunc = this.getScriptFunction(sprite.script, "prepareTexture");
-                    let tex: PIXI.Texture = texfunc ? texfunc(sprite) : null;
-                    if (tex) {
-                        let pixispr = new PIXI.Sprite(tex);
-                        this.applySpriteProperties(pixispr, display);
-                        display.object = pixispr;
+                    let texFunc = this.getScriptFunction(sprite.script, "prepareTexture");
+                    let texAsyncFunc = this.getScriptFunction(sprite.script, "prepareTextureAsync");
+                    let sprFunc = this.getScriptFunction(sprite.script, "prepareSprite");
+                    let sprAsyncFunc = this.getScriptFunction(sprite.script, "prepareSpriteAsync");
+                    if (texFunc) {
+                        let tex: PIXI.Texture = texFunc ? texFunc(sprite) : null;
+                        if (tex) {
+                            let pixispr = new PIXI.Sprite(tex);
+                            this.applySpriteProperties(pixispr, display);
+                            display.object = pixispr;
+                        }
+                        if (callback) callback();
+                    } else if (texAsyncFunc) {
+                        texAsyncFunc(sprite, (tex) => {
+                            if (tex) {
+                                let pixispr = new PIXI.Sprite(tex);
+                                this.applySpriteProperties(pixispr, display);
+                                display.object = pixispr;
+                            }
+                            if (callback) callback();
+                        });
+                    } else if (sprFunc) {
+                        let pixispr = sprFunc(sprite);
+                        if (pixispr) {
+                            this.applySpriteProperties(pixispr, display);
+                            display.object = pixispr;
+                        }
+                        if (callback) callback();
+                            
+                    } else if (sprAsyncFunc) {
+                        sprAsyncFunc(sprite, (spr) => {
+                            if (spr) {
+                                let pixispr = spr;
+                                this.applySpriteProperties(pixispr, display);
+                                display.object = pixispr;
+                            }
+                            if (callback) callback();
+                        });
                     }
-                    if (callback) callback();
                     return;
                 }
 
