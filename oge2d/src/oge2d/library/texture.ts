@@ -5,7 +5,16 @@ export class Texture {
 
     name: string = "image";
 
+    static readonly IMG_TYPE_TEX = 0;
+    static readonly IMG_TYPE_BASE = 1;
+    static readonly IMG_TYPE_HTML = 2;
+
     private _images: Map<string, any> = new Map<string, any>();
+    private _baseimgs: Map<string, any> = new Map<string, any>();
+    private _h5images: Map<string, any> = new Map<string, any>();
+    
+    private _imageArrays: Array<Map<string, any>> = [];
+
     private _textures: Map<string, any> = new Map<string, any>();
 
     private _imagesToLoad: number = 0;
@@ -20,6 +29,10 @@ export class Texture {
     private _loadedSheetUrls: Map<string, Array<string>> = new Map<string, Array<string>>();
     private _loadedSheetAreas: Map<string, Array<any>> = new Map<string, Array<any>>();
     private _loadedSheets: Map<string, Array<any>> = new Map<string, Array<any>>();
+
+    constructor() {
+        this._imageArrays = [this._images, this._baseimgs, this._h5images];
+    }
 
     loadSheets(names: Array<string>, urls: Map<string, Array<string>>, areas: Map<string, Array<any>>, callback: (sheets: Map<string, Array<any>>)=>void) {
         if (urls.size != areas.size) {
@@ -170,10 +183,19 @@ export class Texture {
                 this.loadImagesOneByOne(callback, progress);
             });
         }
-	}
-
+    }
+    
     loadImage(url: string, callback: (img: any)=>void) {
-        let tex = this._images.get(url);
+        this.loadImageByType(url, Texture.IMG_TYPE_TEX, callback);
+    }
+
+    loadImageByType(url: string, imgtype: number, callback: (img: any)=>void) {
+        if (imgtype < Texture.IMG_TYPE_TEX || imgtype > Texture.IMG_TYPE_HTML) {
+            callback(null);
+            return;
+        }
+        let imageSet = this._imageArrays[imgtype];
+        let tex = imageSet.get(url);
         if (tex != undefined && tex != null) {
             callback(tex);
             return;
@@ -183,14 +205,17 @@ export class Texture {
         if (pos > 0) fmt = url.substring(pos + 1);
         if (fmt.length <= 0) fmt = "png";
         Loader.loadBytes(url, (content) => {
-            if (this._images.get(url)) return; // not support multiple reqests to load same thing, so just do nothing ...
+            if (imageSet.get(url)) return; // not support multiple reqests to load same thing, so just do nothing ...
             if (content != undefined && content != null && content.length > 0) {
                 let image = new Image();
                 image.addEventListener("load", (event) => {
-                    if (this._images.get(url)) return;
-                    let newTexture = new PIXI.Texture(new PIXI.BaseTexture(image));
-                    if (newTexture) this._images.set(url, newTexture);
-                    callback(newTexture);
+                    if (imageSet.get(url)) return;
+                    let newone: any = null;
+                    if (imgtype == Texture.IMG_TYPE_TEX) newone = new PIXI.Texture(new PIXI.BaseTexture(image));
+                    else if (imgtype == Texture.IMG_TYPE_BASE) newone = new PIXI.BaseTexture(image);
+                    else if (imgtype == Texture.IMG_TYPE_HTML) newone = image;
+                    if (newone) imageSet.set(url, newone);
+                    callback(newone);
                 });
                 image.src = "data:image/" + fmt.toLowerCase() + ";base64," + this.bytesToBase64(content);
             } else callback(null);

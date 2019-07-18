@@ -32,6 +32,7 @@ export class Display implements Updater {
         this._game.height = this._pixi.screen.height;
         if (game.container) game.container.appendChild(this._pixi.view);
         else document.body.appendChild(this._pixi.view);
+        display.pixi = this._pixi;
         display.object = this._pixi.stage;
         display.plugins = this._pixi.renderer.plugins;
         if (display.layers) {
@@ -78,6 +79,7 @@ export class Display implements Updater {
         });
         display.ticker = this._ticker;
         game.components["display"] = display;
+        //display.pixi.start(); // ??
         return true;
     }
 

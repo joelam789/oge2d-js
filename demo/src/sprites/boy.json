@@ -1,0 +1,20 @@
+{
+    "script": true,
+
+    "components":
+    {
+        "spine":
+        {
+            "png": "spine/atlas1.png",
+			"atlas": "spine/atlas1.atlas",
+			"json": "spine/demos.json"
+        },
+
+        "display":
+        {
+            "x": 200,
+            "y": 200
+        }
+    }
+    
+}

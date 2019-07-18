@@ -23,11 +23,15 @@
 		[
 			"img/main.png",
 
+			"spine/atlas1.png",
+			"spine/demos.json",
+
 			"audio/musics/menu.mp3",
 			"audio/sounds/select.mp3",
 
 			"json/scenes/menu/menu.json",
 			"json/scenes/menu/sprites/cursor1.json",
+			"json/scenes/menu/sprites/boy1.json",
 			"json/scenes/menu/sprites/fps1.json",
 			"json/scenes/menu/sprites/menu-item1.json",
 			"json/scenes/menu/sprites/plot1.json",
@@ -41,6 +45,7 @@
 			"json/paths/deepv.json",
 			"json/paths/hill.json",
 
+			"json/sprites/boy.json",
 			"json/sprites/boom.json",
 			"json/sprites/boom-a.json",
 			"json/sprites/boom-b.json",

@@ -25,6 +25,6 @@
     },
 
 	"systems": ["motion"],
-    "sprites": ["fps1", "title1", "menu-item1", "cursor1", "plot1"]
+    "sprites": ["fps1", "title1", "menu-item1", "cursor1", "boy1", "plot1"]
 	
 }
