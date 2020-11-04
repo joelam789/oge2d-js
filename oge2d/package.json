@@ -9,12 +9,12 @@
   "author": "joelam",
   "license": "MIT",
   "devDependencies": {
-    "core-js": "^2.6.9",
-    "del": "^5.0.0",
+    "core-js": "^2.6.11",
+    "del": "^6.0.0",
     "gulp": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-typescript": "^5.0.1",
     "systemjs-builder": "^0.16.15",
-    "typescript": "^3.5.2"
+    "typescript": "^4.0.5"
   }
 }

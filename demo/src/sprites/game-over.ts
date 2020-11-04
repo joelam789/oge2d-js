@@ -19,7 +19,7 @@ export class SpriteGameOver {
 		let winbgm = scene.game.libraries["audio"].musics["win"];
 		let losebgm = scene.game.libraries["audio"].musics["lose"];
 
-		if (profile.progress != 0) {
+		if (profile.progress >= 100 || profile.lives <= 0) {
 			if (player) player.components.collision.enabled = false;
 			if (battlebgm.isPlaying()) {
 				tween.get(battlebgm).to({volume: 0}, 2000).call(() => {
@@ -35,17 +35,17 @@ export class SpriteGameOver {
 				yield plot.wait("bgm-fadeout");
 			}
 		}
-		if (profile.progress > 0) {
+		if (profile.progress >= 100) {
 			winbgm.play(1);
 			scene.spr("info1").get("display").object.text = "STAGE CLEAR";
 			scene.spr("info1").active = true;
-		} else if (profile.progress < 0) {
+		} else if (profile.lives <= 0) {
 			losebgm.play(1);
 			scene.spr("info1").get("display").object.text = "GAME OVER";
 			scene.spr("info1").active = true;
 		}
 
-		if (profile.progress != 0) {
+		if (profile.progress >= 100 || profile.lives <= 0) {
 			yield plot.wait(6000);
 			let transition: any = sprite.scene.systems["transition"];
 			if (transition) transition.callScene("menu");

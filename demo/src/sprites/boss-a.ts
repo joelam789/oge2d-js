@@ -35,7 +35,10 @@ export class SpriteBossA {
 				});
 			});
 			if (bomb.components.event == undefined) bomb.components.event = { };
-			bomb.components.event["onDeactivate"] = (spr) => this.explode(scene, spr, 2);
+			bomb.components.event["onDeactivate"] = (spr) => {
+				let profile = spr.game.components.shooting;
+				if (profile.progress >= 10) this.explode(scene, spr, 2);
+			};
 			bomb.active = true;
 		}
 		scene.timeout(2000 + 1000 * (Math.round(Math.random() * 100) % 4), () => this.sendBomb(scene, boss, speed));
@@ -73,6 +76,8 @@ export class SpriteBossA {
 				enemy.active = false;
 			}
 			if (enemy.active) {
+				let gameProfile = enemy.game.components.shooting;
+				if (gameProfile.progress <= 0) gameProfile.progress = 10;
 				enemy.components.display.object.x = posX;
 				enemy.components.display.object.y = posY;
 				motion.moveTo(enemy, x, y, speed * 2, (spr) => {
@@ -81,11 +86,13 @@ export class SpriteBossA {
 				});
 				if (enemy.components.event == undefined) enemy.components.event = { };
 				enemy.components.event["onDeactivate"] = (spr) => {
-					let profile = enemy.game.components.shooting;
-					profile.progress = profile.progress + 35;
-					if (profile.progress >= 100) {
-						console.log("stage clear");
-						scene.spr("game-over1").active = true;
+					let profile = spr.game.components.shooting;
+					if (profile.progress >= 10) {
+						profile.progress = profile.progress + 30;
+						if (profile.progress >= 100) {
+							console.log("stage clear");
+							scene.spr("game-over1").active = true;
+						}
 					}
 				};
 			}

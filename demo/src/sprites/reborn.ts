@@ -12,7 +12,7 @@ export class SpriteReborn {
 
 		if (profile.lives <= 0) {
 
-			profile.progress = -1000;
+			//profile.progress = -1000;
 			//plot.enable(scene.spr("gameover"));
 			console.log("jump to gameover...");
 			scene.spr("game-over1").active = true;

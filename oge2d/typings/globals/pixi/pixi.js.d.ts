@@ -41,22 +41,6 @@ declare namespace PIXI {
      */
     namespace filters {
         /**
-         * @class BlurXFilter
-         * @memberof PIXI.filters
-         * @deprecated since 5.0.0
-         * @see PIXI.filters.BlurFilterPass
-         */
-        class BlurXFilter {
-        }
-        /**
-         * @class BlurYFilter
-         * @memberof PIXI.filters
-         * @deprecated since 5.0.0
-         * @see PIXI.filters.BlurFilterPass
-         */
-        class BlurYFilter {
-        }
-        /**
          * Simplest filter - applies alpha.
          *
          * Use this instead of Container's alpha property to avoid visual layering of individual elements.
@@ -127,12 +111,12 @@ declare namespace PIXI {
              * @param {PIXI.systems.FilterSystem} filterManager - The renderer to retrieve the filter from
              * @param {PIXI.RenderTexture} input - The input render target.
              * @param {PIXI.RenderTexture} output - The target to output to.
-             * @param {boolean} clear - Should the output be cleared before rendering to it
+             * @param {PIXI.CLEAR_MODES} clearMode - Should the output be cleared before rendering to it.
              * @param {object} [currentState] - It's current state of filter.
              *        There are some useful properties in the currentState :
              *        target, filters, sourceFrame, destinationFrame, renderTarget, resolution
              */
-            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear: boolean, currentState?: any): void;
+            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES, currentState?: any): void;
             /**
              * Sets the blendmode of the filter
              *
@@ -140,6 +124,12 @@ declare namespace PIXI {
              * @default PIXI.BLEND_MODES.NORMAL
              */
             blendMode: number;
+            /**
+             * Program that the shader uses
+             *
+             * @member {PIXI.Program} PIXI.Shader#program
+             */
+            program: PIXI.Program;
             /**
              * Shader uniform values, shortcut for `uniformGroup.uniforms`
              * @readonly
@@ -164,8 +154,9 @@ declare namespace PIXI {
              * @param {PIXI.systems.FilterSystem} filterManager - The manager.
              * @param {PIXI.RenderTexture} input - The input target.
              * @param {PIXI.RenderTexture} output - The output target.
+             * @param {PIXI.CLEAR_MODES} clearMode - How to clear
              */
-            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture): void;
+            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES): void;
             /**
              * Sets the strength of both the blurX and blurY properties simultaneously
              *
@@ -204,7 +195,7 @@ declare namespace PIXI {
             /**
              * If set to true the edge of the target will be clamped
              *
-             * @member {bool}
+             * @member {boolean}
              * @default false
              */
             repeatEdgePixels: boolean;
@@ -248,6 +239,12 @@ declare namespace PIXI {
              */
             state: PIXI.State;
             /**
+             * Program that the shader uses
+             *
+             * @member {PIXI.Program} PIXI.Shader#program
+             */
+            program: PIXI.Program;
+            /**
              * Shader uniform values, shortcut for `uniformGroup.uniforms`
              * @readonly
              * @member {object}
@@ -262,7 +259,16 @@ declare namespace PIXI {
          * @memberof PIXI.filters
          */
         class BlurFilterPass extends PIXI.Filter {
-            constructor(horizontal: boolean, strength: number, quality: number, resolution: number, kernelSize?: number);
+            constructor(horizontal: boolean, strength?: number, quality?: number, resolution?: number, kernelSize?: number);
+            /**
+             * Applies the filter.
+             *
+             * @param {PIXI.systems.FilterSystem} filterManager - The manager.
+             * @param {PIXI.RenderTexture} input - The input target.
+             * @param {PIXI.RenderTexture} output - The output target.
+             * @param {PIXI.CLEAR_MODES} clearMode - How to clear
+             */
+            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES): void;
             /**
              * Sets the strength of both the blur.
              *
@@ -318,24 +324,18 @@ declare namespace PIXI {
              */
             state: PIXI.State;
             /**
-             * Applies the filter
-             *
-             * @param {PIXI.systems.FilterSystem} filterManager - The renderer to retrieve the filter from
-             * @param {PIXI.RenderTexture} input - The input render target.
-             * @param {PIXI.RenderTexture} output - The target to output to.
-             * @param {boolean} clear - Should the output be cleared before rendering to it
-             * @param {object} [currentState] - It's current state of filter.
-             *        There are some useful properties in the currentState :
-             *        target, filters, sourceFrame, destinationFrame, renderTarget, resolution
-             */
-            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear: boolean, currentState?: any): void;
-            /**
              * Sets the blendmode of the filter
              *
              * @member {number}
              * @default PIXI.BLEND_MODES.NORMAL
              */
             blendMode: number;
+            /**
+             * Program that the shader uses
+             *
+             * @member {PIXI.Program} PIXI.Shader#program
+             */
+            program: PIXI.Program;
             /**
              * Shader uniform values, shortcut for `uniformGroup.uniforms`
              * @readonly
@@ -414,10 +414,10 @@ declare namespace PIXI {
              * Increase saturation : increase contrast, brightness, and sharpness
              *
              * @param {number} amount - The saturation amount (0-1)
-             * @param {boolean} multiply - if true, current matrix and matrix are multiplied. If false,
+             * @param {boolean} [multiply] - if true, current matrix and matrix are multiplied. If false,
              *  just set the current matrix with @param matrix
              */
-            saturate(amount: number, multiply: boolean): void;
+            saturate(amount: number, multiply?: boolean): void;
             /**
              * Desaturate image (remove color)
              *
@@ -486,12 +486,12 @@ declare namespace PIXI {
              *
              * @param {number} desaturation - Tone values.
              * @param {number} toned - Tone values.
-             * @param {string} lightColor - Tone values, example: `0xFFE580`
-             * @param {string} darkColor - Tone values, example: `0xFFE580`
+             * @param {number} lightColor - Tone values, example: `0xFFE580`
+             * @param {number} darkColor - Tone values, example: `0xFFE580`
              * @param {boolean} multiply - if true, current matrix and matrix are multiplied. If false,
              *  just set the current matrix with @param matrix
              */
-            colorTone(desaturation: number, toned: number, lightColor: string, darkColor: string, multiply: boolean): void;
+            colorTone(desaturation: number, toned: number, lightColor: number, darkColor: number, multiply: boolean): void;
             /**
              * Night effect
              *
@@ -587,12 +587,12 @@ declare namespace PIXI {
              * @param {PIXI.systems.FilterSystem} filterManager - The renderer to retrieve the filter from
              * @param {PIXI.RenderTexture} input - The input render target.
              * @param {PIXI.RenderTexture} output - The target to output to.
-             * @param {boolean} clear - Should the output be cleared before rendering to it
+             * @param {PIXI.CLEAR_MODES} clearMode - Should the output be cleared before rendering to it.
              * @param {object} [currentState] - It's current state of filter.
              *        There are some useful properties in the currentState :
              *        target, filters, sourceFrame, destinationFrame, renderTarget, resolution
              */
-            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear: boolean, currentState?: any): void;
+            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES, currentState?: any): void;
             /**
              * Sets the blendmode of the filter
              *
@@ -600,6 +600,12 @@ declare namespace PIXI {
              * @default PIXI.BLEND_MODES.NORMAL
              */
             blendMode: number;
+            /**
+             * Program that the shader uses
+             *
+             * @member {PIXI.Program} PIXI.Shader#program
+             */
+            program: PIXI.Program;
             /**
              * Shader uniform values, shortcut for `uniformGroup.uniforms`
              * @readonly
@@ -638,9 +644,9 @@ declare namespace PIXI {
              * @param {PIXI.systems.FilterSystem} filterManager - The manager.
              * @param {PIXI.RenderTexture} input - The input target.
              * @param {PIXI.RenderTexture} output - The output target.
-             * @param {boolean} clear - Should the output be cleared before rendering to it.
+             * @param {PIXI.CLEAR_MODES} clearMode - clearMode.
              */
-            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear: boolean): void;
+            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES): void;
             /**
              * The texture used for the displacement map. Must be power of 2 sized texture.
              *
@@ -693,6 +699,12 @@ declare namespace PIXI {
              * @default PIXI.BLEND_MODES.NORMAL
              */
             blendMode: number;
+            /**
+             * Program that the shader uses
+             *
+             * @member {PIXI.Program} PIXI.Shader#program
+             */
+            program: PIXI.Program;
             /**
              * Shader uniform values, shortcut for `uniformGroup.uniforms`
              * @readonly
@@ -758,12 +770,12 @@ declare namespace PIXI {
              * @param {PIXI.systems.FilterSystem} filterManager - The renderer to retrieve the filter from
              * @param {PIXI.RenderTexture} input - The input render target.
              * @param {PIXI.RenderTexture} output - The target to output to.
-             * @param {boolean} clear - Should the output be cleared before rendering to it
+             * @param {PIXI.CLEAR_MODES} clearMode - Should the output be cleared before rendering to it.
              * @param {object} [currentState] - It's current state of filter.
              *        There are some useful properties in the currentState :
              *        target, filters, sourceFrame, destinationFrame, renderTarget, resolution
              */
-            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear: boolean, currentState?: any): void;
+            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES, currentState?: any): void;
             /**
              * Sets the blendmode of the filter
              *
@@ -771,6 +783,12 @@ declare namespace PIXI {
              * @default PIXI.BLEND_MODES.NORMAL
              */
             blendMode: number;
+            /**
+             * Program that the shader uses
+             *
+             * @member {PIXI.Program} PIXI.Shader#program
+             */
+            program: PIXI.Program;
             /**
              * Shader uniform values, shortcut for `uniformGroup.uniforms`
              * @readonly
@@ -845,12 +863,12 @@ declare namespace PIXI {
              * @param {PIXI.systems.FilterSystem} filterManager - The renderer to retrieve the filter from
              * @param {PIXI.RenderTexture} input - The input render target.
              * @param {PIXI.RenderTexture} output - The target to output to.
-             * @param {boolean} clear - Should the output be cleared before rendering to it
+             * @param {PIXI.CLEAR_MODES} clearMode - Should the output be cleared before rendering to it.
              * @param {object} [currentState] - It's current state of filter.
              *        There are some useful properties in the currentState :
              *        target, filters, sourceFrame, destinationFrame, renderTarget, resolution
              */
-            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear: boolean, currentState?: any): void;
+            apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES, currentState?: any): void;
             /**
              * Sets the blendmode of the filter
              *
@@ -858,6 +876,12 @@ declare namespace PIXI {
              * @default PIXI.BLEND_MODES.NORMAL
              */
             blendMode: number;
+            /**
+             * Program that the shader uses
+             *
+             * @member {PIXI.Program} PIXI.Shader#program
+             */
+            program: PIXI.Program;
             /**
              * Shader uniform values, shortcut for `uniformGroup.uniforms`
              * @readonly
@@ -867,340 +891,61 @@ declare namespace PIXI {
         }
     }
     /**
-     * Deprecations (backward compatibilities) are automatically applied for browser bundles
-     * in the UMD module format. If using Webpack or Rollup, you'll need to apply these
-     * deprecations manually by doing something like this:
-     * @example
-     * import * as PIXI from 'pixi.js';
-     * PIXI.useDeprecated(); // MUST be bound to namespace
-     * @memberof PIXI
-     * @function useDeprecated
-     */
-    function useDeprecated(): void;
-    /**
-     * @constant {RegExp|string} SVG_SIZE
-     * @memberof PIXI
-     * @see PIXI.resources.SVGResource.SVG_SIZE
-     * @deprecated since 5.0.0
-     */
-    var SVG_SIZE: RegExp | string;
-    /**
-     * @class PIXI.TransformStatic
-     * @deprecated since 5.0.0
-     * @see PIXI.Transform
-     */
-    class TransformStatic {
-    }
-    /**
-     * @class PIXI.TransformBase
-     * @deprecated since 5.0.0
-     * @see PIXI.Transform
-     */
-    class TransformBase {
-    }
-    /**
-     * Constants that specify the transform type.
+     * The Accessibility manager recreates the ability to tab and have content read by screen readers.
+     * This is very important as it can possibly help people with disabilities access PixiJS content.
      *
-     * @static
-     * @constant
-     * @name TRANSFORM_MODE
-     * @memberof PIXI
-     * @enum {number}
-     * @deprecated since 5.0.0
-     * @property {number} STATIC
-     * @property {number} DYNAMIC
-     */
-    enum TRANSFORM_MODE {
-        STATIC,
-        DYNAMIC
-    }
-    /**
-     * @class PIXI.WebGLRenderer
-     * @see PIXI.Renderer
-     * @deprecated since 5.0.0
-     */
-    class WebGLRenderer {
-    }
-    /**
-     * @class PIXI.CanvasRenderTarget
-     * @see PIXI.utils.CanvasRenderTarget
-     * @deprecated since 5.0.0
-     */
-    class CanvasRenderTarget {
-    }
-    /**
-     * @memberof PIXI
-     * @name loader
-     * @type {PIXI.Loader}
-     * @see PIXI.Loader.shared
-     * @deprecated since 5.0.0
-     */
-    var loader: PIXI.Loader;
-    /**
-     * @class PIXI.FilterManager
-     * @see PIXI.systems.FilterSystem
-     * @deprecated since 5.0.0
-     */
-    class FilterManager {
-        /**
-         * @method PIXI.FilterManager#getRenderTarget
-         * @deprecated since 5.0.0
-         * @see PIXI.systems.FilterSystem#getFilterTexture
-         */
-        getRenderTarget(): void;
-        /**
-         * @method PIXI.FilterManager#returnRenderTarget
-         * @deprecated since 5.0.0
-         * @see PIXI.systems.FilterSystem#returnFilterTexture
-         */
-        returnRenderTarget(): void;
-    }
-    /**
-     * This namespace has been removed. All classes previous nested
-     * under this namespace have been moved to the top-level `PIXI` object.
-     * @namespace PIXI.extras
-     * @deprecated since 5.0.0
-     */
-    namespace extras {
-        /**
-         * @class PIXI.extras.TilingSprite
-         * @see PIXI.TilingSprite
-         * @deprecated since 5.0.0
-         */
-        class TilingSprite {
-        }
-        /**
-         * @class PIXI.extras.TilingSpriteRenderer
-         * @see PIXI.TilingSpriteRenderer
-         * @deprecated since 5.0.0
-         */
-        class TilingSpriteRenderer {
-        }
-        /**
-         * @class PIXI.extras.AnimatedSprite
-         * @see PIXI.AnimatedSprite
-         * @deprecated since 5.0.0
-         */
-        class AnimatedSprite {
-        }
-        /**
-         * @class PIXI.extras.BitmapText
-         * @see PIXI.BitmapText
-         * @deprecated since 5.0.0
-         */
-        class BitmapText {
-        }
-    }
-    /**
-     * All classes on this namespace have moved to the high-level `PIXI` object.
-     * @namespace PIXI.mesh
-     * @deprecated since 5.0.0
-     */
-    namespace mesh {
-        /**
-         * @class PIXI.mesh.Mesh
-         * @see PIXI.SimpleMesh
-         * @deprecated since 5.0.0
-         */
-        class Mesh {
-        }
-        /**
-         * @class PIXI.mesh.NineSlicePlane
-         * @see PIXI.NineSlicePlane
-         * @deprecated since 5.0.0
-         */
-        class NineSlicePlane {
-        }
-        /**
-         * @class PIXI.mesh.Plane
-         * @see PIXI.SimplePlane
-         * @deprecated since 5.0.0
-         */
-        class Plane {
-        }
-        /**
-         * @class PIXI.mesh.Rope
-         * @see PIXI.SimpleRope
-         * @deprecated since 5.0.0
-         */
-        class Rope {
-        }
-        /**
-         * @class PIXI.mesh.RawMesh
-         * @see PIXI.Mesh
-         * @deprecated since 5.0.0
-         */
-        class RawMesh {
-        }
-        /**
-         * @class PIXI.mesh.CanvasMeshRenderer
-         * @see PIXI.CanvasMeshRenderer
-         * @deprecated since 5.0.0
-         */
-        class CanvasMeshRenderer {
-        }
-        /**
-         * @class PIXI.mesh.MeshRenderer
-         * @see PIXI.MeshRenderer
-         * @deprecated since 5.0.0
-         */
-        class MeshRenderer {
-        }
-    }
-    /**
-     * This namespace has been removed and items have been moved to
-     * the top-level `PIXI` object.
-     * @namespace PIXI.particles
-     * @deprecated since 5.0.0
-     */
-    namespace particles {
-        /**
-         * @class PIXI.particles.ParticleContainer
-         * @deprecated since 5.0.0
-         * @see PIXI.ParticleContainer
-         */
-        class ParticleContainer {
-        }
-        /**
-         * @class PIXI.particles.ParticleRenderer
-         * @deprecated since 5.0.0
-         * @see PIXI.ParticleRenderer
-         */
-        class ParticleRenderer {
-        }
-    }
-    /**
-     * This namespace has been removed and items have been moved to
-     * the top-level `PIXI` object.
-     * @namespace PIXI.ticker
-     * @deprecated since 5.0.0
-     */
-    namespace ticker {
-        /**
-         * @class PIXI.ticker.Ticker
-         * @deprecated since 5.0.0
-         * @see PIXI.Ticker
-         */
-        class Ticker {
-        }
-        /**
-         * @name PIXI.ticker.shared
-         * @type {PIXI.Ticker}
-         * @deprecated since 5.0.0
-         * @see PIXI.Ticker.shared
-         */
-        var shared: PIXI.Ticker;
-    }
-    /**
-     * All classes on this namespace have moved to the high-level `PIXI` object.
-     * @namespace PIXI.loaders
-     * @deprecated since 5.0.0
-     */
-    namespace loaders {
-        /**
-         * @class PIXI.loaders.Loader
-         * @see PIXI.Loader
-         * @deprecated since 5.0.0
-         */
-        class Loader {
-            /**
-             * @function PIXI.loaders.Loader.addPixiMiddleware
-             * @see PIXI.Loader.registerPlugin
-             * @deprecated since 5.0.0
-             * @param {function} middleware
-             */
-            static addPixiMiddleware(middleware: (...params: any[]) => any): void;
-        }
-        /**
-         * @class PIXI.loaders.Resource
-         * @see PIXI.LoaderResource
-         * @deprecated since 5.0.0
-         */
-        class Resource {
-        }
-        /**
-         * @function PIXI.loaders.bitmapFontParser
-         * @see PIXI.BitmapFontLoader.use
-         * @deprecated since 5.0.0
-         */
-        function bitmapFontParser(): void;
-        /**
-         * @function PIXI.loaders.parseBitmapFontData
-         * @see PIXI.BitmapFontLoader.parse
-         * @deprecated since 5.0.0
-         */
-        function parseBitmapFontData(): void;
-        /**
-         * @function PIXI.loaders.spritesheetParser
-         * @see PIXI.SpritesheetLoader.use
-         * @deprecated since 5.0.0
-         */
-        function spritesheetParser(): void;
-        /**
-         * @function PIXI.loaders.getResourcePath
-         * @see PIXI.SpritesheetLoader.getResourcePath
-         * @deprecated since 5.0.0
-         */
-        function getResourcePath(): void;
-    }
-    /**
-     * This namespace contains an accessibility plugin for allowing interaction via the keyboard.
+     * A DisplayObject can be made accessible just like it can be made interactive. This manager will map the
+     * events as if the mouse was being used, minimizing the effort required to implement.
      *
-     * Do not instantiate this plugin directly. It is available from the `renderer.plugins` property.
-     * See {@link PIXI.CanvasRenderer#plugins} or {@link PIXI.Renderer#plugins}.
-     * @namespace PIXI.accessibility
+     * An instance of this class is automatically created by default, and can be found at `renderer.plugins.accessibility`
+     *
+     * @class
+     * @memberof PIXI
      */
-    namespace accessibility {
+    class AccessibilityManager {
+        constructor(renderer: PIXI.Renderer);
         /**
-         * The Accessibility manager recreates the ability to tab and have content read by screen readers.
-         * This is very important as it can possibly help people with disabilities access PixiJS content.
+         * Setting this to true will visually show the divs.
          *
-         * A DisplayObject can be made accessible just like it can be made interactive. This manager will map the
-         * events as if the mouse was being used, minimizing the effort required to implement.
-         *
-         * An instance of this class is automatically created by default, and can be found at `renderer.plugins.accessibility`
-         *
-         * @class
-         * @memberof PIXI.accessibility
+         * @type {boolean}
          */
-        class AccessibilityManager {
-            constructor(renderer: PIXI.Renderer);
-            /**
-             * Setting this to true will visually show the divs.
-             *
-             * @type {boolean}
-             */
-            debug: boolean;
-            /**
-             * The renderer this accessibility manager works for.
-             *
-             * @member {PIXI.AbstractRenderer} PIXI.accessibility.AccessibilityManager#renderer
-             */
-            renderer: PIXI.AbstractRenderer;
-            /**
-             * A flag
-             * @type {boolean}
-             * @readonly
-             */
-            readonly isActive: boolean;
-            /**
-             * A flag
-             * @type {boolean}
-             * @readonly
-             */
-            readonly isMobileAccessibility: boolean;
-            /**
-             * Adjust the hit area based on the bounds of a display object
-             *
-             * @param {PIXI.Rectangle} hitArea - Bounds of the child
-             */
-            capHitArea(hitArea: PIXI.Rectangle): void;
-            /**
-             * Destroys the accessibility manager
-             *
-             */
-            destroy(): void;
-        }
+        debug: boolean;
+        /**
+         * The renderer this accessibility manager works for.
+         *
+         * @member {PIXI.AbstractRenderer} PIXI.AccessibilityManager#renderer
+         */
+        renderer: PIXI.AbstractRenderer;
+        /**
+         * A flag
+         * @member {boolean}
+         * @readonly
+         */
+        readonly isActive: boolean;
+        /**
+         * A flag
+         * @member {boolean}
+         * @readonly
+         */
+        readonly isMobileAccessibility: boolean;
+        /**
+         * private function that will visually add the information to the
+         * accessability div
+         *
+         * @param {HTMLElement} div
+         */
+        updateDebugHTML(div: HTMLElement): void;
+        /**
+         * Adjust the hit area based on the bounds of a display object
+         *
+         * @param {PIXI.Rectangle} hitArea - Bounds of the child
+         */
+        capHitArea(hitArea: PIXI.Rectangle): void;
+        /**
+         * Destroys the accessibility manager
+         *
+         */
+        destroy(): void;
     }
     /**
      * Convenience class to create a new PIXI application.
@@ -1234,7 +979,6 @@ declare namespace PIXI {
             forceCanvas?: boolean;
             backgroundColor?: number;
             clearBeforeRender?: boolean;
-            forceFXAA?: boolean;
             powerPreference?: string;
             sharedTicker?: boolean;
             sharedLoader?: boolean;
@@ -1274,7 +1018,7 @@ declare namespace PIXI {
         readonly screen: PIXI.Rectangle;
         /**
          * Destroy and don't use after this.
-         * @param {Boolean} [removeView=false] Automatically remove canvas from DOM.
+         * @param {Boolean} [removeView=false] - Automatically remove canvas from DOM.
          * @param {object|boolean} [stageOptions] - Options parameter. A boolean will act as if all options
          *  have been set to that value
          * @param {boolean} [stageOptions.children=false] - if set to true, all the children will have their destroy
@@ -1290,15 +1034,24 @@ declare namespace PIXI {
             baseTexture?: boolean;
         }): void;
         /**
-         * The element or window to resize the application to.
+         * The HTML element or window to automatically resize the
+         * renderer's view element to match width and height.
          * @type {Window|HTMLElement}
          * @name resizeTo
          * @memberof PIXI.Application#
          */
         resizeTo: Window | HTMLElement;
         /**
-         * If `resizeTo` is set, calling this function
-         * will resize to the width and height of that element.
+         * Resize is throttled, so it's
+         * safe to call this multiple times per frame and it'll
+         * only be called once.
+         * @method PIXI.Application#queueResize
+         */
+        queueResize(): void;
+        /**
+         * Execute an immediate resize on the renderer, this is not
+         * throttled and can be expensive to call many times in a row.
+         * Will resize only if `resizeTo` property is set.
          * @method PIXI.Application#resize
          */
         resize(): void;
@@ -1378,6 +1131,22 @@ declare namespace PIXI {
         CANVAS
     }
     /**
+     * Bitwise OR of masks that indicate the buffers to be cleared.
+     *
+     * @static
+     * @memberof PIXI
+     * @name BUFFER_BITS
+     * @enum {number}
+     * @property {number} COLOR - Indicates the buffers currently enabled for color writing.
+     * @property {number} DEPTH - Indicates the depth buffer.
+     * @property {number} STENCIL - Indicates the stencil buffer.
+     */
+    enum BUFFER_BITS {
+        COLOR,
+        DEPTH,
+        STENCIL
+    }
+    /**
      * Various blend modes supported by PIXI.
      *
      * IMPORTANT - The WebGL renderer only supports the NORMAL, ADD, MULTIPLY and SCREEN blend modes.
@@ -1417,6 +1186,7 @@ declare namespace PIXI {
      * @property {number} SUBTRACT
      * @property {number} SRC_OVER
      * @property {number} ERASE
+     * @property {number} XOR
      */
     enum BLEND_MODES {
         NORMAL,
@@ -1449,7 +1219,8 @@ declare namespace PIXI {
         DST_ATOP,
         SUBTRACT,
         SRC_OVER,
-        ERASE
+        ERASE,
+        XOR
     }
     /**
      * Various webgl draw modes. These can be used to specify which GL drawMode to use
@@ -1616,6 +1387,53 @@ declare namespace PIXI {
         ON
     }
     /**
+     * How to treat textures with premultiplied alpha
+     *
+     * @name ALPHA_MODES
+     * @memberof PIXI
+     * @static
+     * @enum {number}
+     * @property {number} NO_PREMULTIPLIED_ALPHA - Source is not premultiplied, leave it like that.
+     *  Option for compressed and data textures that are created from typed arrays.
+     * @property {number} PREMULTIPLY_ON_UPLOAD - Source is not premultiplied, premultiply on upload.
+     *  Default option, used for all loaded images.
+     * @property {number} PREMULTIPLIED_ALPHA - Source is already premultiplied
+     *  Example: spine atlases with `_pma` suffix.
+     * @property {number} NPM - Alias for NO_PREMULTIPLIED_ALPHA.
+     * @property {number} UNPACK - Default option, alias for PREMULTIPLY_ON_UPLOAD.
+     * @property {number} PMA - Alias for PREMULTIPLIED_ALPHA.
+     */
+    enum ALPHA_MODES {
+        NO_PREMULTIPLIED_ALPHA,
+        PREMULTIPLY_ON_UPLOAD,
+        PREMULTIPLIED_ALPHA,
+        NPM,
+        UNPACK,
+        PMA
+    }
+    /**
+     * How to clear renderTextures in filter
+     *
+     * @name CLEAR_MODES
+     * @memberof PIXI
+     * @static
+     * @enum {number}
+     * @property {number} BLEND - Preserve the information in the texture, blend above
+     * @property {number} CLEAR - Must use `gl.clear` operation
+     * @property {number} BLIT - Clear or blit it, depends on device and level of paranoia
+     * @property {number} NO - Alias for BLEND, same as `false` in earlier versions
+     * @property {number} YES - Alias for CLEAR, same as `true` in earlier versions
+     * @property {number} AUTO - Alias for BLIT
+     */
+    enum CLEAR_MODES {
+        BLEND,
+        CLEAR,
+        BLIT,
+        NO,
+        YES,
+        AUTO
+    }
+    /**
      * The gc modes that are supported by pixi.
      *
      * The {@link PIXI.settings.GC_MODE} Garbage Collection mode for PixiJS textures is AUTO
@@ -1643,14 +1461,53 @@ declare namespace PIXI {
      *
      * @name PRECISION
      * @memberof PIXI
+     * @constant
      * @static
      * @enum {string}
-     * @constant
      * @property {string} LOW='lowp'
      * @property {string} MEDIUM='mediump'
      * @property {string} HIGH='highp'
      */
-    const enum PRECISION {
+    enum PRECISION {
+        LOW,
+        MEDIUM,
+        HIGH
+    }
+    /**
+     * Constants for mask implementations.
+     * We use `type` suffix because it leads to very different behaviours
+     *
+     * @name MASK_TYPES
+     * @memberof PIXI
+     * @static
+     * @enum {number}
+     * @property {number} NONE - Mask is ignored
+     * @property {number} SCISSOR - Scissor mask, rectangle on screen, cheap
+     * @property {number} STENCIL - Stencil mask, 1-bit, medium, works only if renderer supports stencil
+     * @property {number} SPRITE - Mask that uses SpriteMaskFilter, uses temporary RenderTexture
+     */
+    enum MASK_TYPES {
+        NONE,
+        SCISSOR,
+        STENCIL,
+        SPRITE
+    }
+    /**
+     * Constants for multi-sampling antialiasing.
+     *
+     * @see PIXI.Framebuffer#multisample
+     *
+     * @name MSAA_QUALITY
+     * @memberof PIXI
+     * @static
+     * @enum {number}
+     * @property {number} NONE - No multisampling for this renderTexture
+     * @property {number} LOW - Try 2 samples
+     * @property {number} MEDIUM - Try 4 samples
+     * @property {number} HIGH - Try 8 samples
+     */
+    enum MSAA_QUALITY {
+        NONE,
         LOW,
         MEDIUM,
         HIGH
@@ -1677,12 +1534,6 @@ declare namespace PIXI {
             clearBeforeRender?: boolean;
             backgroundColor?: number;
         });
-        /**
-         * @deprecated since 5.0.0
-         * @member {boolean} PIXI.AbstractRenderer#autoResize
-         * @see PIXI.AbstractRenderer#autoDensity
-         */
-        autoResize: boolean;
         /**
          * The supplied constructor options.
          *
@@ -1771,13 +1622,6 @@ declare namespace PIXI {
          */
         protected _backgroundColorString: string;
         /**
-         * This temporary display object used as the parent of the currently being rendered item.
-         *
-         * @member {PIXI.DisplayObject} PIXI.AbstractRenderer#_tempDisplayObjectParent
-         * @protected
-         */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
-        /**
          * The last root object that the renderer tried to render.
          *
          * @member {PIXI.DisplayObject} PIXI.AbstractRenderer#_lastObjectRendered
@@ -1826,13 +1670,13 @@ declare namespace PIXI {
          * This can be quite useful if your displayObject is complicated and needs to be reused multiple times.
          *
          * @param {PIXI.DisplayObject} displayObject - The displayObject the object will be generated from.
-         * @param {number} scaleMode - Should be one of the scaleMode consts.
+         * @param {PIXI.SCALE_MODES} scaleMode - The scale mode of the texture.
          * @param {number} resolution - The resolution / device pixel ratio of the texture being generated.
          * @param {PIXI.Rectangle} [region] - The region of the displayObject, that shall be rendered,
          *        if no region is specified, defaults to the local bounds of the displayObject.
-         * @return {PIXI.Texture} A texture of the graphics object.
+         * @return {PIXI.RenderTexture} A texture of the graphics object.
          */
-        generateTexture(displayObject: PIXI.DisplayObject, scaleMode: number, resolution: number, region?: PIXI.Rectangle): PIXI.Texture;
+        generateTexture(displayObject: PIXI.DisplayObject, scaleMode: PIXI.SCALE_MODES, resolution: number, region?: PIXI.Rectangle): PIXI.RenderTexture;
         /**
          * Removes everything from the renderer and optionally removes the Canvas DOM element.
          *
@@ -1866,7 +1710,6 @@ declare namespace PIXI {
             transparent?: boolean;
             autoDensity?: boolean;
             antialias?: boolean;
-            forceFXAA?: boolean;
             resolution?: number;
             clearBeforeRender?: boolean;
             preserveDrawingBuffer?: boolean;
@@ -1875,12 +1718,12 @@ declare namespace PIXI {
             context?: any;
         });
         /**
-         * The type of this renderer as a standardized const
+         * WebGL context, set by the contextSystem (this.context)
          *
-         * @member {number} PIXI.Renderer#type
-         * @see PIXI.RENDERER_TYPE
+         * @readonly
+         * @member {WebGLRenderingContext} PIXI.Renderer#gl
          */
-        type: number;
+        readonly gl: WebGLRenderingContext;
         /**
          * Global uniforms
          * @member {PIXI.UniformGroup} PIXI.Renderer#globalUniforms
@@ -1935,6 +1778,13 @@ declare namespace PIXI {
          * @readonly
          */
         readonly framebuffer: PIXI.systems.FramebufferSystem;
+        /**
+         * Scissor system instance
+         * @member {PIXI.systems.ScissorSystem} scissor
+         * @memberof PIXI.Renderer#
+         * @readonly
+         */
+        readonly scissor: PIXI.systems.ScissorSystem;
         /**
          * Stencil system instance
          * @member {PIXI.systems.StencilSystem} stencil
@@ -2029,24 +1879,6 @@ declare namespace PIXI {
          */
         destroy(removeView?: boolean): void;
         /**
-         * Collection of installed plugins. These are included by default in PIXI, but can be excluded
-         * by creating a custom build. Consult the README for more information about creating custom
-         * builds and excluding plugins.
-         * @name PIXI.Renderer#plugins
-         * @type {object}
-         * @readonly
-         * @property {PIXI.accessibility.AccessibilityManager} accessibility Support tabbing interactive elements.
-         * @property {PIXI.extract.Extract} extract Extract image data from renderer.
-         * @property {PIXI.interaction.InteractionManager} interaction Handles mouse, touch and pointer events.
-         * @property {PIXI.prepare.Prepare} prepare Pre-render display objects.
-         */
-        readonly plugins: {
-            accessibility: PIXI.accessibility.AccessibilityManager;
-            extract: PIXI.extract.Extract;
-            interaction: PIXI.interaction.InteractionManager;
-            prepare: PIXI.prepare.Prepare;
-        };
-        /**
          * Adds a plugin to the renderer.
          *
          * @method
@@ -2057,17 +1889,11 @@ declare namespace PIXI {
         /**
          * Collection of methods for extracting data (image, pixels, etc.) from a display object or render texture
          *
-         * @member {PIXI.extract.Extract} extract
+         * @member {PIXI.Extract} extract
          * @memberof PIXI.Renderer#
-         * @see PIXI.extract.Extract
+         * @see PIXI.Extract
          */
-        extract: PIXI.extract.Extract;
-        /**
-         * @deprecated since 5.0.0
-         * @member {boolean} PIXI.AbstractRenderer#autoResize
-         * @see PIXI.AbstractRenderer#autoDensity
-         */
-        autoResize: boolean;
+        extract: PIXI.Extract;
         /**
          * The supplied constructor options.
          *
@@ -2075,6 +1901,14 @@ declare namespace PIXI {
          * @readOnly
          */
         readonly options: any;
+        /**
+         * The type of the renderer.
+         *
+         * @member {number} PIXI.AbstractRenderer#type
+         * @default PIXI.RENDERER_TYPE.UNKNOWN
+         * @see PIXI.RENDERER_TYPE
+         */
+        type: number;
         /**
          * Measurements of the screen. (0, 0, screenWidth, screenHeight).
          *
@@ -2148,19 +1982,18 @@ declare namespace PIXI {
          */
         protected _backgroundColorString: string;
         /**
-         * This temporary display object used as the parent of the currently being rendered item.
-         *
-         * @member {PIXI.DisplayObject} PIXI.AbstractRenderer#_tempDisplayObjectParent
-         * @protected
-         */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
-        /**
          * The last root object that the renderer tried to render.
          *
          * @member {PIXI.DisplayObject} PIXI.AbstractRenderer#_lastObjectRendered
          * @protected
          */
         protected _lastObjectRendered: PIXI.DisplayObject;
+        /**
+         * Collection of plugins.
+         * @readonly
+         * @member {object} PIXI.AbstractRenderer#plugins
+         */
+        readonly plugins: any;
         /**
          * Initialize the plugins.
          *
@@ -2189,13 +2022,13 @@ declare namespace PIXI {
          * This can be quite useful if your displayObject is complicated and needs to be reused multiple times.
          *
          * @param {PIXI.DisplayObject} displayObject - The displayObject the object will be generated from.
-         * @param {number} scaleMode - Should be one of the scaleMode consts.
+         * @param {PIXI.SCALE_MODES} scaleMode - The scale mode of the texture.
          * @param {number} resolution - The resolution / device pixel ratio of the texture being generated.
          * @param {PIXI.Rectangle} [region] - The region of the displayObject, that shall be rendered,
          *        if no region is specified, defaults to the local bounds of the displayObject.
-         * @return {PIXI.Texture} A texture of the graphics object.
+         * @return {PIXI.RenderTexture} A texture of the graphics object.
          */
-        generateTexture(displayObject: PIXI.DisplayObject, scaleMode: number, resolution: number, region?: PIXI.Rectangle): PIXI.Texture;
+        generateTexture(displayObject: PIXI.DisplayObject, scaleMode: PIXI.SCALE_MODES, resolution: number, region?: PIXI.Rectangle): PIXI.RenderTexture;
         /**
          * The background color to fill if not transparent
          *
@@ -2218,12 +2051,6 @@ declare namespace PIXI {
          * @member {PIXI.Renderer} PIXI.System#renderer
          */
         renderer: PIXI.Renderer;
-        /**
-         * Generic method called when there is a WebGL context change.
-         *
-         * @param {WebGLRenderingContext} gl new webgl context
-         */
-        contextChange(gl: WebGLRenderingContext): void;
         /**
          * Generic destroy methods to be overridden by the subclass
          */
@@ -2254,8 +2081,6 @@ declare namespace PIXI {
      * @param {boolean} [options.forceCanvas=false] - prevents selection of WebGL renderer, even if such is present, this
      *   option only is available when using **pixi.js-legacy** or **@pixi/canvas-renderer** modules, otherwise
      *   it is ignored.
-     * @param {boolean} [options.forceFXAA=false] - forces FXAA antialiasing to be used over native.
-     *  FXAA is faster, but may not always look as great **webgl only**
      * @param {string} [options.powerPreference] - Parameter passed to webgl context, set to "high-performance"
      *  for devices with dual graphics card **webgl only**
      * @return {PIXI.Renderer|PIXI.CanvasRenderer} Returns WebGL renderer if available, otherwise CanvasRenderer
@@ -2272,34 +2097,196 @@ declare namespace PIXI {
         clearBeforeRender?: boolean;
         resolution?: number;
         forceCanvas?: boolean;
-        forceFXAA?: boolean;
         powerPreference?: string;
     }): PIXI.Renderer;
     /**
-     * Used by the BatchRenderer
+     * Renderer dedicated to drawing and batching sprites.
+     *
+     * This is the default batch renderer. It buffers objects
+     * with texture-based geometries and renders them in
+     * batches. It uploads multiple textures to the GPU to
+     * reduce to the number of draw calls.
      *
      * @class
+     * @protected
      * @memberof PIXI
+     * @extends PIXI.ObjectRenderer
      */
-    class BatchBuffer {
-        constructor(size: number);
+    class AbstractBatchRenderer extends PIXI.ObjectRenderer {
+        constructor(renderer: PIXI.Renderer);
         /**
-         * View on the vertices as a Float32Array for positions
+         * This is used to generate a shader that can
+         * color each vertex based on a `aTextureId`
+         * attribute that points to an texture in `uSampler`.
          *
-         * @member {Float32Array} PIXI.BatchBuffer#float32View
+         * This enables the objects with different textures
+         * to be drawn in the same draw call.
+         *
+         * You can customize your shader by creating your
+         * custom shader generator.
+         *
+         * @member {PIXI.BatchShaderGenerator} PIXI.AbstractBatchRenderer#shaderGenerator
+         * @protected
          */
-        float32View: Float32Array;
+        protected shaderGenerator: PIXI.BatchShaderGenerator;
         /**
-         * View on the vertices as a Uint32Array for uvs
+         * The class that represents the geometry of objects
+         * that are going to be batched with this.
          *
-         * @member {Float32Array} PIXI.BatchBuffer#uint32View
+         * @member {object} PIXI.AbstractBatchRenderer#geometryClass
+         * @default PIXI.BatchGeometry
+         * @protected
          */
-        uint32View: Float32Array;
+        protected geometryClass: any;
         /**
-         * Destroys the buffer.
+         * Size of data being buffered per vertex in the
+         * attribute buffers (in floats). By default, the
+         * batch-renderer plugin uses 6:
          *
+         * | aVertexPosition | 2 |
+         * |-----------------|---|
+         * | aTextureCoords  | 2 |
+         * | aColor          | 1 |
+         * | aTextureId      | 1 |
+         *
+         * @member {number} PIXI.AbstractBatchRenderer#vertexSize
+         * @readonly
+         */
+        readonly vertexSize: number;
+        /**
+         * The WebGL state in which this renderer will work.
+         *
+         * @member {PIXI.State} PIXI.AbstractBatchRenderer#state
+         * @readonly
+         */
+        readonly state: PIXI.State;
+        /**
+         * The number of bufferable objects before a flush
+         * occurs automatically.
+         *
+         * @member {number} PIXI.AbstractBatchRenderer#size
+         * @default settings.SPRITE_BATCH_SIZE * 4
+         */
+        size: number;
+        /**
+         * This shader is generated by `this.shaderGenerator`.
+         *
+         * It is generated specifically to handle the required
+         * number of textures being batched together.
+         *
+         * @member {PIXI.Shader} PIXI.AbstractBatchRenderer#_shader
+         * @protected
+         */
+        protected _shader: PIXI.Shader;
+        /**
+         * Maximum number of textures that can be uploaded to
+         * the GPU under the current context. It is initialized
+         * properly in `this.contextChange`.
+         *
+         * @member {number} PIXI.AbstractBatchRenderer#MAX_TEXTURES
+         * @see PIXI.AbstractBatchRenderer#contextChange
+         * @readonly
+         */
+        readonly MAX_TEXTURES: number;
+        /**
+         * Handles the `contextChange` signal.
+         *
+         * It calculates `this.MAX_TEXTURES` and allocating the
+         * packed-geometry object pool.
+         */
+        contextChange(): void;
+        /**
+         * Makes sure that static and dynamic flush pooled objects have correct dimensions
+         */
+        initFlushBuffers(): void;
+        /**
+         * Handles the `prerender` signal.
+         *
+         * It ensures that flushes start from the first geometry
+         * object again.
+         */
+        onPrerender(): void;
+        /**
+         * Buffers the "batchable" object. It need not be rendered
+         * immediately.
+         *
+         * @param {PIXI.DisplayObject} element - the element to render when
+         *    using this renderer
+         */
+        render(element: PIXI.DisplayObject): void;
+        /**
+         * Populating drawcalls for rendering
+         *
+         * @param {PIXI.BatchTextureArray} texArray
+         * @param {number} start
+         * @param {number} finish
+         */
+        buildDrawCalls(texArray: PIXI.BatchTextureArray, start: number, finish: number): void;
+        /**
+         * Bind textures for current rendering
+         *
+         * @param {PIXI.BatchTextureArray} texArray
+         */
+        bindAndClearTexArray(texArray: PIXI.BatchTextureArray): void;
+        /**
+         * Renders the content _now_ and empties the current batch.
+         */
+        flush(): void;
+        /**
+         * Starts a new sprite batch.
+         */
+        start(): void;
+        /**
+         * Stops and flushes the current batch.
+         */
+        stop(): void;
+        /**
+         * Destroys this `AbstractBatchRenderer`. It cannot be used again.
          */
         destroy(): void;
+        /**
+         * Takes the four batching parameters of `element`, interleaves
+         * and pushes them into the batching attribute/index buffers given.
+         *
+         * It uses these properties: `vertexData` `uvs`, `textureId` and
+         * `indicies`. It also uses the "tint" of the base-texture, if
+         * present.
+         *
+         * @param {PIXI.Sprite} element - element being rendered
+         * @param {PIXI.ViewableBuffer} attributeBuffer - attribute buffer.
+         * @param {Uint16Array} indexBuffer - index buffer
+         * @param {number} aIndex - number of floats already in the attribute buffer
+         * @param {number} iIndex - number of indices already in `indexBuffer`
+         */
+        packInterleavedGeometry(element: PIXI.Sprite, attributeBuffer: PIXI.ViewableBuffer, indexBuffer: Uint16Array, aIndex: number, iIndex: number): void;
+        /**
+         * Pool of `BatchDrawCall` objects that `flush` used
+         * to create "batches" of the objects being rendered.
+         *
+         * These are never re-allocated again.
+         * Shared between all batch renderers because it can be only one "flush" working at the moment.
+         *
+         * @static
+         * @member {PIXI.BatchDrawCall[]}
+         */
+        static _drawCallPool: PIXI.BatchDrawCall[];
+        /**
+         * Pool of `BatchDrawCall` objects that `flush` used
+         * to create "batches" of the objects being rendered.
+         *
+         * These are never re-allocated again.
+         * Shared between all batch renderers because it can be only one "flush" working at the moment.
+         *
+         * @static
+         * @member {PIXI.BatchTextureArray[]}
+         */
+        static _textureArrayPool: PIXI.BatchTextureArray[];
+        /**
+         * The renderer this manager works for.
+         *
+         * @member {PIXI.Renderer} PIXI.ObjectRenderer#renderer
+         */
+        renderer: PIXI.Renderer;
     }
     /**
      * Used by the batcher to draw batches.
@@ -2310,6 +2297,11 @@ declare namespace PIXI {
      */
     class BatchDrawCall {
         constructor();
+        /**
+         * data for uniforms or custom webgl state
+         * @member {object} PIXI.BatchDrawCall#data
+         */
+        data: any;
     }
     /**
      * Geometry used to batch standard PIXI content (e.g. Mesh, Sprite, Graphics objects).
@@ -2335,133 +2327,154 @@ declare namespace PIXI {
         protected _indexBuffer: PIXI.Buffer;
     }
     /**
-     * Renderer dedicated to drawing and batching sprites.
-     *
      * @class
-     * @protected
      * @memberof PIXI
-     * @extends PIXI.ObjectRenderer
+     * @hideconstructor
      */
-    class BatchRenderer extends PIXI.ObjectRenderer {
-        constructor(renderer: PIXI.Renderer);
+    class BatchPluginFactory {
         /**
-         * Number of values sent in the vertex buffer.
-         * aVertexPosition(2), aTextureCoord(1), aColor(1), aTextureId(1) = 5
+         * Create a new BatchRenderer plugin for Renderer. this convenience can provide an easy way
+         * to extend BatchRenderer with all the necessary pieces.
+         * @example
+         * const fragment = `
+         * varying vec2 vTextureCoord;
+         * varying vec4 vColor;
+         * varying float vTextureId;
+         * uniform sampler2D uSamplers[%count%];
          *
-         * @member {number} PIXI.BatchRenderer#vertSize
-         */
-        vertSize: number;
-        /**
-         * The size of the vertex information in bytes.
+         * void main(void){
+         *     vec4 color;
+         *     %forloop%
+         *     gl_FragColor = vColor * vec4(color.a - color.rgb, color.a);
+         * }
+         * `;
+         * const InvertBatchRenderer = PIXI.BatchPluginFactory.create({ fragment });
+         * PIXI.Renderer.registerPlugin('invert', InvertBatchRenderer);
+         * const sprite = new PIXI.Sprite();
+         * sprite.pluginName = 'invert';
          *
-         * @member {number} PIXI.BatchRenderer#vertByteSize
+         * @static
+         * @param {object} [options]
+         * @param {string} [options.vertex=PIXI.BatchPluginFactory.defaultVertexSrc] - Vertex shader source
+         * @param {string} [options.fragment=PIXI.BatchPluginFactory.defaultFragmentTemplate] - Fragment shader template
+         * @param {number} [options.vertexSize=6] - Vertex size
+         * @param {object} [options.geometryClass=PIXI.BatchGeometry]
+         * @return {*} New batch renderer plugin
          */
-        vertByteSize: number;
+        static create(options?: {
+            vertex?: string;
+            fragment?: string;
+            vertexSize?: number;
+            geometryClass?: any;
+        }): any;
         /**
-         * The number of images in the SpriteRenderer before it flushes.
+         * The default vertex shader source
          *
-         * @member {number} PIXI.BatchRenderer#size
+         * @static
+         * @type {string}
+         * @constant
          */
-        size: number;
+        static readonly defaultVertexSrc: string;
         /**
-         * Holds the defualt indices of the geometry (quads) to draw
+         * The default fragment shader source
          *
-         * @member {Uint16Array}
+         * @static
+         * @type {string}
+         * @constant
          */
-        onlySprites: Uint16Array;
-        /**
-         * The default shaders that is used if a sprite doesn't have a more specific one.
-         * there is a shader for each number of textures that can be rendered.
-         * These shaders will also be generated on the fly as required.
-         * @member {PIXI.Shader[]} PIXI.BatchRenderer#shader
-         */
-        shader: PIXI.Shader[];
-        /**
-         * Sets up the renderer context and necessary buffers.
-         */
-        contextChange(): void;
-        /**
-         * Called before the renderer starts rendering.
-         *
-         */
-        onPrerender(): void;
-        /**
-         * Renders the sprite object.
-         *
-         * @param {PIXI.Sprite} sprite - the sprite to render when using this spritebatch
-         */
-        render(sprite: PIXI.Sprite): void;
-        /**
-         * Renders the content and empties the current batch.
-         *
-         */
-        flush(): void;
-        /**
-         * Starts a new sprite batch.
-         */
-        start(): void;
-        /**
-         * Stops and flushes the current batch.
-         *
-         */
-        stop(): void;
-        /**
-         * Destroys the SpriteRenderer.
-         *
-         */
-        destroy(): void;
-        /**
-         * The renderer this manager works for.
-         *
-         * @member {PIXI.Renderer} PIXI.System#renderer
-         */
-        renderer: PIXI.Renderer;
+        static readonly defaultFragmentTemplate: string;
     }
     /**
-     * Base for a common object renderer that can be used as a system renderer plugin.
+     * Helper that generates batching multi-texture shader. Use it with your new BatchRenderer
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class BatchShaderGenerator {
+        constructor(vertexSrc: string, fragTemplate: string);
+        /**
+         * Reference to the vertex shader source.
+         *
+         * @member {string} PIXI.BatchShaderGenerator#vertexSrc
+         */
+        vertexSrc: string;
+        /**
+         * Reference to the fragement shader template. Must contain "%count%" and "%forloop%".
+         *
+         * @member {string} PIXI.BatchShaderGenerator#fragTemplate
+         */
+        fragTemplate: string;
+    }
+    /**
+     * Used by the batcher to build texture batches.
+     * Holds list of textures and their respective locations.
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class BatchTextureArray {
+        constructor();
+        /**
+         * inside textures array
+         * @member {PIXI.BaseTexture[]} PIXI.BatchTextureArray#elements
+         */
+        elements: PIXI.BaseTexture[];
+        /**
+         * Respective locations for textures
+         * @member {number[]} PIXI.BatchTextureArray#ids
+         */
+        ids: number[];
+        /**
+         * number of filled elements
+         * @member {number} PIXI.BatchTextureArray#count
+         */
+        count: number;
+    }
+    /**
+     * Base for a common object renderer that can be used as a
+     * system renderer plugin.
      *
      * @class
      * @extends PIXI.System
      * @memberof PIXI
      */
     class ObjectRenderer extends PIXI.System {
+        constructor(renderer: PIXI.Renderer);
         /**
-         * Starts the renderer and sets the shader
+         * The renderer this manager works for.
          *
+         * @member {PIXI.Renderer} PIXI.ObjectRenderer#renderer
          */
-        start(): void;
+        renderer: PIXI.Renderer;
         /**
-         * Stops the renderer
-         *
-         */
-        stop(): void;
-        /**
-         * Stub method for rendering content and emptying the current batch.
-         *
+         * Stub method that should be used to empty the current
+         * batch by rendering objects now.
          */
         flush(): void;
         /**
-         * Renders an object
+         * Generic destruction method that frees all resources. This
+         * should be called by subclasses.
+         */
+        destroy(): void;
+        /**
+         * Stub method that initializes any state required before
+         * rendering starts. It is different from the `prerender`
+         * signal, which occurs every frame, in that it is called
+         * whenever an object requests _this_ renderer specifically.
+         */
+        start(): void;
+        /**
+         * Stops the renderer. It should free up any state and
+         * become dormant.
+         */
+        stop(): void;
+        /**
+         * Keeps the object to render. It doesn't have to be
+         * rendered immediately.
          *
          * @param {PIXI.DisplayObject} object - The object to render.
          */
         render(object: PIXI.DisplayObject): void;
-        /**
-         * The renderer this manager works for.
-         *
-         * @member {PIXI.Renderer} PIXI.System#renderer
-         */
-        renderer: PIXI.Renderer;
-        /**
-         * Generic method called when there is a WebGL context change.
-         *
-         * @param {WebGLRenderingContext} gl new webgl context
-         */
-        contextChange(gl: WebGLRenderingContext): void;
-        /**
-         * Generic destroy methods to be overridden by the subclass
-         */
-        destroy(): void;
     }
     /**
      * Filter is a special type of WebGL shader that is applied to the screen.
@@ -2646,12 +2659,12 @@ declare namespace PIXI {
          * @param {PIXI.systems.FilterSystem} filterManager - The renderer to retrieve the filter from
          * @param {PIXI.RenderTexture} input - The input render target.
          * @param {PIXI.RenderTexture} output - The target to output to.
-         * @param {boolean} clear - Should the output be cleared before rendering to it
+         * @param {PIXI.CLEAR_MODES} clearMode - Should the output be cleared before rendering to it.
          * @param {object} [currentState] - It's current state of filter.
          *        There are some useful properties in the currentState :
          *        target, filters, sourceFrame, destinationFrame, renderTarget, resolution
          */
-        apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear: boolean, currentState?: any): void;
+        apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES, currentState?: any): void;
         /**
          * Sets the blendmode of the filter
          *
@@ -2676,13 +2689,11 @@ declare namespace PIXI {
          */
         static readonly defaultFragmentSrc: string;
         /**
-         * Used for caching shader IDs
+         * Program that the shader uses
          *
-         * @static
-         * @type {object}
-         * @protected
+         * @member {PIXI.Program} PIXI.Shader#program
          */
-        protected static SOURCE_KEY_MAP: any;
+        program: PIXI.Program;
         /**
          * Shader uniform values, shortcut for `uniformGroup.uniforms`
          * @readonly
@@ -2717,9 +2728,9 @@ declare namespace PIXI {
          * @param {PIXI.systems.FilterSystem} filterManager - The renderer to retrieve the filter from
          * @param {PIXI.RenderTexture} input - The input render target.
          * @param {PIXI.RenderTexture} output - The target to output to.
-         * @param {boolean} clear - Should the output be cleared before rendering to it.
+         * @param {PIXI.CLEAR_MODES} clearMode - Should the output be cleared before rendering to it.
          */
-        apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear: boolean): void;
+        apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode: PIXI.CLEAR_MODES): void;
         /**
          * The padding of the filter. Some filters require extra space to breath such as a blur.
          * Increasing this will add extra width and height to the bounds of the object that the
@@ -2767,6 +2778,12 @@ declare namespace PIXI {
          */
         blendMode: number;
         /**
+         * Program that the shader uses
+         *
+         * @member {PIXI.Program} PIXI.Shader#program
+         */
+        program: PIXI.Program;
+        /**
          * Shader uniform values, shortcut for `uniformGroup.uniforms`
          * @readonly
          * @member {object}
@@ -2794,25 +2811,53 @@ declare namespace PIXI {
     class Framebuffer {
         constructor(width: number, height: number);
         /**
+         * Width of framebuffer in pixels
+         * @member {number} PIXI.Framebuffer#width
+         */
+        width: number;
+        /**
+         * Height of framebuffer in pixels
+         * @member {number} PIXI.Framebuffer#height
+         */
+        height: number;
+        /**
+         * Desired number of samples for antialiasing. 0 means AA should not be used.
+         *
+         * Experimental WebGL2 feature, allows to use antialiasing in individual renderTextures.
+         * Antialiasing is the same as for main buffer with renderer `antialias:true` options.
+         * Seriously affects GPU memory consumption and GPU performance.
+         *
+         *```js
+         * renderTexture.framebuffer.multisample = PIXI.MSAA_QUALITY.HIGH;
+         * //...
+         * renderer.render(renderTexture, myContainer);
+         * renderer.framebuffer.blit(); // copies data from MSAA framebuffer to texture
+         *  ```
+         *
+         * @member {PIXI.MSAA_QUALITY} PIXI.Framebuffer#multisample
+         * @default PIXI.MSAA_QUALITY.NONE
+         */
+        multisample: PIXI.MSAA_QUALITY;
+        /**
          * Reference to the colorTexture.
          *
-         * @member {PIXI.Texture[]}
+         * @member {PIXI.BaseTexture[]}
          * @readonly
          */
-        readonly colorTexture: PIXI.Texture[];
+        readonly colorTexture: PIXI.BaseTexture[];
         /**
          * Add texture to the colorTexture array
          *
          * @param {number} [index=0] - Index of the array to add the texture to
-         * @param {PIXI.Texture} [texture] - Texture to add to the array
+         * @param {PIXI.BaseTexture} [texture] - Texture to add to the array
          */
-        addColorTexture(index?: number, texture?: PIXI.Texture): void;
+        addColorTexture(index?: number, texture?: PIXI.BaseTexture): void;
         /**
          * Add a depth texture to the frame buffer
          *
-         * @param {PIXI.Texture} [texture] - Texture to add
+         * @param {PIXI.BaseTexture} [texture] - Texture to add
          */
-        addDepthTexture(texture?: PIXI.Texture): void;
+        addDepthTexture(texture?: PIXI.BaseTexture): void;
         /**
          * Enable depth on the frame buffer
          */
@@ -2829,9 +2874,65 @@ declare namespace PIXI {
          */
         resize(width: number, height: number): void;
         /**
-         * disposes WebGL resources that are connected to this geometry
+         * Disposes WebGL resources that are connected to this geometry
          */
         dispose(): void;
+        /**
+         * Destroys and removes the depth texture added to this framebuffer.
+         */
+        destroyDepthTexture(): void;
+    }
+    /**
+     * Internal framebuffer for WebGL context
+     * @class
+     * @memberof PIXI
+     */
+    class GLFramebuffer {
+        constructor();
+        /**
+         * The WebGL framebuffer
+         * @member {WebGLFramebuffer} PIXI.GLFramebuffer#framebuffer
+         */
+        framebuffer: WebGLFramebuffer;
+        /**
+         * stencil+depth , usually costs 32bits per pixel
+         * @member {WebGLRenderbuffer} PIXI.GLFramebuffer#stencil
+         */
+        stencil: WebGLRenderbuffer;
+        /**
+         * latest known version of framebuffer
+         * @member {number} PIXI.GLFramebuffer#dirtyId
+         * @protected
+         */
+        protected dirtyId: number;
+        /**
+         * latest known version of framebuffer format
+         * @member {number} PIXI.GLFramebuffer#dirtyFormat
+         * @protected
+         */
+        protected dirtyFormat: number;
+        /**
+         * latest known version of framebuffer size
+         * @member {number} PIXI.GLFramebuffer#dirtySize
+         * @protected
+         */
+        protected dirtySize: number;
+        /**
+         * Detected AA samples number
+         * @member {PIXI.MSAA_QUALITY} PIXI.GLFramebuffer#multisample
+         */
+        multisample: PIXI.MSAA_QUALITY;
+        /**
+         * In case MSAA, we use this Renderbuffer instead of colorTextures[0] when we write info
+         * @member {WebGLRenderbuffer} PIXI.GLFramebuffer#msaaBuffer
+         */
+        msaaBuffer: WebGLRenderbuffer;
+        /**
+         * In case we use MSAA, this is actual framebuffer that has colorTextures[0]
+         * The contents of that framebuffer are read when we use that renderTexture in sprites
+         * @member {PIXI.Framebuffer} PIXI.GLFramebuffer#blitFramebuffer
+         */
+        blitFramebuffer: PIXI.Framebuffer;
     }
     /**
      * Holds the information for a single attribute structure required to render geometry.
@@ -2852,15 +2953,15 @@ declare namespace PIXI {
          * Helper function that creates an Attribute based on the information provided
          *
          * @static
-         * @param {string} buffer  the id of the buffer that this attribute will look for
-         * @param {Number} [size=2] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
-         * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
-         * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
-         * @param {Boolean} [normalized=false] should the data be normalized.
+         * @param {string} buffer - the id of the buffer that this attribute will look for
+         * @param {Number} [size=0] - the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {Boolean} [normalized=false] - should the data be normalized.
+         * @param {Number} [type=PIXI.TYPES.FLOAT] - what type of number is the attribute. Check {@link PIXI.TYPES} to see the ones available
+         * @param {Number} [stride=0] - How far apart (in floats) the start of each value is. (used for interleaving data)
          *
          * @returns {PIXI.Attribute} A new {@link PIXI.Attribute} based on the information provided
          */
-        static from(buffer: string, size?: number, stride?: number, start?: number, normalized?: boolean): PIXI.Attribute;
+        static from(buffer: string, size?: number, normalized?: boolean, type?: number, stride?: number): PIXI.Attribute;
     }
     /**
      * A wrapper for data so that it can be used and uploaded by WebGL
@@ -2873,12 +2974,12 @@ declare namespace PIXI {
         /**
          * The data in the buffer, as a typed array
          *
-         * @member {ArrayBuffer| SharedArrayBuffer|ArrayBufferView} PIXI.Buffer#data
+         * @member {ArrayBuffer| SharedArrayBuffer | ArrayBufferView} PIXI.Buffer#data
          */
         data: ArrayBuffer | SharedArrayBuffer | ArrayBufferView;
         /**
          * flags this buffer as requiring an upload to the GPU
-         * @param {ArrayBuffer|SharedArrayBuffer|ArrayBufferView} [data] the data to update in the buffer.
+         * @param {ArrayBuffer|SharedArrayBuffer|ArrayBufferView} [data] - the data to update in the buffer.
          */
         update(data?: ArrayBuffer | SharedArrayBuffer | ArrayBufferView): void;
         /**
@@ -2893,7 +2994,7 @@ declare namespace PIXI {
          * Helper function that creates a buffer based on an array or TypedArray
          *
          * @static
-         * @param {ArrayBufferView | number[]} data the TypedArray that the buffer will store. If this is a regular Array it will be converted to a Float32Array.
+         * @param {ArrayBufferView | number[]} data - the TypedArray that the buffer will store. If this is a regular Array it will be converted to a Float32Array.
          * @return {PIXI.Buffer} A new Buffer based on the data provided.
          */
         static from(data: ArrayBufferView | number[]): PIXI.Buffer;
@@ -2927,36 +3028,44 @@ declare namespace PIXI {
          */
         protected glVertexArrayObjects: any;
         /**
-         * Count of existing (not destroyed) meshes that reference this geometry
-         * @member {boolean} PIXI.Geometry#refCount
+         * Number of instances in this geometry, pass it to `GeometrySystem.draw()`
+         * @member {number} PIXI.Geometry#instanceCount
+         * @default 1
          */
-        refCount: boolean;
+        instanceCount: number;
+        /**
+         * Count of existing (not destroyed) meshes that reference this geometry
+         * @member {number} PIXI.Geometry#refCount
+         */
+        refCount: number;
         /**
          *
          * Adds an attribute to the geometry
+         * Note: `stride` and `start` should be `undefined` if you dont know them, not 0!
          *
          * @param {String} id - the name of the attribute (matching up to a shader)
-         * @param {PIXI.Buffer} [buffer] the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
-         * @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
-         * @param {Boolean} [normalized=false] should the data be normalized.
-         * @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
-         * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
-         * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
+         * @param {PIXI.Buffer|number[]} [buffer] - the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
+         * @param {Number} [size=0] - the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {Boolean} [normalized=false] - should the data be normalized.
+         * @param {Number} [type=PIXI.TYPES.FLOAT] - what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
+         * @param {Number} [stride] - How far apart (in floats) the start of each value is. (used for interleaving data)
+         * @param {Number} [start] - How far into the array to start reading values (used for interleaving data)
+         * @param {boolean} [instance=false] - Instancing flag
          *
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
-        addAttribute(id: string, buffer?: PIXI.Buffer, size?: number, normalized?: boolean, type?: number, stride?: number, start?: number): PIXI.Geometry;
+        addAttribute(id: string, buffer?: PIXI.Buffer | number[], size?: number, normalized?: boolean, type?: number, stride?: number, start?: number, instance?: boolean): PIXI.Geometry;
         /**
          * returns the requested attribute
          *
-         * @param {String} id  the name of the attribute required
+         * @param {String} id - the name of the attribute required
          * @return {PIXI.Attribute} the attribute requested.
          */
         getAttribute(id: string): PIXI.Attribute;
         /**
          * returns the requested buffer
          *
-         * @param {String} id  the name of the buffer required
+         * @param {String} id - the name of the buffer required
          * @return {PIXI.Buffer} the buffer requested.
          */
         getBuffer(id: string): PIXI.Buffer;
@@ -2965,10 +3074,10 @@ declare namespace PIXI {
          * Adds an index buffer to the geometry
          * The index buffer contains integers, three for each triangle in the geometry, which reference the various attribute buffers (position, colour, UV coordinates, other UV coordinates, normal, …). There is only ONE index buffer.
          *
-         * @param {PIXI.Buffer} [buffer] the buffer that holds the data of the index buffer. You can also provide an Array and a buffer will be created from it.
+         * @param {PIXI.Buffer|number[]} [buffer] - the buffer that holds the data of the index buffer. You can also provide an Array and a buffer will be created from it.
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
-        addIndex(buffer?: PIXI.Buffer): PIXI.Geometry;
+        addIndex(buffer?: PIXI.Buffer | number[]): PIXI.Geometry;
         /**
          * returns the index buffer
          *
@@ -3000,10 +3109,134 @@ declare namespace PIXI {
          * merges an array of geometries into a new single one
          * geometry attribute styles must match for this operation to work
          *
-         * @param {PIXI.Geometry[]} geometries array of geometries to merge
+         * @param {PIXI.Geometry[]} geometries - array of geometries to merge
          * @returns {PIXI.Geometry} shiny new geometry!
          */
         static merge(geometries: PIXI.Geometry[]): PIXI.Geometry;
+    }
+    /**
+     * Flexible wrapper around `ArrayBuffer` that also provides
+     * typed array views on demand.
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class ViewableBuffer {
+        constructor(size: number);
+        /**
+         * Underlying `ArrayBuffer` that holds all the data
+         * and is of capacity `size`.
+         *
+         * @member {ArrayBuffer} PIXI.ViewableBuffer#rawBinaryData
+         */
+        rawBinaryData: ArrayBuffer;
+        /**
+         * View on the raw binary data as a `Uint32Array`.
+         *
+         * @member {Uint32Array} PIXI.ViewableBuffer#uint32View
+         */
+        uint32View: Uint32Array;
+        /**
+         * View on the raw binary data as a `Float32Array`.
+         *
+         * @member {Float32Array} PIXI.ViewableBuffer#float32View
+         */
+        float32View: Float32Array;
+        /**
+         * View on the raw binary data as a `Int8Array`.
+         *
+         * @member {Int8Array}
+         */
+        int8View: Int8Array;
+        /**
+         * View on the raw binary data as a `Uint8Array`.
+         *
+         * @member {Uint8Array}
+         */
+        uint8View: Uint8Array;
+        /**
+         * View on the raw binary data as a `Int16Array`.
+         *
+         * @member {Int16Array}
+         */
+        int16View: Int16Array;
+        /**
+         * View on the raw binary data as a `Uint16Array`.
+         *
+         * @member {Uint16Array}
+         */
+        uint16View: Uint16Array;
+        /**
+         * View on the raw binary data as a `Int32Array`.
+         *
+         * @member {Int32Array}
+         */
+        int32View: Int32Array;
+        /**
+         * Returns the view of the given type.
+         *
+         * @param {string} type - One of `int8`, `uint8`, `int16`,
+         *    `uint16`, `int32`, `uint32`, and `float32`.
+         * @return {object} typed array of given type
+         */
+        view(type: string): any;
+        /**
+         * Destroys all buffer references. Do not use after calling
+         * this.
+         */
+        destroy(): void;
+    }
+    /**
+     * Component for masked elements
+     *
+     * Holds mask mode and temporary data about current mask
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class MaskData {
+        constructor(maskObject?: PIXI.DisplayObject);
+        /**
+         * Mask type
+         * @member {PIXI.MASK_TYPES} PIXI.MaskData#type
+         */
+        type: PIXI.MASK_TYPES;
+        /**
+         * Whether we know the mask type beforehand
+         * @member {boolean} PIXI.MaskData#autoDetect
+         * @default true
+         */
+        autoDetect: boolean;
+        /**
+         * Which element we use to mask
+         * @member {PIXI.DisplayObject} PIXI.MaskData#maskObject
+         */
+        maskObject: PIXI.DisplayObject;
+        /**
+         * Whether it belongs to MaskSystem pool
+         * @member {boolean} PIXI.MaskData#pooled
+         */
+        pooled: boolean;
+        /**
+         * Indicator of the type
+         * @member {boolean} PIXI.MaskData#isMaskData
+         */
+        isMaskData: boolean;
+        /**
+         * Scissor operation above the mask in stack.
+         * Null if _scissorCounter is zero, rectangle instance if positive.
+         * @member {PIXI.Rectangle} PIXI.MaskData#_scissorRect
+         */
+        _scissorRect: PIXI.Rectangle;
+        /**
+         * resets the mask data after popMask()
+         */
+        reset(): void;
+        /**
+         * copies counters from maskData above, called from pushMask()
+         * @param {PIXI.MaskData|null} maskAbove
+         */
+        copyCountersOrReset(maskAbove: PIXI.MaskData | null): void;
     }
     /**
      * A BaseRenderTexture is a special texture that allows any PixiJS display object to be rendered to it.
@@ -3053,24 +3286,17 @@ declare namespace PIXI {
             resolution?: number;
         });
         /**
-         * A reference to the canvas render target (we only need one as this can be shared across renderers)
-         *
-         * @protected
-         * @member {object} PIXI.BaseRenderTexture#_canvasRenderTarget
-         */
-        protected _canvasRenderTarget: any;
-        /**
          * The data structure for the stencil masks.
          *
-         * @member {PIXI.Graphics[]} PIXI.BaseRenderTexture#stencilMaskStack
+         * @member {PIXI.MaskData[]} PIXI.BaseRenderTexture#maskStack
          */
-        stencilMaskStack: PIXI.Graphics[];
+        maskStack: PIXI.MaskData[];
         /**
          * The data structure for the filters.
          *
-         * @member {PIXI.Graphics[]} PIXI.BaseRenderTexture#filterStack
+         * @member {Object[]} PIXI.BaseRenderTexture#filterStack
          */
-        filterStack: PIXI.Graphics[];
+        filterStack: any[];
         /**
          * Resizes the BaseRenderTexture.
          *
@@ -3088,39 +3314,8 @@ declare namespace PIXI {
         dispose(): void;
         /**
          * Destroys this texture.
-         *
          */
         destroy(): void;
-        /**
-         * @method loadSource
-         * @memberof PIXI.BaseTexture#
-         * @deprecated since 5.0.0
-         */
-        loadSource(): void;
-        /**
-         * @name PIXI.BaseTexture#hasLoaded
-         * @type {boolean}
-         * @deprecated since 5.0.0
-         * @readonly
-         * @see PIXI.BaseTexture#valid
-         */
-        readonly hasLoaded: boolean;
-        /**
-         * @name PIXI.BaseTexture#imageUrl
-         * @type {string}
-         * @deprecated since 5.0.0
-         * @readonly
-         * @see PIXI.resource.ImageResource#url
-         */
-        readonly imageUrl: string;
-        /**
-         * @name PIXI.BaseTexture#source
-         * @type {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement}
-         * @deprecated since 5.0.0
-         * @readonly
-         * @see PIXI.resources.BaseImageResource#source
-         */
-        readonly source: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | SVGElement;
         /**
          * The width of the base texture set when the image has loaded
          *
@@ -3149,6 +3344,13 @@ declare namespace PIXI {
          * @default PIXI.settings.MIPMAP_TEXTURES
          */
         mipmap: PIXI.MIPMAP_MODES;
+        /**
+         * Anisotropic filtering level of texture
+         *
+         * @member {number} PIXI.BaseTexture#anisotropicLevel
+         * @default PIXI.settings.ANISOTROPIC_LEVEL
+         */
+        anisotropicLevel: number;
         /**
          * How the texture wraps
          * @member {number} PIXI.BaseTexture#wrapMode
@@ -3183,19 +3385,19 @@ declare namespace PIXI {
          */
         target: PIXI.TARGETS;
         /**
-         * Set to true to enable pre-multiplied alpha
+         * How to treat premultiplied alpha, see {@link PIXI.ALPHA_MODES}.
          *
-         * @member {boolean} PIXI.BaseTexture#premultiplyAlpha
-         * @default true
+         * @member {PIXI.ALPHA_MODES} PIXI.BaseTexture#alphaMode
+         * @default PIXI.ALPHA_MODES.UNPACK
          */
-        premultiplyAlpha: boolean;
+        alphaMode: PIXI.ALPHA_MODES;
         /**
          * Global unique identifier for this BaseTexture
          *
-         * @member {string} PIXI.BaseTexture#uid
+         * @member {number} PIXI.BaseTexture#uid
          * @protected
          */
-        protected uid: string;
+        protected uid: number;
         /**
          * Used by automatic texture Garbage Collection, stores last GC tick when it was bound
          *
@@ -3214,11 +3416,12 @@ declare namespace PIXI {
         readonly isPowerOfTwo: boolean;
         /**
          * Used by TextureSystem to only update texture to the GPU when needed.
+         * Please call `update()` to increment it.
          *
-         * @protected
+         * @readonly
          * @member {number} PIXI.BaseTexture#dirtyId
          */
-        protected dirtyId: number;
+        readonly dirtyId: number;
         /**
          * Used by TextureSystem to only update texture style when needed.
          *
@@ -3269,6 +3472,18 @@ declare namespace PIXI {
          */
         _batchEnabled: number;
         /**
+         * Location inside texture batch, used by multi-texture renderers
+         *
+         * @member {number} PIXI.BaseTexture#_batchLocation
+         */
+        _batchLocation: number;
+        /**
+         * Whether its a part of another texture, handled by ArrayResource or CubeResource
+         *
+         * @member {PIXI.BaseTexture} PIXI.BaseTexture#parentTextureArray
+         */
+        parentTextureArray: PIXI.BaseTexture;
+        /**
          * Pixel width of the source of this texture
          *
          * @readonly
@@ -3293,28 +3508,28 @@ declare namespace PIXI {
         /**
          * Changes w/h/resolution. Texture becomes valid if width and height are greater than zero.
          *
-         * @param {number} width Visual width
-         * @param {number} height Visual height
-         * @param {number} [resolution] Optionally set resolution
+         * @param {number} width - Visual width
+         * @param {number} height - Visual height
+         * @param {number} [resolution] - Optionally set resolution
          * @returns {PIXI.BaseTexture} this
          */
         setSize(width: number, height: number, resolution?: number): PIXI.BaseTexture;
         /**
          * Sets real size of baseTexture, preserves current resolution.
          *
-         * @param {number} realWidth Full rendered width
-         * @param {number} realHeight Full rendered height
-         * @param {number} [resolution] Optionally set resolution
+         * @param {number} realWidth - Full rendered width
+         * @param {number} realHeight - Full rendered height
+         * @param {number} [resolution] - Optionally set resolution
          * @returns {PIXI.BaseTexture} this
          */
         setRealSize(realWidth: number, realHeight: number, resolution?: number): PIXI.BaseTexture;
         /**
          * Changes resolution
          *
-         * @param {number} [resolution] res
+         * @param {number} resolution - res
          * @returns {PIXI.BaseTexture} this
          */
-        setResolution(resolution?: number): PIXI.BaseTexture;
+        setResolution(resolution: number): PIXI.BaseTexture;
         /**
          * Sets the resource if it wasn't set. Throws error if resource already present
          *
@@ -3326,6 +3541,10 @@ declare namespace PIXI {
          * Invalidates the object. Texture becomes valid if width and height are greater than zero.
          */
         update(): void;
+        /**
+         * Utility function for BaseTexture|Texture cast
+         */
+        castToBaseTexture(): void;
     }
     /**
      * A RenderTexture is a special texture that allows any PixiJS display object to be rendered to it.
@@ -3340,7 +3559,7 @@ declare namespace PIXI {
      *
      * ```js
      * let renderer = PIXI.autoDetectRenderer();
-     * let renderTexture = PIXI.RenderTexture.create(800, 600);
+     * let renderTexture = PIXI.RenderTexture.create({ width: 800, height: 600 });
      * let sprite = PIXI.Sprite.from("spinObj_01.png");
      *
      * sprite.position.x = 800/2;
@@ -3370,37 +3589,31 @@ declare namespace PIXI {
     class RenderTexture extends PIXI.Texture {
         constructor(baseRenderTexture: PIXI.BaseRenderTexture, frame?: PIXI.Rectangle);
         /**
-         * @name PIXI.RenderTexture#sourceFrame
-         * @type {PIXI.Rectangle}
-         * @deprecated since 5.0.0
-         * @readonly
-         */
-        readonly sourceFrame: PIXI.Rectangle;
-        /**
-         * @name PIXI.RenderTexture#size
-         * @type {PIXI.Rectangle}
-         * @deprecated since 5.0.0
-         * @readonly
-         */
-        readonly size: PIXI.Rectangle;
-        /**
          * This will let the renderer know if the texture is valid. If it's not then it cannot be rendered.
          *
          * @member {boolean} PIXI.RenderTexture#valid
          */
         valid: boolean;
         /**
-         * FilterSystem temporary storage
-         * @protected
+         * Stores `sourceFrame` when this texture is inside current filter stack.
+         * You can read it inside filters.
+         *
+         * @readonly
          * @member {PIXI.Rectangle} PIXI.RenderTexture#filterFrame
          */
-        protected filterFrame: PIXI.Rectangle;
+        readonly filterFrame: PIXI.Rectangle;
         /**
          * The key for pooled texture of FilterSystem
          * @protected
          * @member {string} PIXI.RenderTexture#filterPoolKey
          */
         protected filterPoolKey: string;
+        /**
+         * Shortcut to `this.baseTexture.framebuffer`, saves baseTexture cast.
+         * @member {PIXI.Framebuffer}
+         * @readonly
+         */
+        readonly framebuffer: PIXI.Framebuffer;
         /**
          * Resizes the RenderTexture.
          *
@@ -3471,12 +3684,6 @@ declare namespace PIXI {
          */
         trim: PIXI.Rectangle;
         /**
-         * This will let a renderer know that a texture has been updated (used mainly for WebGL uv updates)
-         *
-         * @member {boolean} PIXI.Texture#requiresUpdate
-         */
-        requiresUpdate: boolean;
-        /**
          * The WebGL UV data cache. Can be used as quad UV
          *
          * @member {PIXI.TextureUvs} PIXI.Texture#_uvs
@@ -3538,7 +3745,7 @@ declare namespace PIXI {
         /**
          * Destroys this texture
          *
-         * @param {boolean} [destroyBase=false] Whether to destroy the base texture as well
+         * @param {boolean} [destroyBase=false] - Whether to destroy the base texture as well
          */
         destroy(destroyBase?: boolean): void;
         /**
@@ -3553,6 +3760,13 @@ declare namespace PIXI {
          */
         updateUvs(): void;
         /**
+         * Returns resolution of baseTexture
+         *
+         * @member {number}
+         * @readonly
+         */
+        readonly resolution: number;
+        /**
          * The frame specifies the region of the base texture that this texture uses.
          * Please call `updateUvs()` after you change coordinates of `frame` manually.
          *
@@ -3564,7 +3778,7 @@ declare namespace PIXI {
          * set to 2 to compensate for texture packer rotation
          * set to 6 to compensate for spine packer rotation
          * can be used to rotate or mirror sprites
-         * See {@link PIXI.GroupD8} for explanation
+         * See {@link PIXI.groupD8} for explanation
          *
          * @member {number}
          */
@@ -3581,6 +3795,97 @@ declare namespace PIXI {
          * @member {number}
          */
         height: number;
+        /**
+         * Utility function for BaseTexture|Texture cast
+         */
+        castToBaseTexture(): void;
+    }
+    /**
+     * Experimental!
+     *
+     * Texture pool, used by FilterSystem and plugins
+     * Stores collection of temporary pow2 or screen-sized renderTextures
+     *
+     * If you use custom RenderTexturePool for your filters, you can use methods
+     * `getFilterTexture` and `returnFilterTexture` same as in
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class RenderTexturePool {
+        constructor(textureOptions?: {
+            scaleMode?: PIXI.SCALE_MODES;
+        });
+        /**
+         * Allow renderTextures of the same size as screen, not just pow2
+         *
+         * Automatically sets to true after `setScreenSize`
+         *
+         * @member {boolean} PIXI.RenderTexturePool#enableFullScreen
+         * @default false
+         */
+        enableFullScreen: boolean;
+        /**
+         * creates of texture with params that were specified in pool constructor
+         *
+         * @param {number} realWidth - width of texture in pixels
+         * @param {number} realHeight - height of texture in pixels
+         * @returns {RenderTexture}
+         */
+        createTexture(realWidth: number, realHeight: number): RenderTexture;
+        /**
+         * Gets a Power-of-Two render texture or fullScreen texture
+         *
+         * @protected
+         * @param {number} minWidth - The minimum width of the render texture in real pixels.
+         * @param {number} minHeight - The minimum height of the render texture in real pixels.
+         * @param {number} [resolution=1] - The resolution of the render texture.
+         * @return {PIXI.RenderTexture} The new render texture.
+         */
+        protected getOptimalTexture(minWidth: number, minHeight: number, resolution?: number): PIXI.RenderTexture;
+        /**
+         * Gets extra texture of the same size as input renderTexture
+         *
+         * `getFilterTexture(input, 0.5)` or `getFilterTexture(0.5, input)`
+         *
+         * @param {PIXI.RenderTexture} input - renderTexture from which size and resolution will be copied
+         * @param {number} [resolution] - override resolution of the renderTexture
+         *  It overrides, it does not multiply
+         * @returns {PIXI.RenderTexture}
+         */
+        getFilterTexture(input: PIXI.RenderTexture, resolution?: number): PIXI.RenderTexture;
+        /**
+         * Place a render texture back into the pool.
+         * @param {PIXI.RenderTexture} renderTexture - The renderTexture to free
+         */
+        returnTexture(renderTexture: PIXI.RenderTexture): void;
+        /**
+         * Alias for returnTexture, to be compliant with FilterSystem interface
+         * @param {PIXI.RenderTexture} renderTexture - The renderTexture to free
+         */
+        returnFilterTexture(renderTexture: PIXI.RenderTexture): void;
+        /**
+         * Clears the pool
+         *
+         * @param {boolean} [destroyTextures=true] - destroy all stored textures
+         */
+        clear(destroyTextures?: boolean): void;
+        /**
+         * If screen size was changed, drops all screen-sized textures,
+         * sets new screen size, sets `enableFullScreen` to true
+         *
+         * Size is measured in pixels, `renderer.view` can be passed here, not `renderer.screen`
+         *
+         * @param {PIXI.ISize} size - Initial size of screen
+         */
+        setScreenSize(size: PIXI.ISize): void;
+        /**
+         * Key that is used to store fullscreen renderTextures in a pool
+         *
+         * @static
+         * @const {string}
+         */
+        static readonly SCREEN_KEY: string;
     }
     /**
      * Helper class to create a WebGL Program
@@ -3590,24 +3895,6 @@ declare namespace PIXI {
      */
     class GLProgram {
         constructor(program: WebGLProgram, uniformData: any);
-        /**
-         * The shader program
-         *
-         * @member {WebGLProgram} PIXI.GLProgram#program
-         */
-        program: WebGLProgram;
-        /**
-         * holds the uniform data which contains uniform locations
-         * and current uniform values used for caching and preventing unneeded GPU commands
-         * @member {Object} PIXI.GLProgram#uniformData
-         */
-        uniformData: any;
-        /**
-         * uniformGroups holds the various upload functions for the shader. Each uniform group
-         * and program have a unique upload function generated.
-         * @member {Object} PIXI.GLProgram#uniformGroups
-         */
-        uniformGroups: any;
         /**
          * Destroys this program
          */
@@ -3664,11 +3951,11 @@ declare namespace PIXI {
          *
          * @param {string} [vertexSrc] - The source of the vertex shader.
          * @param {string} [fragmentSrc] - The source of the fragment shader.
-         * @param {object} [uniforms] - Custom uniforms to use to augment the built-in ones.
+         * @param {string} [name=pixi-shader] - Name for shader
          *
          * @returns {PIXI.Program} an shiny new Pixi shader!
          */
-        static from(vertexSrc?: string, fragmentSrc?: string, uniforms?: any): PIXI.Program;
+        static from(vertexSrc?: string, fragmentSrc?: string, name?: string): PIXI.Program;
     }
     /**
      * A helper class for shaders
@@ -3678,6 +3965,12 @@ declare namespace PIXI {
      */
     class Shader {
         constructor(program?: PIXI.Program, uniforms?: any);
+        /**
+         * Program that the shader uses
+         *
+         * @member {PIXI.Program} PIXI.Shader#program
+         */
+        program: PIXI.Program;
         /**
          * Shader uniform values, shortcut for `uniformGroup.uniforms`
          * @readonly
@@ -3705,13 +3998,13 @@ declare namespace PIXI {
         constructor(uniforms?: any, _static?: boolean);
         /**
          * uniform values
-         * @member {object}
+         * @member {object} PIXI.UniformGroup#uniforms
          * @readonly
          */
         readonly uniforms: any;
         /**
          * Its a group and not a single uniforms
-         * @member {boolean}
+         * @member {boolean} PIXI.UniformGroup#group
          * @readonly
          * @default true
          */
@@ -3719,18 +4012,18 @@ declare namespace PIXI {
         /**
          * dirty version
          * @protected
-         * @member {number}
+         * @member {number} PIXI.UniformGroup#dirtyId
          */
         protected dirtyId: number;
         /**
          * unique id
          * @protected
-         * @member {number}
+         * @member {number} PIXI.UniformGroup#id
          */
         protected id: number;
         /**
          * Uniforms wont be changed after creation
-         * @member {boolean}
+         * @member {boolean} PIXI.UniformGroup#static
          */
         static: boolean;
     }
@@ -3837,17 +4130,30 @@ declare namespace PIXI {
              */
             reset(): void;
             /**
+             * Handy function for batch renderers: copies bound textures in first maxTextures locations to array
+             * sets actual _batchLocation for them
+             *
+             * @param {PIXI.BaseTexture[]} - arr copy destination
+             * @param {number} maxTextures - number of copied elements
+             */
+            copyBoundTextures(arr: PIXI.BaseTexture[], maxTextures: number): void;
+            /**
+             * Assigns batch locations to textures in array based on boundTextures state.
+             * All textures in texArray should have `_batchEnabled = _batchId`,
+             * and their count should be less than `maxTextures`.
+             *
+             * @param {PIXI.BatchTextureArray} texArray - textures to bound
+             * @param {PIXI.BaseTexture[]} boundTextures - current state of bound textures
+             * @param {number} batchId - marker for _batchEnabled param of textures in texArray
+             * @param {number} maxTextures - number of texture locations to manipulate
+             */
+            boundArray(texArray: PIXI.BatchTextureArray, boundTextures: PIXI.BaseTexture[], batchId: number, maxTextures: number): void;
+            /**
              * The renderer this manager works for.
              *
              * @member {PIXI.Renderer} PIXI.System#renderer
              */
             renderer: PIXI.Renderer;
-            /**
-             * Generic method called when there is a WebGL context change.
-             *
-             * @param {WebGLRenderingContext} gl new webgl context
-             */
-            contextChange(gl: WebGLRenderingContext): void;
             /**
              * Generic destroy methods to be overridden by the subclass
              */
@@ -3877,6 +4183,7 @@ declare namespace PIXI {
              * @property {OES_texture_float} floatTexture - WebGL v1 extension
              * @property {WEBGL_lose_context} loseContext - WebGL v1 extension
              * @property {OES_vertex_array_object} vertexArrayObject - WebGL v1 extension
+             * @property {EXT_texture_filter_anisotropic} anisotropicFiltering - WebGL v1 and v2 extension
              */
             readonly extensions: {
                 drawBuffers: WEBGL_draw_buffers;
@@ -3884,6 +4191,7 @@ declare namespace PIXI {
                 floatTexture: OES_texture_float;
                 loseContext: WEBGL_lose_context;
                 vertexArrayObject: OES_vertex_array_object;
+                anisotropicFiltering: EXT_texture_filter_anisotropic;
             };
             /**
              * `true` if the context is lost
@@ -3893,7 +4201,7 @@ declare namespace PIXI {
             readonly isLost: boolean;
             /**
              * Handle the context change event
-             * @param {WebGLRenderingContext} gl new webgl context
+             * @param {WebGLRenderingContext} gl - new webgl context
              */
             contextChange(gl: WebGLRenderingContext): void;
             /**
@@ -3973,20 +4281,6 @@ declare namespace PIXI {
         class FilterSystem extends PIXI.System {
             constructor(renderer: PIXI.Renderer);
             /**
-             * @method PIXI.systems.FilterSystem#calculateScreenSpaceMatrix
-             * @deprecated since 5.0.0
-             * @param {PIXI.Matrix} outputMatrix - the matrix to output to.
-             * @return {PIXI.Matrix} The mapped matrix.
-             */
-            calculateScreenSpaceMatrix(outputMatrix: PIXI.Matrix): PIXI.Matrix;
-            /**
-             * @method PIXI.systems.FilterSystem#calculateNormalizedScreenSpaceMatrix
-             * @deprecated since 5.0.0
-             * @param {PIXI.Matrix} outputMatrix - The matrix to output to.
-             * @return {PIXI.Matrix} The mapped matrix.
-             */
-            calculateNormalizedScreenSpaceMatrix(outputMatrix: PIXI.Matrix): PIXI.Matrix;
-            /**
              * List of filters for the FilterSystem
              * @member {Object[]} PIXI.systems.FilterSystem#defaultFilterStack
              * @readonly
@@ -4035,6 +4329,18 @@ declare namespace PIXI {
              */
             globalUniforms: PIXI.UniformGroup;
             /**
+             * Whether to clear output renderTexture in AUTO/BLIT mode. See {@link PIXI.CLEAR_MODES}
+             * @member {boolean} PIXI.systems.FilterSystem#forceClear
+             */
+            forceClear: boolean;
+            /**
+             * Old padding behavior is to use the max amount instead of sum padding.
+             * Use this flag if you need the old behavior.
+             * @member {boolean} PIXI.systems.FilterSystem#useMaxPadding
+             * @default false
+             */
+            useMaxPadding: boolean;
+            /**
              * Adds a new filter to the System.
              *
              * @param {PIXI.DisplayObject} target - The target of the filter to render.
@@ -4047,14 +4353,20 @@ declare namespace PIXI {
              */
             pop(): void;
             /**
+             * Binds a renderTexture with corresponding `filterFrame`, clears it if mode corresponds.
+             * @param {PIXI.RenderTexture} filterTexture - renderTexture to bind, should belong to filter pool or filter stack
+             * @param {PIXI.CLEAR_MODES} [clearMode] - clearMode, by default its CLEAR/YES. See {@link PIXI.CLEAR_MODES}
+             */
+            bindAndClear(filterTexture: PIXI.RenderTexture, clearMode?: PIXI.CLEAR_MODES): void;
+            /**
              * Draws a filter.
              *
              * @param {PIXI.Filter} filter - The filter to draw.
              * @param {PIXI.RenderTexture} input - The input render target.
              * @param {PIXI.RenderTexture} output - The target to output to.
-             * @param {boolean} clear - Should the output be cleared before rendering to it
+             * @param {PIXI.CLEAR_MODES} [clearMode] - Should the output be cleared before rendering to it
              */
-            applyFilter(filter: PIXI.Filter, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear: boolean): void;
+            applyFilter(filter: PIXI.Filter, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode?: PIXI.CLEAR_MODES): void;
             /**
              * Multiply _input normalized coordinates_ to this matrix to get _sprite texture normalized coordinates_.
              *
@@ -4067,15 +4379,10 @@ declare namespace PIXI {
             calculateSpriteMatrix(outputMatrix: PIXI.Matrix, sprite: PIXI.Sprite): PIXI.Matrix;
             /**
              * Destroys this Filter System.
-             *
-             * @param {boolean} [contextLost=false] context was lost, do not free shaders
-             *
              */
-            destroy(contextLost?: boolean): void;
+            destroy(): void;
             /**
              * Gets a Power-of-Two render texture or fullScreen texture
-             *
-             * TODO move to a separate class could be on renderer?
              *
              * @protected
              * @param {number} minWidth - The minimum width of the render texture in real pixels.
@@ -4086,11 +4393,13 @@ declare namespace PIXI {
             protected getOptimalFilterTexture(minWidth: number, minHeight: number, resolution?: number): PIXI.RenderTexture;
             /**
              * Gets extra render texture to use inside current filter
+             * To be compliant with older filters, you can use params in any order
              *
-             * @param {number} resolution resolution of the renderTexture
+             * @param {PIXI.RenderTexture} [input] - renderTexture from which size and resolution will be copied
+             * @param {number} [resolution] - override resolution of the renderTexture
              * @returns {PIXI.RenderTexture}
              */
-            getFilterTexture(resolution: number): PIXI.RenderTexture;
+            getFilterTexture(input?: PIXI.RenderTexture, resolution?: number): PIXI.RenderTexture;
             /**
              * Frees a render texture back into the pool.
              *
@@ -4099,21 +4408,18 @@ declare namespace PIXI {
             returnFilterTexture(renderTexture: PIXI.RenderTexture): void;
             /**
              * Empties the texture pool.
-             *
              */
             emptyPool(): void;
+            /**
+             * calls `texturePool.resize()`, affects fullScreen renderTextures
+             */
+            resize(): void;
             /**
              * The renderer this manager works for.
              *
              * @member {PIXI.Renderer} PIXI.System#renderer
              */
             renderer: PIXI.Renderer;
-            /**
-             * Generic method called when there is a WebGL context change.
-             *
-             * @param {WebGLRenderingContext} gl new webgl context
-             */
-            contextChange(gl: WebGLRenderingContext): void;
         }
         /**
          * System plugin to the renderer to manage framebuffers.
@@ -4170,15 +4476,18 @@ declare namespace PIXI {
              * @param {Number} g - Green value from 0 to 1
              * @param {Number} b - Blue value from 0 to 1
              * @param {Number} a - Alpha value from 0 to 1
+             * @param {PIXI.BUFFER_BITS} [mask=BUFFER_BITS.COLOR | BUFFER_BITS.DEPTH] - Bitwise OR of masks
+             *  that indicate the buffers to be cleared, by default COLOR and DEPTH buffers.
              */
-            clear(r: number, g: number, b: number, a: number): void;
+            clear(r: number, g: number, b: number, a: number, mask?: PIXI.BUFFER_BITS): void;
             /**
-             * Initialize framebuffer
+             * Initialize framebuffer for this context
              *
              * @protected
              * @param {PIXI.Framebuffer} framebuffer
+             * @returns {PIXI.GLFramebuffer} created GLFramebuffer
              */
-            protected initFramebuffer(framebuffer: PIXI.Framebuffer): void;
+            protected initFramebuffer(framebuffer: PIXI.Framebuffer): PIXI.GLFramebuffer;
             /**
              * Resize the framebuffer
              *
@@ -4194,14 +4503,34 @@ declare namespace PIXI {
              */
             protected updateFramebuffer(framebuffer: PIXI.Framebuffer): void;
             /**
+             * Detects number of samples that is not more than a param but as close to it as possible
+             *
+             * @param {PIXI.MSAA_QUALITY} samples - number of samples
+             * @returns {PIXI.MSAA_QUALITY} - recommended number of samples
+             */
+            detectSamples(samples: PIXI.MSAA_QUALITY): PIXI.MSAA_QUALITY;
+            /**
+             * Only works with WebGL2
+             *
+             * blits framebuffer to another of the same or bigger size
+             * after that target framebuffer is bound
+             *
+             * Fails with WebGL warning if blits multisample framebuffer to different size
+             *
+             * @param {PIXI.Framebuffer} [framebuffer] - by default it blits "into itself", from renderBuffer to texture.
+             * @param {PIXI.Rectangle} [sourcePixels] - source rectangle in pixels
+             * @param {PIXI.Rectangle} [destPixels] - dest rectangle in pixels, assumed to be the same as sourcePixels
+             */
+            blit(framebuffer?: PIXI.Framebuffer, sourcePixels?: PIXI.Rectangle, destPixels?: PIXI.Rectangle): void;
+            /**
              * Disposes framebuffer
-             * @param {PIXI.Framebuffer} framebuffer framebuffer that has to be disposed of
-             * @param {boolean} [contextLost=false] If context was lost, we suppress all delete function calls
+             * @param {PIXI.Framebuffer} framebuffer - framebuffer that has to be disposed of
+             * @param {boolean} [contextLost=false] - If context was lost, we suppress all delete function calls
              */
             disposeFramebuffer(framebuffer: PIXI.Framebuffer, contextLost?: boolean): void;
             /**
              * Disposes all framebuffers, but not textures bound to them
-             * @param {boolean} [contextLost=false] If context was lost, we suppress all delete function calls
+             * @param {boolean} [contextLost=false] - If context was lost, we suppress all delete function calls
              */
             disposeAll(contextLost?: boolean): void;
             /**
@@ -4249,15 +4578,6 @@ declare namespace PIXI {
              */
             readonly canUseUInt32ElementIndex: boolean;
             /**
-             * A cache of currently bound buffer,
-             * contains only two members with keys ARRAY_BUFFER and ELEMENT_ARRAY_BUFFER
-             * @member {Object.<number, PIXI.Buffer>} PIXI.systems.GeometrySystem#boundBuffers
-             * @readonly
-             */
-            readonly boundBuffers: {
-                [key: number]: PIXI.Buffer;
-            };
-            /**
              * Cache for all geometries by id, used in case renderer gets destroyed or for profiling
              * @member {object} PIXI.systems.GeometrySystem#managedGeometries
              * @readonly
@@ -4275,11 +4595,11 @@ declare namespace PIXI {
             contextChange(): void;
             /**
              * Binds geometry so that is can be drawn. Creating a Vao if required
-             * @protected
-             * @param {PIXI.Geometry} geometry instance of geometry to bind
-             * @param {PIXI.Shader} shader instance of shader to bind
+             *
+             * @param {PIXI.Geometry} geometry - instance of geometry to bind
+             * @param {PIXI.Shader} [shader] - instance of shader to use vao for
              */
-            protected bind(geometry: PIXI.Geometry, shader: PIXI.Shader): void;
+            bind(geometry: PIXI.Geometry, shader?: PIXI.Shader): void;
             /**
              * Reset and unbind any active VAO and geometry
              */
@@ -4299,8 +4619,8 @@ declare namespace PIXI {
             /**
              * Takes a geometry and program and generates a unique signature for them.
              *
-             * @param {PIXI.Geometry} geometry to get signature from
-             * @param {PIXI.Program} program to test geometry against
+             * @param {PIXI.Geometry} geometry - to get signature from
+             * @param {PIXI.Program} program - to test geometry against
              * @returns {String} Unique signature of the geometry and program
              * @protected
              */
@@ -4316,19 +4636,19 @@ declare namespace PIXI {
             protected initGeometryVao(geometry: PIXI.Geometry, program: PIXI.Program): void;
             /**
              * Disposes buffer
-             * @param {PIXI.Buffer} buffer buffer with data
-             * @param {boolean} [contextLost=false] If context was lost, we suppress deleteVertexArray
+             * @param {PIXI.Buffer} buffer - buffer with data
+             * @param {boolean} [contextLost=false] - If context was lost, we suppress deleteVertexArray
              */
             disposeBuffer(buffer: PIXI.Buffer, contextLost?: boolean): void;
             /**
              * Disposes geometry
-             * @param {PIXI.Geometry} geometry Geometry with buffers. Only VAO will be disposed
-             * @param {boolean} [contextLost=false] If context was lost, we suppress deleteVertexArray
+             * @param {PIXI.Geometry} geometry - Geometry with buffers. Only VAO will be disposed
+             * @param {boolean} [contextLost=false] - If context was lost, we suppress deleteVertexArray
              */
             disposeGeometry(geometry: PIXI.Geometry, contextLost?: boolean): void;
             /**
              * dispose all WebGL resources of all managed geometries and buffers
-             * @param {boolean} [contextLost=false] If context was lost, we suppress `gl.delete` calls
+             * @param {boolean} [contextLost=false] - If context was lost, we suppress `gl.delete` calls
              */
             disposeAll(contextLost?: boolean): void;
             /**
@@ -4365,6 +4685,43 @@ declare namespace PIXI {
             destroy(): void;
         }
         /**
+         * System plugin to the renderer to manage masks of certain type
+         *
+         * @class
+         * @extends PIXI.System
+         * @memberof PIXI.systems
+         */
+        class AbstractMaskSystem extends PIXI.System {
+            constructor(renderer: PIXI.Renderer);
+            /**
+             * The mask stack
+             * @member {PIXI.MaskData[]} PIXI.systems.AbstractMaskSystem#maskStack
+             */
+            maskStack: PIXI.MaskData[];
+            /**
+             * gets count of masks of certain type
+             * @returns {number}
+             */
+            getStackLength(): number;
+            /**
+             * Changes the mask stack that is used by this System.
+             *
+             * @param {PIXI.MaskData[]} maskStack - The mask stack
+             */
+            setMaskStack(maskStack: PIXI.MaskData[]): void;
+            /**
+             * Destroys the mask stack.
+             *
+             */
+            destroy(): void;
+            /**
+             * The renderer this manager works for.
+             *
+             * @member {PIXI.Renderer} PIXI.System#renderer
+             */
+            renderer: PIXI.Renderer;
+        }
+        /**
          * System plugin to the renderer to manage masks.
          *
          * @class
@@ -4373,24 +4730,6 @@ declare namespace PIXI {
          */
         class MaskSystem extends PIXI.System {
             constructor(renderer: PIXI.Renderer);
-            /**
-             * `true` if current pushed masked is scissor
-             * @member {boolean} PIXI.systems.MaskSystem#scissor
-             * @readonly
-             */
-            readonly scissor: boolean;
-            /**
-             * Mask data
-             * @member {PIXI.Graphics} PIXI.systems.MaskSystem#scissorData
-             * @readonly
-             */
-            readonly scissorData: PIXI.Graphics;
-            /**
-             * Target to mask
-             * @member {PIXI.DisplayObject} PIXI.systems.MaskSystem#scissorRenderTarget
-             * @readonly
-             */
-            readonly scissorRenderTarget: PIXI.DisplayObject;
             /**
              * Enable scissor
              * @member {boolean} PIXI.systems.MaskSystem#enableScissor
@@ -4404,6 +4743,12 @@ declare namespace PIXI {
              */
             readonly alphaMaskPool: PIXI.SpriteMaskFilter[];
             /**
+             * Pool of mask data
+             * @member {PIXI.MaskData[]} PIXI.systems.MaskSystem#maskDataPool
+             * @readonly
+             */
+            readonly maskDataPool: PIXI.MaskData[];
+            /**
              * Current index of alpha mask pool
              * @member {number} PIXI.systems.MaskSystem#alphaMaskIndex
              * @default 0
@@ -4411,53 +4756,41 @@ declare namespace PIXI {
              */
             readonly alphaMaskIndex: number;
             /**
+             * Changes the mask stack that is used by this System.
+             *
+             * @param {PIXI.MaskData[]} maskStack - The mask stack
+             */
+            setMaskStack(maskStack: PIXI.MaskData[]): void;
+            /**
              * Applies the Mask and adds it to the current filter stack.
+             * Renderer batch must be flushed beforehand.
              *
              * @param {PIXI.DisplayObject} target - Display Object to push the mask to
-             * @param {PIXI.Sprite|PIXI.Graphics} maskData - The masking data.
+             * @param {PIXI.MaskData|PIXI.Sprite|PIXI.Graphics|PIXI.DisplayObject} maskData - The masking data.
              */
-            push(target: PIXI.DisplayObject, maskData: PIXI.Sprite | PIXI.Graphics): void;
+            push(target: PIXI.DisplayObject, maskData: PIXI.MaskData | PIXI.Sprite | PIXI.Graphics | PIXI.DisplayObject): void;
             /**
              * Removes the last mask from the mask stack and doesn't return it.
+             * Renderer batch must be flushed beforehand.
              *
              * @param {PIXI.DisplayObject} target - Display Object to pop the mask from
-             * @param {PIXI.Sprite|PIXI.Graphics} maskData - The masking data.
              */
-            pop(target: PIXI.DisplayObject, maskData: PIXI.Sprite | PIXI.Graphics): void;
+            pop(target: PIXI.DisplayObject): void;
+            /**
+             * Sets type of MaskData based on its maskObject
+             * @param {PIXI.MaskData} maskData
+             */
+            detect(maskData: PIXI.MaskData): void;
             /**
              * Applies the Mask and adds it to the current filter stack.
              *
-             * @param {PIXI.RenderTexture} target - Display Object to push the sprite mask to
-             * @param {PIXI.Sprite} maskData - Sprite to be used as the mask
+             * @param {PIXI.MaskData} maskData - Sprite to be used as the mask
              */
-            pushSpriteMask(target: PIXI.RenderTexture, maskData: PIXI.Sprite): void;
+            pushSpriteMask(maskData: PIXI.MaskData): void;
             /**
              * Removes the last filter from the filter stack and doesn't return it.
-             *
              */
             popSpriteMask(): void;
-            /**
-             * Applies the Mask and adds it to the current filter stack.
-             *
-             * @param {PIXI.Sprite|PIXI.Graphics} maskData - The masking data.
-             */
-            pushStencilMask(maskData: PIXI.Sprite | PIXI.Graphics): void;
-            /**
-             * Removes the last filter from the filter stack and doesn't return it.
-             *
-             */
-            popStencilMask(): void;
-            /**
-             *
-             * @param {PIXI.DisplayObject} target - Display Object to push the mask to
-             * @param {PIXI.Graphics} maskData - The masking data.
-             */
-            pushScissorMask(target: PIXI.DisplayObject, maskData: PIXI.Graphics): void;
-            /**
-             * Pop scissor mask
-             *
-             */
-            popScissorMask(): void;
             /**
              * The renderer this manager works for.
              *
@@ -4465,11 +4798,35 @@ declare namespace PIXI {
              */
             renderer: PIXI.Renderer;
             /**
-             * Generic method called when there is a WebGL context change.
-             *
-             * @param {WebGLRenderingContext} gl new webgl context
+             * Generic destroy methods to be overridden by the subclass
              */
-            contextChange(gl: WebGLRenderingContext): void;
+            destroy(): void;
+        }
+        /**
+         * System plugin to the renderer to manage scissor rects (used for masks).
+         *
+         * @class
+         * @extends PIXI.System
+         * @memberof PIXI.systems
+         */
+        class ScissorSystem extends PIXI.System {
+            constructor(renderer: PIXI.Renderer);
+            /**
+             * Applies the Mask and adds it to the current stencil stack. @alvin
+             *
+             * @param {PIXI.MaskData} maskData - The mask data
+             */
+            push(maskData: PIXI.MaskData): void;
+            /**
+             * Pops scissor mask. MaskData is already removed from stack
+             */
+            pop(): void;
+            /**
+             * The renderer this manager works for.
+             *
+             * @member {PIXI.Renderer} PIXI.System#renderer
+             */
+            renderer: PIXI.Renderer;
             /**
              * Generic destroy methods to be overridden by the subclass
              */
@@ -4485,31 +4842,17 @@ declare namespace PIXI {
         class StencilSystem extends PIXI.System {
             constructor(renderer: PIXI.Renderer);
             /**
-             * The mask stack
-             * @member {PIXI.Graphics[]} PIXI.systems.StencilSystem#stencilMaskStack
-             */
-            stencilMaskStack: PIXI.Graphics[];
-            /**
-             * Changes the mask stack that is used by this System.
+             * Applies the Mask and adds it to the current stencil stack.
              *
-             * @param {PIXI.Graphics[]} stencilMaskStack - The mask stack
+             * @param {PIXI.MaskData} maskData - The mask data
              */
-            setMaskStack(stencilMaskStack: PIXI.Graphics[]): void;
+            push(maskData: PIXI.MaskData): void;
             /**
-             * Applies the Mask and adds it to the current stencil stack. @alvin
+             * Pops stencil mask. MaskData is already removed from stack
              *
-             * @param {PIXI.Graphics} graphics - The mask
+             * @param {PIXI.DisplayObject} maskObject - object of popped mask data
              */
-            pushStencil(graphics: PIXI.Graphics): void;
-            /**
-             * Removes the last mask from the stencil stack. @alvin
-             */
-            popStencil(): void;
-            /**
-             * Destroys the mask stack.
-             *
-             */
-            destroy(): void;
+            pop(maskObject: PIXI.DisplayObject): void;
             /**
              * The renderer this manager works for.
              *
@@ -4517,11 +4860,9 @@ declare namespace PIXI {
              */
             renderer: PIXI.Renderer;
             /**
-             * Generic method called when there is a WebGL context change.
-             *
-             * @param {WebGLRenderingContext} gl new webgl context
+             * Generic destroy methods to be overridden by the subclass
              */
-            contextChange(gl: WebGLRenderingContext): void;
+            destroy(): void;
         }
         /**
          * System plugin to the renderer to manage the projection matrix.
@@ -4563,7 +4904,9 @@ declare namespace PIXI {
              */
             transform: PIXI.Matrix;
             /**
-             * Updates the projection matrix based on a projection frame (which is a rectangle)
+             * Updates the projection matrix based on a projection frame (which is a rectangle).
+             *
+             * Make sure to run `renderer.framebuffer.setViewport(destinationFrame)` after calling this.
              *
              * @param {PIXI.Rectangle} destinationFrame - The destination frame.
              * @param {PIXI.Rectangle} sourceFrame - The source frame.
@@ -4592,12 +4935,6 @@ declare namespace PIXI {
              * @member {PIXI.Renderer} PIXI.System#renderer
              */
             renderer: PIXI.Renderer;
-            /**
-             * Generic method called when there is a WebGL context change.
-             *
-             * @param {WebGLRenderingContext} gl new webgl context
-             */
-            contextChange(gl: WebGLRenderingContext): void;
             /**
              * Generic destroy methods to be overridden by the subclass
              */
@@ -4645,6 +4982,7 @@ declare namespace PIXI {
             readonly destinationFrame: PIXI.Rectangle;
             /**
              * Bind the current render texture
+             *
              * @param {PIXI.RenderTexture} [renderTexture] - RenderTexture to bind, by default its `null`, the screen
              * @param {PIXI.Rectangle} [sourceFrame] - part of screen that is mapped to the renderTexture
              * @param {PIXI.Rectangle} [destinationFrame] - part of renderTexture, by default it has the same size as sourceFrame
@@ -4654,9 +4992,11 @@ declare namespace PIXI {
              * Erases the render texture and fills the drawing area with a colour
              *
              * @param {number[]} [clearColor] - The color as rgba, default to use the renderer backgroundColor
+             * @param {PIXI.BUFFER_BITS} [mask=BUFFER_BITS.COLOR | BUFFER_BITS.DEPTH] - Bitwise OR of masks
+             *  that indicate the buffers to be cleared, by default COLOR and DEPTH buffers.
              * @return {PIXI.Renderer} Returns itself.
              */
-            clear(clearColor?: number[]): PIXI.Renderer;
+            clear(clearColor?: number[], mask?: PIXI.BUFFER_BITS): PIXI.Renderer;
             /**
              * Resets renderTexture state
              */
@@ -4667,12 +5007,6 @@ declare namespace PIXI {
              * @member {PIXI.Renderer} PIXI.System#renderer
              */
             renderer: PIXI.Renderer;
-            /**
-             * Generic method called when there is a WebGL context change.
-             *
-             * @param {WebGLRenderingContext} gl new webgl context
-             */
-            contextChange(gl: WebGLRenderingContext): void;
             /**
              * Generic destroy methods to be overridden by the subclass
              */
@@ -4697,16 +5031,23 @@ declare namespace PIXI {
              * Changes the current shader to the one given in parameter
              *
              * @param {PIXI.Shader} shader - the new shader
-             * @param {boolean} dontSync - false if the shader should automatically sync its uniforms.
+             * @param {boolean} [dontSync] - false if the shader should automatically sync its uniforms.
              * @returns {PIXI.GLProgram} the glProgram that belongs to the shader.
              */
-            bind(shader: PIXI.Shader, dontSync: boolean): PIXI.GLProgram;
+            bind(shader: PIXI.Shader, dontSync?: boolean): PIXI.GLProgram;
             /**
              * Uploads the uniforms values to the currently bound shader.
              *
              * @param {object} uniforms - the uniforms values that be applied to the current shader
              */
             setUniforms(uniforms: any): void;
+            /**
+             *
+             * syncs uniforms on the group
+             * @param {*} group - the uniform group to sync
+             * @param {*} [syncData] - this is data that is passed to the sync function and any nested sync functions
+             */
+            syncUniformGroup(group: any, syncData?: any): void;
             /**
              * Returns the underlying GLShade rof the currently bound shader.
              * This can be handy for when you to have a little more control over the setting of your uniforms.
@@ -4728,12 +5069,6 @@ declare namespace PIXI {
              * @member {PIXI.Renderer} PIXI.System#renderer
              */
             renderer: PIXI.Renderer;
-            /**
-             * Generic method called when there is a WebGL context change.
-             *
-             * @param {WebGLRenderingContext} gl new webgl context
-             */
-            contextChange(gl: WebGLRenderingContext): void;
         }
         /**
          * System plugin to the renderer to manage WebGL state machines.
@@ -4798,7 +5133,7 @@ declare namespace PIXI {
              *
              * @param {*} state - The state to set.
              */
-            setState(state: any): void;
+            set(state: any): void;
             /**
              * Sets the state, when previous state is unknown
              *
@@ -4858,8 +5193,8 @@ declare namespace PIXI {
              * or if polygon fill is activated then we need to check if the polygon offset changes.
              * The idea is that we only check what we have too.
              *
-             * @param {Function} func  the checking function to add or remove
-             * @param {boolean} value  should the check function be added or removed.
+             * @param {Function} func - the checking function to add or remove
+             * @param {boolean} value - should the check function be added or removed.
              */
             updateCheck(func: (...params: any[]) => any, value: boolean): void;
             /**
@@ -4868,12 +5203,6 @@ declare namespace PIXI {
              * @member {PIXI.Renderer} PIXI.System#renderer
              */
             renderer: PIXI.Renderer;
-            /**
-             * Generic method called when there is a WebGL context change.
-             *
-             * @param {WebGLRenderingContext} gl new webgl context
-             */
-            contextChange(gl: WebGLRenderingContext): void;
             /**
              * Generic destroy methods to be overridden by the subclass
              */
@@ -4908,7 +5237,7 @@ declare namespace PIXI {
              */
             maxIdle: number;
             /**
-             * Maximum number of itesm to check
+             * Maximum number of item to check
              * @member {number} PIXI.systems.TextureGCSystem#checkCountMax
              * @see PIXI.settings.GC_MAX_CHECK_COUNT
              */
@@ -4941,12 +5270,6 @@ declare namespace PIXI {
              * @member {PIXI.Renderer} PIXI.System#renderer
              */
             renderer: PIXI.Renderer;
-            /**
-             * Generic method called when there is a WebGL context change.
-             *
-             * @param {WebGLRenderingContext} gl new webgl context
-             */
-            contextChange(gl: WebGLRenderingContext): void;
             /**
              * Generic destroy methods to be overridden by the subclass
              */
@@ -4994,10 +5317,10 @@ declare namespace PIXI {
              *
              * If you want to unbind something, please use `unbind(texture)` instead of `bind(null, textureLocation)`
              *
-             * @param {PIXI.Texture|PIXI.BaseTexture} texture - Texture to bind
+             * @param {PIXI.Texture|PIXI.BaseTexture} texture_ - Texture to bind
              * @param {number} [location=0] - Location to bind at
              */
-            bind(texture: PIXI.Texture | PIXI.BaseTexture, location?: number): void;
+            bind(texture_: PIXI.Texture | PIXI.BaseTexture, location?: number): void;
             /**
              * Resets texture location and bound textures
              *
@@ -5006,9 +5329,9 @@ declare namespace PIXI {
             reset(): void;
             /**
              * Unbind a texture
-             * @param {PIXI.Texture|PIXI.BaseTexture} texture - Texture to bind
+             * @param {PIXI.BaseTexture} texture - Texture to bind
              */
-            unbind(texture: PIXI.Texture | PIXI.BaseTexture): void;
+            unbind(texture: PIXI.BaseTexture): void;
             /**
              * The renderer this manager works for.
              *
@@ -5034,84 +5357,34 @@ declare namespace PIXI {
      *        into a Resource.
      * @param {Object} [options] - Collection of options
      * @param {PIXI.MIPMAP_MODES} [options.mipmap=PIXI.settings.MIPMAP_TEXTURES] - If mipmapping is enabled for texture
+     * @param {number} [options.anisotropicLevel=PIXI.settings.ANISOTROPIC_LEVEL] - Anisotropic filtering level of texture
      * @param {PIXI.WRAP_MODES} [options.wrapMode=PIXI.settings.WRAP_MODE] - Wrap mode for textures
      * @param {PIXI.SCALE_MODES} [options.scaleMode=PIXI.settings.SCALE_MODE] - Default scale mode, linear, nearest
      * @param {PIXI.FORMATS} [options.format=PIXI.FORMATS.RGBA] - GL format type
      * @param {PIXI.TYPES} [options.type=PIXI.TYPES.UNSIGNED_BYTE] - GL data type
      * @param {PIXI.TARGETS} [options.target=PIXI.TARGETS.TEXTURE_2D] - GL texture target
-     * @param {boolean} [options.premultiplyAlpha=true] - Pre multiply the image alpha
+     * @param {PIXI.ALPHA_MODES} [options.alphaMode=PIXI.ALPHA_MODES.UNPACK] - Pre multiply the image alpha
      * @param {number} [options.width=0] - Width of the texture
      * @param {number} [options.height=0] - Height of the texture
+     * @param {number} [options.resolution] - Resolution of the base texture
      * @param {object} [options.resourceOptions] - Optional resource options,
      *        see {@link PIXI.resources.autoDetectResource autoDetectResource}
      */
     class BaseTexture extends PIXI.utils.EventEmitter {
         constructor(resource?: PIXI.resources.Resource | string | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement, options?: {
             mipmap?: PIXI.MIPMAP_MODES;
+            anisotropicLevel?: number;
             wrapMode?: PIXI.WRAP_MODES;
             scaleMode?: PIXI.SCALE_MODES;
             format?: PIXI.FORMATS;
             type?: PIXI.TYPES;
             target?: PIXI.TARGETS;
-            premultiplyAlpha?: boolean;
+            alphaMode?: PIXI.ALPHA_MODES;
             width?: number;
             height?: number;
+            resolution?: number;
             resourceOptions?: any;
         });
-        /**
-         * @method loadSource
-         * @memberof PIXI.BaseTexture#
-         * @deprecated since 5.0.0
-         */
-        loadSource(): void;
-        /**
-         * @name PIXI.BaseTexture#hasLoaded
-         * @type {boolean}
-         * @deprecated since 5.0.0
-         * @readonly
-         * @see PIXI.BaseTexture#valid
-         */
-        readonly hasLoaded: boolean;
-        /**
-         * @name PIXI.BaseTexture#imageUrl
-         * @type {string}
-         * @deprecated since 5.0.0
-         * @readonly
-         * @see PIXI.resource.ImageResource#url
-         */
-        readonly imageUrl: string;
-        /**
-         * @name PIXI.BaseTexture#source
-         * @type {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement}
-         * @deprecated since 5.0.0
-         * @readonly
-         * @see PIXI.resources.BaseImageResource#source
-         */
-        readonly source: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | SVGElement;
-        /**
-         * @method fromImage
-         * @static
-         * @memberof PIXI.BaseTexture
-         * @deprecated since 5.0.0
-         * @see PIXI.BaseTexture.from
-         */
-        static fromImage(): void;
-        /**
-         * @method fromCanvas
-         * @static
-         * @memberof PIXI.BaseTexture
-         * @deprecated since 5.0.0
-         * @see PIXI.BaseTexture.from
-         */
-        static fromCanvas(): void;
-        /**
-         * @method fromSVG
-         * @static
-         * @memberof PIXI.BaseTexture
-         * @deprecated since 5.0.0
-         * @see PIXI.BaseTexture.from
-         */
-        static fromSVG(): void;
         /**
          * The width of the base texture set when the image has loaded
          *
@@ -5140,6 +5413,13 @@ declare namespace PIXI {
          * @default PIXI.settings.MIPMAP_TEXTURES
          */
         mipmap: PIXI.MIPMAP_MODES;
+        /**
+         * Anisotropic filtering level of texture
+         *
+         * @member {number} PIXI.BaseTexture#anisotropicLevel
+         * @default PIXI.settings.ANISOTROPIC_LEVEL
+         */
+        anisotropicLevel: number;
         /**
          * How the texture wraps
          * @member {number} PIXI.BaseTexture#wrapMode
@@ -5174,19 +5454,19 @@ declare namespace PIXI {
          */
         target: PIXI.TARGETS;
         /**
-         * Set to true to enable pre-multiplied alpha
+         * How to treat premultiplied alpha, see {@link PIXI.ALPHA_MODES}.
          *
-         * @member {boolean} PIXI.BaseTexture#premultiplyAlpha
-         * @default true
+         * @member {PIXI.ALPHA_MODES} PIXI.BaseTexture#alphaMode
+         * @default PIXI.ALPHA_MODES.UNPACK
          */
-        premultiplyAlpha: boolean;
+        alphaMode: PIXI.ALPHA_MODES;
         /**
          * Global unique identifier for this BaseTexture
          *
-         * @member {string} PIXI.BaseTexture#uid
+         * @member {number} PIXI.BaseTexture#uid
          * @protected
          */
-        protected uid: string;
+        protected uid: number;
         /**
          * Used by automatic texture Garbage Collection, stores last GC tick when it was bound
          *
@@ -5205,11 +5485,12 @@ declare namespace PIXI {
         readonly isPowerOfTwo: boolean;
         /**
          * Used by TextureSystem to only update texture to the GPU when needed.
+         * Please call `update()` to increment it.
          *
-         * @protected
+         * @readonly
          * @member {number} PIXI.BaseTexture#dirtyId
          */
-        protected dirtyId: number;
+        readonly dirtyId: number;
         /**
          * Used by TextureSystem to only update texture style when needed.
          *
@@ -5260,6 +5541,18 @@ declare namespace PIXI {
          */
         _batchEnabled: number;
         /**
+         * Location inside texture batch, used by multi-texture renderers
+         *
+         * @member {number} PIXI.BaseTexture#_batchLocation
+         */
+        _batchLocation: number;
+        /**
+         * Whether its a part of another texture, handled by ArrayResource or CubeResource
+         *
+         * @member {PIXI.BaseTexture} PIXI.BaseTexture#parentTextureArray
+         */
+        parentTextureArray: PIXI.BaseTexture;
+        /**
          * Pixel width of the source of this texture
          *
          * @readonly
@@ -5284,28 +5577,28 @@ declare namespace PIXI {
         /**
          * Changes w/h/resolution. Texture becomes valid if width and height are greater than zero.
          *
-         * @param {number} width Visual width
-         * @param {number} height Visual height
-         * @param {number} [resolution] Optionally set resolution
+         * @param {number} width - Visual width
+         * @param {number} height - Visual height
+         * @param {number} [resolution] - Optionally set resolution
          * @returns {PIXI.BaseTexture} this
          */
         setSize(width: number, height: number, resolution?: number): PIXI.BaseTexture;
         /**
          * Sets real size of baseTexture, preserves current resolution.
          *
-         * @param {number} realWidth Full rendered width
-         * @param {number} realHeight Full rendered height
-         * @param {number} [resolution] Optionally set resolution
+         * @param {number} realWidth - Full rendered width
+         * @param {number} realHeight - Full rendered height
+         * @param {number} [resolution] - Optionally set resolution
          * @returns {PIXI.BaseTexture} this
          */
         setRealSize(realWidth: number, realHeight: number, resolution?: number): PIXI.BaseTexture;
         /**
          * Changes resolution
          *
-         * @param {number} [resolution] res
+         * @param {number} resolution - res
          * @returns {PIXI.BaseTexture} this
          */
-        setResolution(resolution?: number): PIXI.BaseTexture;
+        setResolution(resolution: number): PIXI.BaseTexture;
         /**
          * Sets the resource if it wasn't set. Throws error if resource already present
          *
@@ -5332,6 +5625,10 @@ declare namespace PIXI {
          */
         dispose(): void;
         /**
+         * Utility function for BaseTexture|Texture cast
+         */
+        castToBaseTexture(): void;
+        /**
          * Helper function that creates a base texture based on the source you provide.
          * The source can be - image url, image element, canvas element. If the
          * source is an image url or an image element and not in the base texture
@@ -5341,14 +5638,15 @@ declare namespace PIXI {
          * @param {string|HTMLImageElement|HTMLCanvasElement|SVGElement|HTMLVideoElement} source - The
          *        source to create base texture from.
          * @param {object} [options] See {@link PIXI.BaseTexture}'s constructor for options.
+         * @param {boolean} [strict] - Enforce strict-mode, see {@link PIXI.settings.STRICT_TEXTURE_CACHE}.
          * @returns {PIXI.BaseTexture} The new base texture.
          */
-        static from(source: string | HTMLImageElement | HTMLCanvasElement | SVGElement | HTMLVideoElement, options?: any): PIXI.BaseTexture;
+        static from(source: string | HTMLImageElement | HTMLCanvasElement | SVGElement | HTMLVideoElement, options?: any, strict?: boolean): PIXI.BaseTexture;
         /**
          * Create a new BaseTexture with a BufferResource from a Float32Array.
          * RGBA values are floats from 0 to 1.
          * @static
-         * @param {Float32Array|Uint8Array} buffer The optional array to use, if no data
+         * @param {Float32Array|Uint8Array} buffer - The optional array to use, if no data
          *        is provided, a new Float32Array is created.
          * @param {number} width - Width of the resource
          * @param {number} height - Height of the resource
@@ -5381,275 +5679,6 @@ declare namespace PIXI {
         static _globalBatch: number;
     }
     /**
-     * A Texture that depends on six other resources.
-     *
-     * @class
-     * @extends PIXI.BaseTexture
-     * @memberof PIXI
-     */
-    class CubeTexture extends PIXI.BaseTexture {
-        static from(resources: string|HTMLImageElement|HTMLCanvasElement|SVGElement|HTMLVideoElement, options?: any): BaseTexture;
-        /**
-         * Generate a new CubeTexture.
-         * @static
-         * @param {string[]|PIXI.resources.Resource[]} resources - Collection of 6 URLs or resources
-         * @param {object} [options] - Optional options passed to the resources being loaded.
-         *        See {@PIXI.resources.autoDetectResource autoDetectResource} for more info
-         *        on the options available to each resource.
-         * @returns {PIXI.CubeTexture} new cube texture
-         */
-        static from(resources: string[] | PIXI.resources.Resource[], options?: any): PIXI.CubeTexture;
-        /**
-         * @method loadSource
-         * @memberof PIXI.BaseTexture#
-         * @deprecated since 5.0.0
-         */
-        loadSource(): void;
-        /**
-         * @name PIXI.BaseTexture#hasLoaded
-         * @type {boolean}
-         * @deprecated since 5.0.0
-         * @readonly
-         * @see PIXI.BaseTexture#valid
-         */
-        readonly hasLoaded: boolean;
-        /**
-         * @name PIXI.BaseTexture#imageUrl
-         * @type {string}
-         * @deprecated since 5.0.0
-         * @readonly
-         * @see PIXI.resource.ImageResource#url
-         */
-        readonly imageUrl: string;
-        /**
-         * @name PIXI.BaseTexture#source
-         * @type {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement}
-         * @deprecated since 5.0.0
-         * @readonly
-         * @see PIXI.resources.BaseImageResource#source
-         */
-        readonly source: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | SVGElement;
-        /**
-         * The width of the base texture set when the image has loaded
-         *
-         * @readonly
-         * @member {number} PIXI.BaseTexture#width
-         */
-        readonly width: number;
-        /**
-         * The height of the base texture set when the image has loaded
-         *
-         * @readonly
-         * @member {number} PIXI.BaseTexture#height
-         */
-        readonly height: number;
-        /**
-         * The resolution / device pixel ratio of the texture
-         *
-         * @member {number} PIXI.BaseTexture#resolution
-         * @default PIXI.settings.RESOLUTION
-         */
-        resolution: number;
-        /**
-         * Mipmap mode of the texture, affects downscaled images
-         *
-         * @member {PIXI.MIPMAP_MODES} PIXI.BaseTexture#mipmap
-         * @default PIXI.settings.MIPMAP_TEXTURES
-         */
-        mipmap: PIXI.MIPMAP_MODES;
-        /**
-         * How the texture wraps
-         * @member {number} PIXI.BaseTexture#wrapMode
-         */
-        wrapMode: number;
-        /**
-         * The scale mode to apply when scaling this texture
-         *
-         * @member {PIXI.SCALE_MODES} PIXI.BaseTexture#scaleMode
-         * @default PIXI.settings.SCALE_MODE
-         */
-        scaleMode: PIXI.SCALE_MODES;
-        /**
-         * The pixel format of the texture
-         *
-         * @member {PIXI.FORMATS} PIXI.BaseTexture#format
-         * @default PIXI.FORMATS.RGBA
-         */
-        format: PIXI.FORMATS;
-        /**
-         * The type of resource data
-         *
-         * @member {PIXI.TYPES} PIXI.BaseTexture#type
-         * @default PIXI.TYPES.UNSIGNED_BYTE
-         */
-        type: PIXI.TYPES;
-        /**
-         * The target type
-         *
-         * @member {PIXI.TARGETS} PIXI.BaseTexture#target
-         * @default PIXI.TARGETS.TEXTURE_2D
-         */
-        target: PIXI.TARGETS;
-        /**
-         * Set to true to enable pre-multiplied alpha
-         *
-         * @member {boolean} PIXI.BaseTexture#premultiplyAlpha
-         * @default true
-         */
-        premultiplyAlpha: boolean;
-        /**
-         * Global unique identifier for this BaseTexture
-         *
-         * @member {string} PIXI.BaseTexture#uid
-         * @protected
-         */
-        protected uid: string;
-        /**
-         * Used by automatic texture Garbage Collection, stores last GC tick when it was bound
-         *
-         * @member {number} PIXI.BaseTexture#touched
-         * @protected
-         */
-        protected touched: number;
-        /**
-         * Whether or not the texture is a power of two, try to use power of two textures as much
-         * as you can
-         *
-         * @readonly
-         * @member {boolean} PIXI.BaseTexture#isPowerOfTwo
-         * @default false
-         */
-        readonly isPowerOfTwo: boolean;
-        /**
-         * Used by TextureSystem to only update texture to the GPU when needed.
-         *
-         * @protected
-         * @member {number} PIXI.BaseTexture#dirtyId
-         */
-        protected dirtyId: number;
-        /**
-         * Used by TextureSystem to only update texture style when needed.
-         *
-         * @protected
-         * @member {number} PIXI.BaseTexture#dirtyStyleId
-         */
-        protected dirtyStyleId: number;
-        /**
-         * Currently default cache ID.
-         *
-         * @member {string} PIXI.BaseTexture#cacheId
-         */
-        cacheId: string;
-        /**
-         * Generally speaking means when resource is loaded.
-         * @readonly
-         * @member {boolean} PIXI.BaseTexture#valid
-         */
-        readonly valid: boolean;
-        /**
-         * The collection of alternative cache ids, since some BaseTextures
-         * can have more than one ID, short name and longer full URL
-         *
-         * @member {Array<string>} PIXI.BaseTexture#textureCacheIds
-         * @readonly
-         */
-        readonly textureCacheIds: string[];
-        /**
-         * Flag if BaseTexture has been destroyed.
-         *
-         * @member {boolean} PIXI.BaseTexture#destroyed
-         * @readonly
-         */
-        readonly destroyed: boolean;
-        /**
-         * The resource used by this BaseTexture, there can only
-         * be one resource per BaseTexture, but textures can share
-         * resources.
-         *
-         * @member {PIXI.resources.Resource} PIXI.BaseTexture#resource
-         * @readonly
-         */
-        readonly resource: PIXI.resources.Resource;
-        /**
-         * Number of the texture batch, used by multi-texture renderers
-         *
-         * @member {number} PIXI.BaseTexture#_batchEnabled
-         */
-        _batchEnabled: number;
-        /**
-         * Pixel width of the source of this texture
-         *
-         * @readonly
-         * @member {number}
-         */
-        readonly realWidth: number;
-        /**
-         * Pixel height of the source of this texture
-         *
-         * @readonly
-         * @member {number}
-         */
-        readonly realHeight: number;
-        /**
-         * Changes style options of BaseTexture
-         *
-         * @param {PIXI.SCALE_MODES} [scaleMode] - Pixi scalemode
-         * @param {PIXI.MIPMAP_MODES} [mipmap] - enable mipmaps
-         * @returns {PIXI.BaseTexture} this
-         */
-        setStyle(scaleMode?: PIXI.SCALE_MODES, mipmap?: PIXI.MIPMAP_MODES): PIXI.BaseTexture;
-        /**
-         * Changes w/h/resolution. Texture becomes valid if width and height are greater than zero.
-         *
-         * @param {number} width Visual width
-         * @param {number} height Visual height
-         * @param {number} [resolution] Optionally set resolution
-         * @returns {PIXI.BaseTexture} this
-         */
-        setSize(width: number, height: number, resolution?: number): PIXI.BaseTexture;
-        /**
-         * Sets real size of baseTexture, preserves current resolution.
-         *
-         * @param {number} realWidth Full rendered width
-         * @param {number} realHeight Full rendered height
-         * @param {number} [resolution] Optionally set resolution
-         * @returns {PIXI.BaseTexture} this
-         */
-        setRealSize(realWidth: number, realHeight: number, resolution?: number): PIXI.BaseTexture;
-        /**
-         * Changes resolution
-         *
-         * @param {number} [resolution] res
-         * @returns {PIXI.BaseTexture} this
-         */
-        setResolution(resolution?: number): PIXI.BaseTexture;
-        /**
-         * Sets the resource if it wasn't set. Throws error if resource already present
-         *
-         * @param {PIXI.resources.Resource} resource - that is managing this BaseTexture
-         * @returns {PIXI.BaseTexture} this
-         */
-        setResource(resource: PIXI.resources.Resource): PIXI.BaseTexture;
-        /**
-         * Invalidates the object. Texture becomes valid if width and height are greater than zero.
-         */
-        update(): void;
-        /**
-         * Destroys this base texture.
-         * The method stops if resource doesn't want this texture to be destroyed.
-         * Removes texture from all caches.
-         */
-        destroy(): void;
-        /**
-         * Frees the texture from WebGL memory without destroying this texture object.
-         * This means you can still use the texture later which will upload it to GPU
-         * memory again.
-         *
-         * @fires PIXI.BaseTexture#dispose
-         */
-        dispose(): void;
-    }
-    /**
      * Internal texture for WebGL context
      * @class
      * @memberof PIXI
@@ -5661,6 +5690,16 @@ declare namespace PIXI {
          * @member {WebGLTexture} PIXI.GLTexture#texture
          */
         texture: WebGLTexture;
+        /**
+         * Width of texture that was used in texImage2D
+         * @member {number} PIXI.GLTexture#width
+         */
+        width: number;
+        /**
+         * Height of texture that was used in texImage2D
+         * @member {number} PIXI.GLTexture#height
+         */
+        height: number;
         /**
          * Texture contents dirty flag
          * @member {number} PIXI.GLTexture#dirtyId
@@ -5681,6 +5720,16 @@ declare namespace PIXI {
          * @member {number} PIXI.GLTexture#wrapMode
          */
         wrapMode: number;
+        /**
+         * Type copied from baseTexture
+         * @member {number} PIXI.GLTexture#type
+         */
+        type: number;
+        /**
+         * Type copied from baseTexture
+         * @member {number} PIXI.GLTexture#internalFormat
+         */
+        internalFormat: number;
     }
     /**
      * A texture stores the information that represents an image or part of an image.
@@ -5713,42 +5762,7 @@ declare namespace PIXI {
      * @memberof PIXI
      */
     class Texture extends PIXI.utils.EventEmitter {
-        constructor(baseTexture: PIXI.BaseTexture, frame?: PIXI.Rectangle, orig?: PIXI.Rectangle, trim?: PIXI.Rectangle, rotate?: number, anchor?: PIXI.Point);
-        /**
-         * @deprecated since 5.0.0
-         * @method PIXI.Texture.fromImage
-         * @see PIXI.Texture.from
-         * @return {PIXI.Texture}
-         */
-        static fromImage(): PIXI.Texture;
-        /**
-         * @deprecated since 5.0.0
-         * @method PIXI.Texture.fromSVG
-         * @see PIXI.Texture.from
-         * @return {PIXI.Texture}
-         */
-        static fromSVG(): PIXI.Texture;
-        /**
-         * @deprecated since 5.0.0
-         * @method PIXI.Texture.fromCanvas
-         * @see PIXI.Texture.from
-         * @return {PIXI.Texture}
-         */
-        static fromCanvas(): PIXI.Texture;
-        /**
-         * @deprecated since 5.0.0
-         * @method PIXI.Texture.fromVideo
-         * @see PIXI.Texture.from
-         * @return {PIXI.Texture}
-         */
-        static fromVideo(): PIXI.Texture;
-        /**
-         * @deprecated since 5.0.0
-         * @method PIXI.Texture.fromFrame
-         * @see PIXI.Texture.from
-         * @return {PIXI.Texture}
-         */
-        static fromFrame(): PIXI.Texture;
+        constructor(baseTexture: PIXI.BaseTexture, frame?: PIXI.Rectangle, orig?: PIXI.Rectangle, trim?: PIXI.Rectangle, rotate?: number, anchor?: PIXI.IPointData);
         /**
          * Does this Texture have any frame data assigned to it?
          *
@@ -5794,12 +5808,6 @@ declare namespace PIXI {
          * @member {boolean} PIXI.Texture#valid
          */
         valid: boolean;
-        /**
-         * This will let a renderer know that a texture has been updated (used mainly for WebGL uv updates)
-         *
-         * @member {boolean} PIXI.Texture#requiresUpdate
-         */
-        requiresUpdate: boolean;
         /**
          * The WebGL UV data cache. Can be used as quad UV
          *
@@ -5862,7 +5870,7 @@ declare namespace PIXI {
         /**
          * Destroys this texture
          *
-         * @param {boolean} [destroyBase=false] Whether to destroy the base texture as well
+         * @param {boolean} [destroyBase=false] - Whether to destroy the base texture as well
          */
         destroy(destroyBase?: boolean): void;
         /**
@@ -5881,17 +5889,27 @@ declare namespace PIXI {
          * The source can be - frame id, image url, video url, canvas element, video element, base texture
          *
          * @static
-         * @param {number|string|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|PIXI.BaseTexture} source
+         * @param {string|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|PIXI.BaseTexture} source
          *        Source to create texture from
          * @param {object} [options] See {@link PIXI.BaseTexture}'s constructor for options.
+         * @param {boolean} [strict] - Enforce strict-mode, see {@link PIXI.settings.STRICT_TEXTURE_CACHE}.
          * @return {PIXI.Texture} The newly created texture
          */
-        static from(source: number | string | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | PIXI.BaseTexture, options?: any): PIXI.Texture;
+        static from(source: string | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | PIXI.BaseTexture, options?: any, strict?: boolean): PIXI.Texture;
+        /**
+         * Useful for loading textures via URLs. Use instead of `Texture.from` because
+         * it does a better job of handling failed URLs more effectively. This also ignores
+         * `PIXI.settings.STRICT_TEXTURE_CACHE`. Works for Videos, SVGs, Images.
+         * @param {string} url The remote URL to load.
+         * @param {object} [options] Optional options to include
+         * @return {Promise<PIXI.Texture>} A Promise that resolves to a Texture.
+         */
+        static fromURL(url: string, options?: any): Promise<PIXI.Texture>;
         /**
          * Create a new Texture with a BufferResource from a Float32Array.
          * RGBA values are floats from 0 to 1.
          * @static
-         * @param {Float32Array|Uint8Array} buffer The optional array to use, if no data
+         * @param {Float32Array|Uint8Array} buffer - The optional array to use, if no data
          *        is provided, a new Float32Array is created.
          * @param {number} width - Width of the resource
          * @param {number} height - Height of the resource
@@ -5927,6 +5945,13 @@ declare namespace PIXI {
          */
         static removeFromCache(texture: string | PIXI.Texture): PIXI.Texture | null;
         /**
+         * Returns resolution of baseTexture
+         *
+         * @member {number}
+         * @readonly
+         */
+        readonly resolution: number;
+        /**
          * The frame specifies the region of the base texture that this texture uses.
          * Please call `updateUvs()` after you change coordinates of `frame` manually.
          *
@@ -5938,7 +5963,7 @@ declare namespace PIXI {
          * set to 2 to compensate for texture packer rotation
          * set to 6 to compensate for spine packer rotation
          * can be used to rotate or mirror sprites
-         * See {@link PIXI.GroupD8} for explanation
+         * See {@link PIXI.groupD8} for explanation
          *
          * @member {number}
          */
@@ -5956,6 +5981,10 @@ declare namespace PIXI {
          */
         height: number;
         /**
+         * Utility function for BaseTexture|Texture cast
+         */
+        castToBaseTexture(): void;
+        /**
          * An empty texture, used often to not have to create multiple empty textures.
          * Can not be destroyed.
          *
@@ -5965,7 +5994,7 @@ declare namespace PIXI {
          */
         static EMPTY: PIXI.Texture;
         /**
-         * A white texture of 10x10 size, used for graphics and other things
+         * A white texture of 16x16 size, used for graphics and other things
          * Can not be destroyed.
          *
          * @static
@@ -5993,6 +6022,32 @@ declare namespace PIXI {
      */
     class TextureMatrix {
         constructor(texture: PIXI.Texture, clampMargin?: number);
+        /**
+         * Matrix operation that converts texture region coords to texture coords
+         * @member {PIXI.Matrix} PIXI.TextureMatrix#mapCoord
+         * @readonly
+         */
+        readonly mapCoord: PIXI.Matrix;
+        /**
+         * Clamp region for normalized coords, left-top pixel center in xy , bottom-right in zw.
+         * Calculated based on clampOffset.
+         * @member {Float32Array} PIXI.TextureMatrix#uClampFrame
+         * @readonly
+         */
+        readonly uClampFrame: Float32Array;
+        /**
+         * Normalized clamp offset.
+         * Calculated based on clampOffset.
+         * @member {Float32Array} PIXI.TextureMatrix#uClampOffset
+         * @readonly
+         */
+        readonly uClampOffset: Float32Array;
+        /**
+         * Tracks Texture frame changes
+         * @member {number} PIXI.TextureMatrix#_textureID
+         * @protected
+         */
+        protected _textureID: number;
         /**
          * Tracks Texture frame changes
          * @member {number} PIXI.TextureMatrix#_updateID
@@ -6031,20 +6086,29 @@ declare namespace PIXI {
         texture: PIXI.Texture;
         /**
          * Multiplies uvs array to transform
-         * @param {Float32Array} uvs mesh uvs
+         * @param {Float32Array} uvs - mesh uvs
          * @param {Float32Array} [out=uvs] output
          * @returns {Float32Array} output
          */
         multiplyUvs(uvs: Float32Array, out?: Float32Array): Float32Array;
         /**
          * updates matrices if texture was changed
-         * @param {boolean} [forceUpdate=false] if true, matrices will be updated any case
+         * @param {boolean} [forceUpdate=false] - if true, matrices will be updated any case
          * @returns {boolean} whether or not it was updated
          */
         update(forceUpdate?: boolean): boolean;
     }
     /**
-     * A standard object to store the Uvs of a texture
+     * Stores a texture's frame in UV coordinates, in
+     * which everything lies in the rectangle `[(0,0), (1,0),
+     * (1,1), (0,1)]`.
+     *
+     * | Corner       | Coordinates |
+     * |--------------|-------------|
+     * | Top-Left     | `(x0,y0)`   |
+     * | Top-Right    | `(x1,y1)`   |
+     * | Bottom-Right | `(x2,y2)`   |
+     * | Bottom-Left  | `(x3,y3)`   |
      *
      * @class
      * @protected
@@ -6053,12 +6117,60 @@ declare namespace PIXI {
     class TextureUvs {
         constructor();
         /**
+         * X-component of top-left corner `(x0,y0)`.
+         *
+         * @member {number} PIXI.TextureUvs#x0
+         */
+        x0: number;
+        /**
+         * Y-component of top-left corner `(x0,y0)`.
+         *
+         * @member {number} PIXI.TextureUvs#y0
+         */
+        y0: number;
+        /**
+         * X-component of top-right corner `(x1,y1)`.
+         *
+         * @member {number} PIXI.TextureUvs#x1
+         */
+        x1: number;
+        /**
+         * Y-component of top-right corner `(x1,y1)`.
+         *
+         * @member {number} PIXI.TextureUvs#y1
+         */
+        y1: number;
+        /**
+         * X-component of bottom-right corner `(x2,y2)`.
+         *
+         * @member {number} PIXI.TextureUvs#x2
+         */
+        x2: number;
+        /**
+         * Y-component of bottom-right corner `(x2,y2)`.
+         *
+         * @member {number} PIXI.TextureUvs#y2
+         */
+        y2: number;
+        /**
+         * X-component of bottom-left corner `(x3,y3)`.
+         *
+         * @member {number} PIXI.TextureUvs#x3
+         */
+        x3: number;
+        /**
+         * Y-component of bottom-right corner `(x3,y3)`.
+         *
+         * @member {number} PIXI.TextureUvs#y3
+         */
+        y3: number;
+        /**
          * Sets the texture Uvs based on the given frame information.
          *
          * @protected
          * @param {PIXI.Rectangle} frame - The frame of the texture
          * @param {PIXI.Rectangle} baseFrame - The base frame of the texture
-         * @param {number} rotate - Rotation of frame, see {@link PIXI.GroupD8}
+         * @param {number} rotate - Rotation of frame, see {@link PIXI.groupD8}
          */
         protected set(frame: PIXI.Rectangle, baseFrame: PIXI.Rectangle, rotate: number): void;
     }
@@ -6075,6 +6187,162 @@ declare namespace PIXI {
      */
     namespace resources {
         /**
+         * Resource that can manage several resource (items) inside.
+         * All resources need to have the same pixel size.
+         * Parent class for CubeResource and ArrayResource
+         *
+         * @class
+         * @extends PIXI.resources.Resource
+         * @memberof PIXI.resources
+         * @param {object} [options] Options to for Resource constructor
+         * @param {number} [options.width] - Width of the resource
+         * @param {number} [options.height] - Height of the resource
+         */
+        class AbstractMultiResource extends PIXI.resources.Resource {
+            constructor(options?: {
+                width?: number;
+                height?: number;
+            });
+            /**
+             * Collection of partial baseTextures that correspond to resources
+             * @member {Array<PIXI.BaseTexture>} PIXI.resources.AbstractMultiResource#items
+             * @readonly
+             */
+            readonly items: PIXI.BaseTexture[];
+            /**
+             * Dirty IDs for each part
+             * @member {Array<number>} PIXI.resources.AbstractMultiResource#itemDirtyIds
+             * @readonly
+             */
+            readonly itemDirtyIds: number[];
+            /**
+             * Number of elements in array
+             *
+             * @member {number} PIXI.resources.AbstractMultiResource#length
+             * @readonly
+             */
+            readonly length: number;
+            /**
+             * Bound baseTexture, there can only be one
+             * @member {PIXI.BaseTexture} PIXI.resources.AbstractMultiResource#baseTexture
+             */
+            baseTexture: PIXI.BaseTexture;
+            /**
+             * used from ArrayResource and CubeResource constructors
+             * @param {Array<*>} resources - Can be resources, image elements, canvas, etc. ,
+             *  length should be same as constructor length
+             * @param {object} [options] - detect options for resources
+             * @protected
+             */
+            protected initFromArray(resources: any[], options?: any): void;
+            /**
+             * Set a resource by ID
+             *
+             * @param {PIXI.resources.Resource} resource
+             * @param {number} index - Zero-based index of resource to set
+             * @return {PIXI.resources.ArrayResource} Instance for chaining
+             */
+            addResourceAt(resource: PIXI.resources.Resource, index: number): PIXI.resources.ArrayResource;
+            /**
+             * Internal width of the resource
+             * @member {number} PIXI.resources.Resource#_width
+             * @protected
+             */
+            protected _width: number;
+            /**
+             * Internal height of the resource
+             * @member {number} PIXI.resources.Resource#_height
+             * @protected
+             */
+            protected _height: number;
+            /**
+             * If resource has been destroyed
+             * @member {boolean} PIXI.resources.Resource#destroyed
+             * @readonly
+             * @default false
+             */
+            readonly destroyed: boolean;
+            /**
+             * `true` if resource is created by BaseTexture
+             * useful for doing cleanup with BaseTexture destroy
+             * and not cleaning up resources that were created
+             * externally.
+             * @member {boolean} PIXI.resources.Resource#internal
+             * @protected
+             */
+            protected internal: boolean;
+            /**
+             * Bind to a parent BaseTexture
+             *
+             * @param {PIXI.BaseTexture} baseTexture - Parent texture
+             */
+            bind(baseTexture: PIXI.BaseTexture): void;
+            /**
+             * Unbind to a parent BaseTexture
+             *
+             * @param {PIXI.BaseTexture} baseTexture - Parent texture
+             */
+            unbind(baseTexture: PIXI.BaseTexture): void;
+            /**
+             * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
+             */
+            resize(width: number, height: number): void;
+            /**
+             * Has been validated
+             * @readonly
+             * @member {boolean}
+             */
+            readonly valid: boolean;
+            /**
+             * Has been updated trigger event
+             */
+            update(): void;
+            /**
+             * This can be overridden to start preloading a resource
+             * or do any other prepare step.
+             * @protected
+             * @return {Promise<void>} Handle the validate event
+             */
+            protected load(): Promise<void>;
+            /**
+             * The width of the resource.
+             *
+             * @member {number}
+             * @readonly
+             */
+            readonly width: number;
+            /**
+             * The height of the resource.
+             *
+             * @member {number}
+             * @readonly
+             */
+            readonly height: number;
+            /**
+             * Set the style, optional to override
+             *
+             * @param {PIXI.Renderer} renderer - yeah, renderer!
+             * @param {PIXI.BaseTexture} baseTexture - the texture
+             * @param {PIXI.GLTexture} glTexture - texture instance for this webgl context
+             * @returns {boolean} `true` is success
+             */
+            style(renderer: PIXI.Renderer, baseTexture: PIXI.BaseTexture, glTexture: PIXI.GLTexture): boolean;
+            /**
+             * Clean up anything, this happens when destroying is ready.
+             *
+             * @protected
+             */
+            protected dispose(): void;
+            /**
+             * Call when destroying resource, unbind any BaseTexture object
+             * before calling this method, as reference counts are maintained
+             * internally.
+             */
+            destroy(): void;
+        }
+        /**
          * A resource that contains a number of sources.
          *
          * @class
@@ -6082,7 +6350,7 @@ declare namespace PIXI {
          * @memberof PIXI.resources
          * @param {number|Array<*>} source - Number of items in array or the collection
          *        of image URLs to use. Can also be resources, image elements, canvas, etc.
-         * @param {object} [options] Options to apply to {@link PIXI.resources.autoDetectResource}
+         * @param {object} [options] - Options to apply to {@link PIXI.resources.autoDetectResource}
          * @param {number} [options.width] - Width of the resource
          * @param {number} [options.height] - Height of the resource
          */
@@ -6092,32 +6360,14 @@ declare namespace PIXI {
                 height?: number;
             });
             /**
-             * Collection of resources.
-             * @member {Array<PIXI.BaseTexture>} PIXI.resources.ArrayResource#items
-             * @readonly
-             */
-            readonly items: PIXI.BaseTexture[];
-            /**
-             * Dirty IDs for each part
-             * @member {Array<number>} PIXI.resources.ArrayResource#itemDirtyIds
-             * @readonly
-             */
-            readonly itemDirtyIds: number[];
-            /**
-             * Number of elements in array
+             * Set a baseTexture by ID,
+             * ArrayResource just takes resource from it, nothing more
              *
-             * @member {number} PIXI.resources.ArrayResource#length
-             * @readonly
-             */
-            readonly length: number;
-            /**
-             * Set a resource by ID
-             *
-             * @param {PIXI.resources.Resource} resource
+             * @param {PIXI.BaseTexture} baseTexture
              * @param {number} index - Zero-based index of resource to set
              * @return {PIXI.resources.ArrayResource} Instance for chaining
              */
-            addResourceAt(resource: PIXI.resources.Resource, index: number): PIXI.resources.ArrayResource;
+            addBaseTextureAt(baseTexture: PIXI.BaseTexture, index: number): PIXI.resources.ArrayResource;
             /**
              * Upload the resources to the GPU.
              * @param {PIXI.Renderer} renderer
@@ -6168,8 +6418,10 @@ declare namespace PIXI {
             unbind(baseTexture: PIXI.BaseTexture): void;
             /**
              * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
              */
-            resize(): void;
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -6247,8 +6499,8 @@ declare namespace PIXI {
             protected static crossOrigin(element: HTMLElement, url: string, crossorigin?: boolean | string): void;
             /**
              * Upload the texture to the GPU.
-             * @param {PIXI.Renderer} renderer Upload to the renderer
-             * @param {PIXI.BaseTexture} baseTexture Reference to parent texture
+             * @param {PIXI.Renderer} renderer - Upload to the renderer
+             * @param {PIXI.BaseTexture} baseTexture - Reference to parent texture
              * @param {PIXI.GLTexture} glTexture
              * @param {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement} [source] (optional)
              * @returns {boolean} true is success
@@ -6301,8 +6553,10 @@ declare namespace PIXI {
             unbind(baseTexture: PIXI.BaseTexture): void;
             /**
              * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
              */
-            resize(): void;
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -6372,9 +6626,9 @@ declare namespace PIXI {
             data: Float32Array | Uint8Array | Uint32Array;
             /**
              * Upload the texture to the GPU.
-             * @param {PIXI.Renderer} renderer Upload to the renderer
-             * @param {PIXI.BaseTexture} baseTexture Reference to parent texture
-             * @param {PIXI.GLTexture} glTexture glTexture
+             * @param {PIXI.Renderer} renderer - Upload to the renderer
+             * @param {PIXI.BaseTexture} baseTexture - Reference to parent texture
+             * @param {PIXI.GLTexture} glTexture - glTexture
              * @returns {boolean} true is success
              */
             upload(renderer: PIXI.Renderer, baseTexture: PIXI.BaseTexture, glTexture: PIXI.GLTexture): boolean;
@@ -6428,8 +6682,10 @@ declare namespace PIXI {
             unbind(baseTexture: PIXI.BaseTexture): void;
             /**
              * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
              */
-            resize(): void;
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -6496,10 +6752,10 @@ declare namespace PIXI {
              * Used to auto-detect the type of resource.
              *
              * @static
-             * @param {*} source - The source object
-             * @return {boolean} `true` if <canvas>
+             * @param {HTMLCanvasElement|OffscreenCanvas} source - The source object
+             * @return {boolean} `true` if source is HTMLCanvasElement or OffscreenCanvas
              */
-            static test(source: any): boolean;
+            static test(source: HTMLCanvasElement | OffscreenCanvas): boolean;
             /**
              * The source element
              * @member {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement} PIXI.resources.BaseImageResource#source
@@ -6508,8 +6764,8 @@ declare namespace PIXI {
             readonly source: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | SVGElement;
             /**
              * Upload the texture to the GPU.
-             * @param {PIXI.Renderer} renderer Upload to the renderer
-             * @param {PIXI.BaseTexture} baseTexture Reference to parent texture
+             * @param {PIXI.Renderer} renderer - Upload to the renderer
+             * @param {PIXI.BaseTexture} baseTexture - Reference to parent texture
              * @param {PIXI.GLTexture} glTexture
              * @param {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement} [source] (optional)
              * @returns {boolean} true is success
@@ -6568,8 +6824,10 @@ declare namespace PIXI {
             unbind(baseTexture: PIXI.BaseTexture): void;
             /**
              * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
              */
-            resize(): void;
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -6619,23 +6877,42 @@ declare namespace PIXI {
          * @class
          * @extends PIXI.resources.ArrayResource
          * @memberof PIXI.resources
-         * @param {Array<string|PIXI.resources.Resource>} [source] Collection of URLs or resources
+         * @param {Array<string|PIXI.resources.Resource>} [source] - Collection of URLs or resources
          *        to use as the sides of the cube.
          * @param {object} [options] - ImageResource options
          * @param {number} [options.width] - Width of resource
          * @param {number} [options.height] - Height of resource
+         * @param {number} [options.autoLoad=true] - Whether to auto-load resources
+         * @param {number} [options.linkBaseTexture=true] - In case BaseTextures are supplied,
+         *   whether to copy them or use
          */
         class CubeResource extends PIXI.resources.ArrayResource {
             constructor(source?: (string | PIXI.resources.Resource)[], options?: {
                 width?: number;
                 height?: number;
+                autoLoad?: number;
+                linkBaseTexture?: number;
             });
+            /**
+             * In case BaseTextures are supplied, whether to use same resource or bind baseTexture itself
+             * @member {boolean} PIXI.resources.CubeResource#linkBaseTexture
+             * @protected
+             */
+            protected linkBaseTexture: boolean;
             /**
              * Upload the resource
              *
              * @returns {boolean} true is success
              */
             upload(): boolean;
+            /**
+             * Used to auto-detect the type of resource.
+             *
+             * @static
+             * @param {object} source - The source object
+             * @return {boolean} `true` if source is an array of 6 elements
+             */
+            static test(source: any): boolean;
             /**
              * Number of texture sides to store for CubeResources
              *
@@ -6646,57 +6923,20 @@ declare namespace PIXI {
              */
             static SIDES: number;
             /**
-             * Collection of resources.
-             * @member {Array<PIXI.BaseTexture>} PIXI.resources.ArrayResource#items
-             * @readonly
-             */
-            readonly items: PIXI.BaseTexture[];
-            /**
-             * Dirty IDs for each part
-             * @member {Array<number>} PIXI.resources.ArrayResource#itemDirtyIds
-             * @readonly
-             */
-            readonly itemDirtyIds: number[];
-            /**
-             * Number of elements in array
+             * Set a baseTexture by ID,
+             * ArrayResource just takes resource from it, nothing more
              *
-             * @member {number} PIXI.resources.ArrayResource#length
-             * @readonly
-             */
-            readonly length: number;
-            /**
-             * Clean up anything, this happens when destroying is ready.
-             *
-             * @protected
-             */
-            protected dispose(): void;
-            /**
-             * Set a resource by ID
-             *
-             * @param {PIXI.resources.Resource} resource
+             * @param {PIXI.BaseTexture} baseTexture
              * @param {number} index - Zero-based index of resource to set
              * @return {PIXI.resources.ArrayResource} Instance for chaining
              */
-            addResourceAt(resource: PIXI.resources.Resource, index: number): PIXI.resources.ArrayResource;
+            addBaseTextureAt(baseTexture: PIXI.BaseTexture, index: number): PIXI.resources.ArrayResource;
             /**
              * Bind to a parent BaseTexture
              *
              * @param {PIXI.BaseTexture} baseTexture - Parent texture
              */
             bind(baseTexture: PIXI.BaseTexture): void;
-            /**
-             * Unbind to a parent BaseTexture
-             *
-             * @param {PIXI.BaseTexture} baseTexture - Parent texture
-             */
-            unbind(baseTexture: PIXI.BaseTexture): void;
-            /**
-             * This can be overridden to start preloading a resource
-             * or do any other prepare step.
-             * @protected
-             * @return {Promise<void>} Handle the validate event
-             */
-            protected load(): Promise<void>;
             /**
              * Internal width of the resource
              * @member {number} PIXI.resources.Resource#_width
@@ -6726,9 +6966,17 @@ declare namespace PIXI {
              */
             protected internal: boolean;
             /**
-             * Trigger a resize event
+             * Unbind to a parent BaseTexture
+             *
+             * @param {PIXI.BaseTexture} baseTexture - Parent texture
              */
-            resize(): void;
+            unbind(baseTexture: PIXI.BaseTexture): void;
+            /**
+             * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
+             */
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -6739,6 +6987,13 @@ declare namespace PIXI {
              * Has been updated trigger event
              */
             update(): void;
+            /**
+             * This can be overridden to start preloading a resource
+             * or do any other prepare step.
+             * @protected
+             * @return {Promise<void>} Handle the validate event
+             */
+            protected load(): Promise<void>;
             /**
              * The width of the resource.
              *
@@ -6763,6 +7018,12 @@ declare namespace PIXI {
              */
             style(renderer: PIXI.Renderer, baseTexture: PIXI.BaseTexture, glTexture: PIXI.GLTexture): boolean;
             /**
+             * Clean up anything, this happens when destroying is ready.
+             *
+             * @protected
+             */
+            protected dispose(): void;
+            /**
              * Call when destroying resource, unbind any BaseTexture object
              * before calling this method, as reference counts are maintained
              * internally.
@@ -6778,9 +7039,9 @@ declare namespace PIXI {
         class DepthResource extends PIXI.resources.BufferResource {
             /**
              * Upload the texture to the GPU.
-             * @param {PIXI.Renderer} renderer Upload to the renderer
-             * @param {PIXI.BaseTexture} baseTexture Reference to parent texture
-             * @param {PIXI.GLTexture} glTexture glTexture
+             * @param {PIXI.Renderer} renderer - Upload to the renderer
+             * @param {PIXI.BaseTexture} baseTexture - Reference to parent texture
+             * @param {PIXI.GLTexture} glTexture - glTexture
              * @returns {boolean} true is success
              */
             upload(renderer: PIXI.Renderer, baseTexture: PIXI.BaseTexture, glTexture: PIXI.GLTexture): boolean;
@@ -6839,8 +7100,10 @@ declare namespace PIXI {
             unbind(baseTexture: PIXI.BaseTexture): void;
             /**
              * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
              */
-            resize(): void;
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -6889,13 +7152,150 @@ declare namespace PIXI {
             destroy(): void;
         }
         /**
+         * Resource type for ImageBitmap.
+         * @class
+         * @extends PIXI.resources.BaseImageResource
+         * @memberof PIXI.resources
+         * @param {ImageBitmap} source - Image element to use
+         */
+        class ImageBitmapResource extends PIXI.resources.BaseImageResource {
+            constructor(source: ImageBitmap);
+            /**
+             * Used to auto-detect the type of resource.
+             *
+             * @static
+             * @param {ImageBitmap} source - The source object
+             * @return {boolean} `true` if source is an ImageBitmap
+             */
+            static test(source: ImageBitmap): boolean;
+            /**
+             * The source element
+             * @member {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement} PIXI.resources.BaseImageResource#source
+             * @readonly
+             */
+            readonly source: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | SVGElement;
+            /**
+             * Upload the texture to the GPU.
+             * @param {PIXI.Renderer} renderer - Upload to the renderer
+             * @param {PIXI.BaseTexture} baseTexture - Reference to parent texture
+             * @param {PIXI.GLTexture} glTexture
+             * @param {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement} [source] (optional)
+             * @returns {boolean} true is success
+             */
+            upload(renderer: PIXI.Renderer, baseTexture: PIXI.BaseTexture, glTexture: PIXI.GLTexture, source?: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | SVGElement): boolean;
+            /**
+             * Checks if source width/height was changed, resize can cause extra baseTexture update.
+             * Triggers one update in any case.
+             */
+            update(): void;
+            /**
+             * Clean up anything, this happens when destroying is ready.
+             *
+             * @protected
+             */
+            protected dispose(): void;
+            /**
+             * Internal width of the resource
+             * @member {number} PIXI.resources.Resource#_width
+             * @protected
+             */
+            protected _width: number;
+            /**
+             * Internal height of the resource
+             * @member {number} PIXI.resources.Resource#_height
+             * @protected
+             */
+            protected _height: number;
+            /**
+             * If resource has been destroyed
+             * @member {boolean} PIXI.resources.Resource#destroyed
+             * @readonly
+             * @default false
+             */
+            readonly destroyed: boolean;
+            /**
+             * `true` if resource is created by BaseTexture
+             * useful for doing cleanup with BaseTexture destroy
+             * and not cleaning up resources that were created
+             * externally.
+             * @member {boolean} PIXI.resources.Resource#internal
+             * @protected
+             */
+            protected internal: boolean;
+            /**
+             * Bind to a parent BaseTexture
+             *
+             * @param {PIXI.BaseTexture} baseTexture - Parent texture
+             */
+            bind(baseTexture: PIXI.BaseTexture): void;
+            /**
+             * Unbind to a parent BaseTexture
+             *
+             * @param {PIXI.BaseTexture} baseTexture - Parent texture
+             */
+            unbind(baseTexture: PIXI.BaseTexture): void;
+            /**
+             * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
+             */
+            resize(width: number, height: number): void;
+            /**
+             * Has been validated
+             * @readonly
+             * @member {boolean}
+             */
+            readonly valid: boolean;
+            /**
+             * This can be overridden to start preloading a resource
+             * or do any other prepare step.
+             * @protected
+             * @return {Promise<void>} Handle the validate event
+             */
+            protected load(): Promise<void>;
+            /**
+             * The width of the resource.
+             *
+             * @member {number}
+             * @readonly
+             */
+            readonly width: number;
+            /**
+             * The height of the resource.
+             *
+             * @member {number}
+             * @readonly
+             */
+            readonly height: number;
+            /**
+             * Set the style, optional to override
+             *
+             * @param {PIXI.Renderer} renderer - yeah, renderer!
+             * @param {PIXI.BaseTexture} baseTexture - the texture
+             * @param {PIXI.GLTexture} glTexture - texture instance for this webgl context
+             * @returns {boolean} `true` is success
+             */
+            style(renderer: PIXI.Renderer, baseTexture: PIXI.BaseTexture, glTexture: PIXI.GLTexture): boolean;
+            /**
+             * Call when destroying resource, unbind any BaseTexture object
+             * before calling this method, as reference counts are maintained
+             * internally.
+             */
+            destroy(): void;
+        }
+        /**
          * Resource type for HTMLImageElement.
          * @class
          * @extends PIXI.resources.BaseImageResource
          * @memberof PIXI.resources
          */
         class ImageResource extends PIXI.resources.BaseImageResource {
-            constructor(source: HTMLImageElement | string);
+            constructor(source: HTMLImageElement | string, options?: {
+                autoLoad?: boolean;
+                createBitmap?: boolean;
+                crossorigin?: boolean;
+                alphaMode?: PIXI.ALPHA_MODES;
+            });
             /**
              * URL of the image source
              * @member {string} PIXI.resources.ImageResource#url
@@ -6914,12 +7314,14 @@ declare namespace PIXI {
              */
             createBitmap: boolean;
             /**
-             * Controls texture premultiplyAlpha field
+             * Controls texture alphaMode field
              * Copies from options
-             * @member {boolean|null} PIXI.resources.ImageResource#premultiplyAlpha
+             * Default is `null`, copies option from baseTexture
+             *
+             * @member {PIXI.ALPHA_MODES|null} PIXI.resources.ImageResource#alphaMode
              * @readonly
              */
-            readonly premultiplyAlpha: boolean | null;
+            readonly alphaMode: PIXI.ALPHA_MODES | null;
             /**
              * The ImageBitmap element created for HTMLImageElement
              * @member {ImageBitmap} PIXI.resources.ImageResource#bitmap
@@ -6929,7 +7331,7 @@ declare namespace PIXI {
             /**
              * returns a promise when image will be loaded and processed
              *
-             * @param {boolean} [createBitmap=true] whether process image into bitmap
+             * @param {boolean} [createBitmap] - whether process image into bitmap
              * @returns {Promise<void>}
              */
             load(createBitmap?: boolean): Promise<void>;
@@ -6949,6 +7351,14 @@ declare namespace PIXI {
              * @returns {boolean} true is success
              */
             upload(renderer: PIXI.Renderer, baseTexture: PIXI.BaseTexture, glTexture: PIXI.GLTexture): boolean;
+            /**
+             * Used to auto-detect the type of resource.
+             *
+             * @static
+             * @param {string|HTMLImageElement} source - The source object
+             * @return {boolean} `true` if source is string or HTMLImageElement
+             */
+            static test(source: string | HTMLImageElement): boolean;
             /**
              * The source element
              * @member {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement} PIXI.resources.BaseImageResource#source
@@ -7008,8 +7418,10 @@ declare namespace PIXI {
             unbind(baseTexture: PIXI.BaseTexture): void;
             /**
              * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
              */
-            resize(): void;
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -7098,8 +7510,10 @@ declare namespace PIXI {
             unbind(baseTexture: PIXI.BaseTexture): void;
             /**
              * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
              */
-            resize(): void;
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -7132,15 +7546,6 @@ declare namespace PIXI {
              */
             readonly height: number;
             /**
-             * Uploads the texture or returns false if it cant for some reason. Override this.
-             *
-             * @param {PIXI.Renderer} renderer - yeah, renderer!
-             * @param {PIXI.BaseTexture} baseTexture - the texture
-             * @param {PIXI.GLTexture} glTexture - texture instance for this webgl context
-             * @returns {boolean} true is success
-             */
-            upload(renderer: PIXI.Renderer, baseTexture: PIXI.BaseTexture, glTexture: PIXI.GLTexture): boolean;
-            /**
              * Set the style, optional to override
              *
              * @param {PIXI.Renderer} renderer - yeah, renderer!
@@ -7161,6 +7566,14 @@ declare namespace PIXI {
              * internally.
              */
             destroy(): void;
+            /**
+             * Abstract, used to auto-detect resource type
+             *
+             * @static
+             * @param {*} source - The source object
+             * @param {string} extension - The extension of source, if set
+             */
+            static test(source: any, extension: string): void;
         }
         /**
          * Resource type for SVG elements and graphics.
@@ -7169,12 +7582,16 @@ declare namespace PIXI {
          * @memberof PIXI.resources
          * @param {string} source - Base64 encoded SVG element or URL for SVG file.
          * @param {object} [options] - Options to use
-         * @param {number} [options.scale=1] Scale to apply to SVG.
-         * @param {boolean} [options.autoLoad=true] Start loading right away.
+         * @param {number} [options.scale=1] - Scale to apply to SVG. Overridden by...
+         * @param {number} [options.width] - Rasterize SVG this wide. Aspect ratio preserved if height not specified.
+         * @param {number} [options.height] - Rasterize SVG this high. Aspect ratio preserved if width not specified.
+         * @param {boolean} [options.autoLoad=true] - Start loading right away.
          */
         class SVGResource extends PIXI.resources.BaseImageResource {
             constructor(source: string, options?: {
                 scale?: number;
+                width?: number;
+                height?: number;
                 autoLoad?: boolean;
             });
             /**
@@ -7184,19 +7601,31 @@ declare namespace PIXI {
              */
             readonly svg: string;
             /**
-             * The source scale to apply to render
+             * The source scale to apply when rasterizing on load
              * @readonly
              * @member {number} PIXI.resources.SVGResource#scale
              */
             readonly scale: number;
             /**
+             * A width override for rasterization on load
+             * @readonly
+             * @member {number} PIXI.resources.SVGResource#_overrideWidth
+             */
+            readonly _overrideWidth: number;
+            /**
+             * A height override for rasterization on load
+             * @readonly
+             * @member {number} PIXI.resources.SVGResource#_overrideHeight
+             */
+            readonly _overrideHeight: number;
+            /**
              * Get size from an svg string using regexp.
              *
              * @method
              * @param {string} svgString - a serialized svg element
-             * @return {PIXI.resources.SVGResource.Size} image extension
+             * @return {PIXI.ISize} image extension
              */
-            static getSize(svgString: string): PIXI.resources.SVGResource.Size;
+            static getSize(svgString: string): PIXI.ISize;
             /**
              * Used to auto-detect the type of resource.
              *
@@ -7222,8 +7651,8 @@ declare namespace PIXI {
             readonly source: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | SVGElement;
             /**
              * Upload the texture to the GPU.
-             * @param {PIXI.Renderer} renderer Upload to the renderer
-             * @param {PIXI.BaseTexture} baseTexture Reference to parent texture
+             * @param {PIXI.Renderer} renderer - Upload to the renderer
+             * @param {PIXI.BaseTexture} baseTexture - Reference to parent texture
              * @param {PIXI.GLTexture} glTexture
              * @param {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement} [source] (optional)
              * @returns {boolean} true is success
@@ -7282,8 +7711,10 @@ declare namespace PIXI {
             unbind(baseTexture: PIXI.BaseTexture): void;
             /**
              * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
              */
-            resize(): void;
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -7326,20 +7757,6 @@ declare namespace PIXI {
              * internally.
              */
             destroy(): void;
-        }
-        module SVGResource {
-            /**
-             * Typedef for Size object.
-             *
-             * @memberof PIXI.resources.SVGResource
-             * @typedef {object} Size
-             * @property {number} width - Width component
-             * @property {number} height - Height component
-             */
-            type Size = {
-                width: number;
-                height: number;
-            };
         }
         /**
          * Resource type for HTMLVideoElement.
@@ -7413,6 +7830,14 @@ declare namespace PIXI {
              */
             static readonly TYPES: string[];
             /**
+             * Map of video MIME types that can't be directly derived from file extensions.
+             * @constant
+             * @member {object}
+             * @static
+             * @readonly
+             */
+            static readonly MIME_TYPES: any;
+            /**
              * The source element
              * @member {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement} PIXI.resources.BaseImageResource#source
              * @readonly
@@ -7420,8 +7845,8 @@ declare namespace PIXI {
             readonly source: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | SVGElement;
             /**
              * Upload the texture to the GPU.
-             * @param {PIXI.Renderer} renderer Upload to the renderer
-             * @param {PIXI.BaseTexture} baseTexture Reference to parent texture
+             * @param {PIXI.Renderer} renderer - Upload to the renderer
+             * @param {PIXI.BaseTexture} baseTexture - Reference to parent texture
              * @param {PIXI.GLTexture} glTexture
              * @param {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|SVGElement} [source] (optional)
              * @returns {boolean} true is success
@@ -7475,8 +7900,10 @@ declare namespace PIXI {
             unbind(baseTexture: PIXI.BaseTexture): void;
             /**
              * Trigger a resize event
+             * @param {number} width - X dimension
+             * @param {number} height - Y dimension
              */
-            resize(): void;
+            resize(width: number, height: number): void;
             /**
              * Has been validated
              * @readonly
@@ -7558,10 +7985,10 @@ declare namespace PIXI {
          *        or any other resource that can be auto-detected. If not resource is
          *        detected, it's assumed to be an ImageResource.
          * @param {object} [options] - Pass-through options to use for Resource
-         * @param {number} [options.width] - BufferResource's width
-         * @param {number} [options.height] - BufferResource's height
+         * @param {number} [options.width] - Width of BufferResource or SVG rasterization
+         * @param {number} [options.height] - Height of BufferResource or SVG rasterization
          * @param {boolean} [options.autoLoad=true] - Image, SVG and Video flag to start loading
-         * @param {number} [options.scale=1] - SVG source scale
+         * @param {number} [options.scale=1] - SVG source scale. Overridden by width, height
          * @param {boolean} [options.createBitmap=PIXI.settings.CREATE_IMAGE_BITMAP] - Image option to create Bitmap object
          * @param {boolean} [options.crossorigin=true] - Image and Video option to set crossOrigin
          * @param {boolean} [options.autoPlay=true] - Video option to start playing video immediately
@@ -7594,8 +8021,9 @@ declare namespace PIXI {
      *
      * @class
      * @memberof PIXI
+     * @extends PIXI.Geometry
      */
-    class QuadUv {
+    class QuadUv extends PIXI.Geometry {
         constructor();
         /**
          * An array of vertices
@@ -7622,6 +8050,91 @@ declare namespace PIXI {
          * @returns {PIXI.QuadUv} Returns itself.
          */
         invalidate(): PIXI.QuadUv;
+        /**
+         * A map of renderer IDs to webgl VAOs
+         *
+         * @protected
+         * @type {object}
+         */
+        protected glVertexArrayObjects: any;
+        /**
+         * Number of instances in this geometry, pass it to `GeometrySystem.draw()`
+         * @member {number} PIXI.Geometry#instanceCount
+         * @default 1
+         */
+        instanceCount: number;
+        /**
+         * Count of existing (not destroyed) meshes that reference this geometry
+         * @member {number} PIXI.Geometry#refCount
+         */
+        refCount: number;
+        /**
+         *
+         * Adds an attribute to the geometry
+         * Note: `stride` and `start` should be `undefined` if you dont know them, not 0!
+         *
+         * @param {String} id - the name of the attribute (matching up to a shader)
+         * @param {PIXI.Buffer|number[]} [buffer] - the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
+         * @param {Number} [size=0] - the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {Boolean} [normalized=false] - should the data be normalized.
+         * @param {Number} [type=PIXI.TYPES.FLOAT] - what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
+         * @param {Number} [stride] - How far apart (in floats) the start of each value is. (used for interleaving data)
+         * @param {Number} [start] - How far into the array to start reading values (used for interleaving data)
+         * @param {boolean} [instance=false] - Instancing flag
+         *
+         * @return {PIXI.Geometry} returns self, useful for chaining.
+         */
+        addAttribute(id: string, buffer?: PIXI.Buffer | number[], size?: number, normalized?: boolean, type?: number, stride?: number, start?: number, instance?: boolean): PIXI.Geometry;
+        /**
+         * returns the requested attribute
+         *
+         * @param {String} id - the name of the attribute required
+         * @return {PIXI.Attribute} the attribute requested.
+         */
+        getAttribute(id: string): PIXI.Attribute;
+        /**
+         * returns the requested buffer
+         *
+         * @param {String} id - the name of the buffer required
+         * @return {PIXI.Buffer} the buffer requested.
+         */
+        getBuffer(id: string): PIXI.Buffer;
+        /**
+         *
+         * Adds an index buffer to the geometry
+         * The index buffer contains integers, three for each triangle in the geometry, which reference the various attribute buffers (position, colour, UV coordinates, other UV coordinates, normal, …). There is only ONE index buffer.
+         *
+         * @param {PIXI.Buffer|number[]} [buffer] - the buffer that holds the data of the index buffer. You can also provide an Array and a buffer will be created from it.
+         * @return {PIXI.Geometry} returns self, useful for chaining.
+         */
+        addIndex(buffer?: PIXI.Buffer | number[]): PIXI.Geometry;
+        /**
+         * returns the index buffer
+         *
+         * @return {PIXI.Buffer} the index buffer.
+         */
+        getIndex(): PIXI.Buffer;
+        /**
+         * this function modifies the structure so that all current attributes become interleaved into a single buffer
+         * This can be useful if your model remains static as it offers a little performance boost
+         *
+         * @return {PIXI.Geometry} returns self, useful for chaining.
+         */
+        interleave(): PIXI.Geometry;
+        /**
+         * disposes WebGL resources that are connected to this geometry
+         */
+        dispose(): void;
+        /**
+         * Destroys the geometry.
+         */
+        destroy(): void;
+        /**
+         * returns a clone of the geometry
+         *
+         * @returns {PIXI.Geometry} a new clone of this geometry
+         */
+        clone(): PIXI.Geometry;
     }
     /**
      * 'Builder' pattern for bounds rectangles.
@@ -7655,6 +8168,14 @@ declare namespace PIXI {
          */
         maxY: number;
         /**
+         * It is updated to _boundsID of corresponding object to keep bounds in sync with content.
+         * Updated from outside, thus public modifier.
+         *
+         * @member {number} PIXI.Bounds#updateID
+         * @public
+         */
+        public updateID: number;
+        /**
          * Checks if bounds are empty.
          *
          * @return {boolean} True if empty.
@@ -7676,9 +8197,9 @@ declare namespace PIXI {
         /**
          * This function should be inlined when its possible.
          *
-         * @param {PIXI.Point} point - The point to add.
+         * @param {PIXI.IPointData} point - The point to add.
          */
-        addPoint(point: PIXI.Point): void;
+        addPoint(point: PIXI.IPointData): void;
         /**
          * Adds a quad, not transformed
          *
@@ -7688,13 +8209,23 @@ declare namespace PIXI {
         /**
          * Adds sprite frame, transformed.
          *
-         * @param {PIXI.Transform} transform - TODO
-         * @param {number} x0 - TODO
-         * @param {number} y0 - TODO
-         * @param {number} x1 - TODO
-         * @param {number} y1 - TODO
+         * @param {PIXI.Transform} transform - transform to apply
+         * @param {number} x0 - left X of frame
+         * @param {number} y0 - top Y of frame
+         * @param {number} x1 - right X of frame
+         * @param {number} y1 - bottom Y of frame
          */
         addFrame(transform: PIXI.Transform, x0: number, y0: number, x1: number, y1: number): void;
+        /**
+         * Adds sprite frame, multiplied by matrix
+         *
+         * @param {PIXI.Matrix} matrix - matrix to apply
+         * @param {number} x0 - left X of frame
+         * @param {number} y0 - top Y of frame
+         * @param {number} x1 - right X of frame
+         * @param {number} y1 - bottom Y of frame
+         */
+        addFrameMatrix(matrix: PIXI.Matrix, x0: number, y0: number, x1: number, y1: number): void;
         /**
          * Adds screen vertices from array
          *
@@ -7713,25 +8244,62 @@ declare namespace PIXI {
          */
         addVertices(transform: PIXI.Transform, vertices: Float32Array, beginOffset: number, endOffset: number): void;
         /**
-         * Adds other Bounds
+         * Add an array of mesh vertices.
          *
-         * @param {PIXI.Bounds} bounds - TODO
+         * @param {PIXI.Matrix} matrix - mesh matrix
+         * @param {Float32Array} vertices - mesh coordinates in array
+         * @param {number} beginOffset - begin offset
+         * @param {number} endOffset - end offset, excluded
+         * @param {number} [padX=0] - x padding
+         * @param {number} [padY=0] - y padding
+         */
+        addVerticesMatrix(matrix: PIXI.Matrix, vertices: Float32Array, beginOffset: number, endOffset: number, padX?: number, padY?: number): void;
+        /**
+         * Adds other Bounds.
+         *
+         * @param {PIXI.Bounds} bounds - The Bounds to be added
          */
         addBounds(bounds: PIXI.Bounds): void;
         /**
-         * Adds other Bounds, masked with Bounds
+         * Adds other Bounds, masked with Bounds.
          *
-         * @param {PIXI.Bounds} bounds - TODO
+         * @param {PIXI.Bounds} bounds - The Bounds to be added.
          * @param {PIXI.Bounds} mask - TODO
          */
         addBoundsMask(bounds: PIXI.Bounds, mask: PIXI.Bounds): void;
         /**
-         * Adds other Bounds, masked with Rectangle
+         * Adds other Bounds, multiplied by matrix. Bounds shouldn't be empty.
+         *
+         * @param {PIXI.Bounds} bounds - other bounds
+         * @param {PIXI.Matrix} matrix - multiplicator
+         */
+        addBoundsMatrix(bounds: PIXI.Bounds, matrix: PIXI.Matrix): void;
+        /**
+         * Adds other Bounds, masked with Rectangle.
          *
          * @param {PIXI.Bounds} bounds - TODO
          * @param {PIXI.Rectangle} area - TODO
          */
         addBoundsArea(bounds: PIXI.Bounds, area: PIXI.Rectangle): void;
+        /**
+         * Pads bounds object, making it grow in all directions.
+         * If paddingY is omitted, both paddingX and paddingY will be set to paddingX.
+         *
+         * @param {number} [paddingX=0] - The horizontal padding amount.
+         * @param {number} [paddingY=0] - The vertical padding amount.
+         */
+        pad(paddingX?: number, paddingY?: number): void;
+        /**
+         * Adds padded frame. (x0, y0) should be strictly less than (x1, y1)
+         *
+         * @param {number} x0 - left X of frame
+         * @param {number} y0 - top Y of frame
+         * @param {number} x1 - right X of frame
+         * @param {number} y1 - bottom Y of frame
+         * @param {number} padX - padding X
+         * @param {number} padY - padding Y
+         */
+        addFramePad(x0: number, y0: number, x1: number, y1: number, padX: number, padY: number): void;
     }
     /**
      * A Container represents a collection of display objects.
@@ -7749,20 +8317,6 @@ declare namespace PIXI {
      */
     class Container extends PIXI.DisplayObject {
         constructor();
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -7804,10 +8358,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -7815,7 +8369,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -7847,10 +8401,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -7879,6 +8433,15 @@ declare namespace PIXI {
          *
          */
         calculateBounds(): void;
+        /**
+         * Retrieves the local bounds of the displayObject as a rectangle object.
+         *
+         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
+         * @param {boolean} [skipChildrenUpdate=false] - Setting to `true` will stop re-calculation of children transforms,
+         *  it was default behaviour of pixi 4.0-5.2 and caused many problems to users.
+         * @return {PIXI.Rectangle} The rectangular bounding area.
+         */
+        getLocalBounds(rect?: PIXI.Rectangle, skipChildrenUpdate?: boolean): PIXI.Rectangle;
         /**
          * Recalculates the bounds of the object. Override this to
          * calculate the bounds of the specific object (not including children).
@@ -7937,6 +8500,14 @@ declare namespace PIXI {
          */
         height: number;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -7947,12 +8518,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -7989,6 +8563,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -8023,9 +8624,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -8067,19 +8667,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -8093,10 +8725,10 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -8113,33 +8745,26 @@ declare namespace PIXI {
          */
         getBounds(skipUpdate?: boolean, rect?: PIXI.Rectangle): PIXI.Rectangle;
         /**
-         * Retrieves the local bounds of the displayObject as a rectangle object.
-         *
-         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
-         * @return {PIXI.Rectangle} The rectangular bounding area.
-         */
-        getLocalBounds(rect?: PIXI.Rectangle): PIXI.Rectangle;
-        /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -8162,6 +8787,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -8194,23 +8841,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -8265,9 +8912,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -8290,10 +8945,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -8356,7 +9011,7 @@ declare namespace PIXI {
     /**
      * The base class for all objects that are rendered on the screen.
      *
-     * This is an abstract class and should not be used on its own; rather it should be extended.
+     * This is an abstract class and should not be used on its own; rather it should b e extended.
      *
      * @class
      * @extends PIXI.utils.EventEmitter
@@ -8364,13 +9019,6 @@ declare namespace PIXI {
      */
     class DisplayObject extends PIXI.utils.EventEmitter {
         constructor();
-        /**
-         * @method PIXI.DisplayObject#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.DisplayObject#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -8407,11 +9055,32 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
-         * Mixes all enumerable properties and methods from a source object to DisplayObject.
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
          *
-         * @param {object} source The source of properties and methods to mix in.
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
          */
-        static mixin(source: any): void;
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
         /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
@@ -8447,9 +9116,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -8491,19 +9159,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -8517,21 +9217,27 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
+        /**
+         * Mixes all enumerable properties and methods from a source object to DisplayObject.
+         *
+         * @param {object} source - The source of properties and methods to mix in.
+         */
+        static mixin(source: any): void;
+        /**
+         * Recursively updates transform of all objects from the root to this one
+         * internal function for toLocal()
+         */
+        _recursivePostUpdateTransform(): void;
         /**
          * Updates the object transform for rendering.
          *
          * TODO - Optimization pass!
          */
         updateTransform(): void;
-        /**
-         * Recursively updates transform of all objects from the root to this one
-         * internal function for toLocal()
-         */
-        _recursivePostUpdateTransform(): void;
         /**
          * Retrieves the bounds of the displayObject as a rectangle object.
          *
@@ -8552,30 +9258,24 @@ declare namespace PIXI {
         /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
-        /**
-         * Renders the object using the WebGL renderer.
-         *
-         * @param {PIXI.Renderer} renderer - The renderer.
-         */
-        render(renderer: PIXI.Renderer): void;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -8606,6 +9306,28 @@ declare namespace PIXI {
          *
          */
         destroy(): void;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -8638,23 +9360,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -8709,9 +9431,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -8734,10 +9464,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -8798,7 +9528,7 @@ declare namespace PIXI {
         getGlobalPosition(point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
     }
     /**
-     * This namespace provides renderer-specific plugins for exporting content from a renderer.
+     * This class provides renderer-specific plugins for exporting content from a renderer.
      * For instance, these plugins can be used for saving an Image, Canvas element or for exporting the raw image data (pixels).
      *
      * Do not instantiate these plugins directly. It is available from the `renderer.plugins` property.
@@ -8815,70 +9545,54 @@ declare namespace PIXI {
      * // Render the graphics as an HTMLImageElement
      * const image = app.renderer.plugins.extract.image(graphics);
      * document.body.appendChild(image);
-     * @namespace PIXI.extract
+     * @class
+     * @memberof PIXI
      */
-    namespace extract {
+    class Extract {
+        constructor(renderer: PIXI.Renderer);
         /**
-         * @class PIXI.extract.WebGLExtract
-         * @deprecated since 5.0.0
-         * @see PIXI.extract.Extract
+         * Will return a HTML Image of the target
+         *
+         * @param {PIXI.DisplayObject|PIXI.RenderTexture} target - A displayObject or renderTexture
+         *  to convert. If left empty will use the main renderer
+         * @param {string} [format] - Image format, e.g. "image/jpeg" or "image/webp".
+         * @param {number} [quality] - JPEG or Webp compression from 0 to 1. Default is 0.92.
+         * @return {HTMLImageElement} HTML Image of the target
          */
-        class WebGLExtract {
-        }
+        image(target: PIXI.DisplayObject | PIXI.RenderTexture, format?: string, quality?: number): HTMLImageElement;
         /**
-         * The extract manager provides functionality to export content from the renderers.
+         * Will return a a base64 encoded string of this target. It works by calling
+         *  `Extract.getCanvas` and then running toDataURL on that.
          *
-         * An instance of this class is automatically created by default, and can be found at `renderer.plugins.extract`
-         *
-         * @class
-         * @memberof PIXI.extract
+         * @param {PIXI.DisplayObject|PIXI.RenderTexture} target - A displayObject or renderTexture
+         *  to convert. If left empty will use the main renderer
+         * @param {string} [format] - Image format, e.g. "image/jpeg" or "image/webp".
+         * @param {number} [quality] - JPEG or Webp compression from 0 to 1. Default is 0.92.
+         * @return {string} A base64 encoded string of the texture.
          */
-        class Extract {
-            constructor(renderer: PIXI.Renderer);
-            /**
-             * Will return a HTML Image of the target
-             *
-             * @param {PIXI.DisplayObject|PIXI.RenderTexture} target - A displayObject or renderTexture
-             *  to convert. If left empty will use the main renderer
-             * @param {string} [format] - Image format, e.g. "image/jpeg" or "image/webp".
-             * @param {number} [quality] - JPEG or Webp compression from 0 to 1. Default is 0.92.
-             * @return {HTMLImageElement} HTML Image of the target
-             */
-            image(target: PIXI.DisplayObject | PIXI.RenderTexture, format?: string, quality?: number): HTMLImageElement;
-            /**
-             * Will return a a base64 encoded string of this target. It works by calling
-             *  `Extract.getCanvas` and then running toDataURL on that.
-             *
-             * @param {PIXI.DisplayObject|PIXI.RenderTexture} target - A displayObject or renderTexture
-             *  to convert. If left empty will use the main renderer
-             * @param {string} [format] - Image format, e.g. "image/jpeg" or "image/webp".
-             * @param {number} [quality] - JPEG or Webp compression from 0 to 1. Default is 0.92.
-             * @return {string} A base64 encoded string of the texture.
-             */
-            base64(target: PIXI.DisplayObject | PIXI.RenderTexture, format?: string, quality?: number): string;
-            /**
-             * Creates a Canvas element, renders this target to it and then returns it.
-             *
-             * @param {PIXI.DisplayObject|PIXI.RenderTexture} target - A displayObject or renderTexture
-             *  to convert. If left empty will use the main renderer
-             * @return {HTMLCanvasElement} A Canvas element with the texture rendered on.
-             */
-            canvas(target: PIXI.DisplayObject | PIXI.RenderTexture): HTMLCanvasElement;
-            /**
-             * Will return a one-dimensional array containing the pixel data of the entire texture in RGBA
-             * order, with integer values between 0 and 255 (included).
-             *
-             * @param {PIXI.DisplayObject|PIXI.RenderTexture} target - A displayObject or renderTexture
-             *  to convert. If left empty will use the main renderer
-             * @return {Uint8ClampedArray} One-dimensional array containing the pixel data of the entire texture
-             */
-            pixels(target: PIXI.DisplayObject | PIXI.RenderTexture): Uint8ClampedArray;
-            /**
-             * Destroys the extract
-             *
-             */
-            destroy(): void;
-        }
+        base64(target: PIXI.DisplayObject | PIXI.RenderTexture, format?: string, quality?: number): string;
+        /**
+         * Creates a Canvas element, renders this target to it and then returns it.
+         *
+         * @param {PIXI.DisplayObject|PIXI.RenderTexture} target - A displayObject or renderTexture
+         *  to convert. If left empty will use the main renderer
+         * @return {HTMLCanvasElement} A Canvas element with the texture rendered on.
+         */
+        canvas(target: PIXI.DisplayObject | PIXI.RenderTexture): HTMLCanvasElement;
+        /**
+         * Will return a one-dimensional array containing the pixel data of the entire texture in RGBA
+         * order, with integer values between 0 and 255 (included).
+         *
+         * @param {PIXI.DisplayObject|PIXI.RenderTexture} target - A displayObject or renderTexture
+         *  to convert. If left empty will use the main renderer
+         * @return {Uint8Array} One-dimensional array containing the pixel data of the entire texture
+         */
+        pixels(target: PIXI.DisplayObject | PIXI.RenderTexture): Uint8Array;
+        /**
+         * Destroys the extract
+         *
+         */
+        destroy(): void;
     }
     /**
      * The Graphics class contains methods used to draw primitive shapes such as lines, circles and
@@ -8896,22 +9610,16 @@ declare namespace PIXI {
     class Graphics extends PIXI.Container {
         constructor(geometry?: PIXI.GraphicsGeometry);
         /**
-         * Includes vertex positions, face indices, normals, colors, UVs, and
-         * custom attributes within buffers, reducing the cost of passing all
-         * this data to the GPU. Can be shared between multiple Mesh or Graphics objects.
-         * @member {PIXI.GraphicsGeometry} PIXI.Graphics#geometry
-         * @readonly
-         */
-        readonly geometry: PIXI.GraphicsGeometry;
-        /**
          * Represents the vertex and fragment shaders that processes the geometry and runs on the GPU.
          * Can be shared between multiple Graphics objects.
+         *
          * @member {PIXI.Shader} PIXI.Graphics#shader
          */
         shader: PIXI.Shader;
         /**
          * Represents the WebGL state the Graphics required to render, excludes shader and geometry. E.g.,
          * blend mode, culling, depth testing, direction of rendering triangles, backface, etc.
+         *
          * @member {PIXI.State} PIXI.Graphics#state
          */
         state: PIXI.State;
@@ -8980,6 +9688,14 @@ declare namespace PIXI {
          */
         protected batchTint: number;
         /**
+         * Update dirty for limiting calculating batches.
+         *
+         * @protected
+         * @member {number} PIXI.Graphics#batchDirty
+         * @default -1
+         */
+        protected batchDirty: number;
+        /**
          * Copy of the object vertex data.
          *
          * @protected
@@ -8987,8 +9703,24 @@ declare namespace PIXI {
          */
         protected vertexData: Float32Array;
         /**
+         * Renderer plugin for batching
+         *
+         * @member {string} PIXI.Graphics#pluginName
+         * @default 'batch'
+         */
+        pluginName: string;
+        /**
+         * Includes vertex positions, face indices, normals, colors, UVs, and
+         * custom attributes within buffers, reducing the cost of passing all
+         * this data to the GPU. Can be shared between multiple Mesh or Graphics objects.
+         *
+         * @member {PIXI.GraphicsGeometry}
+         * @readonly
+         */
+        readonly geometry: PIXI.GraphicsGeometry;
+        /**
          * Creates a new Graphics object with the same values as this one.
-         * Note that the only the properties of the object are cloned, not its transform (position,scale,etc)
+         * Note that only the geometry of the object is cloned, not its transform (position,scale,etc)
          *
          * @return {PIXI.Graphics} A clone of the graphics object
          */
@@ -9028,10 +9760,24 @@ declare namespace PIXI {
          * Specifies the line style used for subsequent calls to Graphics methods such as the lineTo()
          * method or the drawCircle() method.
          *
+         * @method PIXI.Graphics#lineStyle
          * @param {number} [width=0] - width of the line to draw, will update the objects stored style
-         * @param {number} [color=0] - color of the line to draw, will update the objects stored style
+         * @param {number} [color=0x0] - color of the line to draw, will update the objects stored style
          * @param {number} [alpha=1] - alpha of the line to draw, will update the objects stored style
-         * @param {number} [alignment=1] - alignment of the line to draw, (0 = inner, 0.5 = middle, 1 = outter)
+         * @param {number} [alignment=0.5] - alignment of the line to draw, (0 = inner, 0.5 = middle, 1 = outter)
+         * @param {boolean} [native=false] - If true the lines will be draw using LINES instead of TRIANGLE_STRIP
+         * @return {PIXI.Graphics} This Graphics object. Good for chaining method calls
+         */
+        lineStyle(width?: number, color?: number, alpha?: number, alignment?: number, native?: boolean): PIXI.Graphics;
+        /**
+         * Specifies the line style used for subsequent calls to Graphics methods such as the lineTo()
+         * method or the drawCircle() method.
+         *
+         * @method PIXI.Graphics#lineStyle
+         * @param {number} [width=0] - width of the line to draw, will update the objects stored style
+         * @param {number} [color=0x0] - color of the line to draw, will update the objects stored style
+         * @param {number} [alpha=1] - alpha of the line to draw, will update the objects stored style
+         * @param {number} [alignment=0.5] - alignment of the line to draw, (0 = inner, 0.5 = middle, 1 = outter)
          * @param {boolean} [native=false] - If true the lines will be draw using LINES instead of TRIANGLE_STRIP
          * @return {PIXI.Graphics} This Graphics object. Good for chaining method calls
          */
@@ -9039,16 +9785,32 @@ declare namespace PIXI {
         /**
          * Like line style but support texture for line fill.
          *
-         * @param {number} [width=0] - width of the line to draw, will update the objects stored style
-         * @param {PIXI.Texture} [texture=PIXI.Texture.WHITE] - Texture to use
-         * @param {number} [color=0] - color of the line to draw, will update the objects stored style
-         * @param {number} [alpha=1] - alpha of the line to draw, will update the objects stored style
-         * @param {PIXI.Matrix} [matrix=null] Texture matrix to transform texture
-         * @param {number} [alignment=0.5] - alignment of the line to draw, (0 = inner, 0.5 = middle, 1 = outter)
-         * @param {boolean} [native=false] - If true the lines will be draw using LINES instead of TRIANGLE_STRIP
+         * @param {object} [options] - Collection of options for setting line style.
+         * @param {number} [options.width=0] - width of the line to draw, will update the objects stored style
+         * @param {PIXI.Texture} [options.texture=PIXI.Texture.WHITE] - Texture to use
+         * @param {number} [options.color=0x0] - color of the line to draw, will update the objects stored style.
+         *  Default 0xFFFFFF if texture present.
+         * @param {number} [options.alpha=1] - alpha of the line to draw, will update the objects stored style
+         * @param {PIXI.Matrix} [options.matrix=null] - Texture matrix to transform texture
+         * @param {number} [options.alignment=0.5] - alignment of the line to draw, (0 = inner, 0.5 = middle, 1 = outter)
+         * @param {boolean} [options.native=false] - If true the lines will be draw using LINES instead of TRIANGLE_STRIP
+         * @param {PIXI.LINE_CAP}[options.cap=PIXI.LINE_CAP.BUTT] - line cap style
+         * @param {PIXI.LINE_JOIN}[options.join=PIXI.LINE_JOIN.MITER] - line join style
+         * @param {number}[options.miterLimit=10] - miter limit ratio
          * @return {PIXI.Graphics} This Graphics object. Good for chaining method calls
          */
-        lineTextureStyle(width?: number, texture?: PIXI.Texture, color?: number, alpha?: number, matrix?: PIXI.Matrix, alignment?: number, native?: boolean): PIXI.Graphics;
+        lineTextureStyle(options?: {
+            width?: number;
+            texture?: PIXI.Texture;
+            color?: number;
+            alpha?: number;
+            matrix?: PIXI.Matrix;
+            alignment?: number;
+            native?: boolean;
+            cap?: PIXI.LINE_CAP;
+            join?: PIXI.LINE_JOIN;
+            miterLimit?: number;
+        }): PIXI.Graphics;
         /**
          * Start a polygon object internally
          * @protected
@@ -9112,8 +9874,8 @@ declare namespace PIXI {
          *
          * "borrowed" from https://code.google.com/p/fxcanvas/ - thanks google!
          *
-         * @param {number} x1 - The x-coordinate of the beginning of the arc
-         * @param {number} y1 - The y-coordinate of the beginning of the arc
+         * @param {number} x1 - The x-coordinate of the first tangent point of the arc
+         * @param {number} y1 - The y-coordinate of the first tangent point of the arc
          * @param {number} x2 - The x-coordinate of the end of the arc
          * @param {number} y2 - The y-coordinate of the end of the arc
          * @param {number} radius - The radius of the arc
@@ -9147,13 +9909,19 @@ declare namespace PIXI {
         /**
          * Begin the texture fill
          *
-         * @param {PIXI.Texture} [texture=PIXI.Texture.WHITE] - Texture to fill
-         * @param {number} [color=0xffffff] - Background to fill behind texture
-         * @param {number} [alpha=1] - Alpha of fill
-         * @param {PIXI.Matrix} [matrix=null] - Transform matrix
+         * @param {object} [options] - Object object.
+         * @param {PIXI.Texture} [options.texture=PIXI.Texture.WHITE] - Texture to fill
+         * @param {number} [options.color=0xffffff] - Background to fill behind texture
+         * @param {number} [options.alpha=1] - Alpha of fill
+         * @param {PIXI.Matrix} [options.matrix=null] - Transform matrix
          * @return {PIXI.Graphics} This Graphics object. Good for chaining method calls
          */
-        beginTextureFill(texture?: PIXI.Texture, color?: number, alpha?: number, matrix?: PIXI.Matrix): PIXI.Graphics;
+        beginTextureFill(options?: {
+            texture?: PIXI.Texture;
+            color?: number;
+            alpha?: number;
+            matrix?: PIXI.Matrix;
+        }): PIXI.Graphics;
         /**
          * Applies a fill to the lines and shapes that were added since the last call to the beginFill() method.
          *
@@ -9206,7 +9974,7 @@ declare namespace PIXI {
          * @param {number[]|PIXI.Point[]|PIXI.Polygon} path - The path data used to construct the polygon.
          * @return {PIXI.Graphics} This Graphics object. Good for chaining method calls
          */
-        drawPolygon(path: number[] | PIXI.Point[] | PIXI.Polygon): PIXI.Graphics;
+        drawPolygon(...path: (number[] | PIXI.Point[] | PIXI.Polygon)[]): PIXI.Graphics;
         /**
          * Draw any shape.
          *
@@ -9247,6 +10015,40 @@ declare namespace PIXI {
          */
         protected _render(renderer: PIXI.Renderer): void;
         /**
+         * Populating batches for rendering
+         *
+         * @protected
+         */
+        protected _populateBatches(): void;
+        /**
+         * Renders the batches using the BathedRenderer plugin
+         *
+         * @protected
+         * @param {PIXI.Renderer} renderer - The renderer
+         */
+        protected _renderBatched(renderer: PIXI.Renderer): void;
+        /**
+         * Renders the graphics direct
+         *
+         * @protected
+         * @param {PIXI.Renderer} renderer - The renderer
+         */
+        protected _renderDirect(renderer: PIXI.Renderer): void;
+        /**
+         * Renders specific DrawCall
+         *
+         * @param {PIXI.Renderer} renderer
+         * @param {PIXI.BatchDrawCall} drawCall
+         */
+        _renderDrawCallDirect(renderer: PIXI.Renderer, drawCall: PIXI.BatchDrawCall): void;
+        /**
+         * Resolves shader for direct rendering
+         *
+         * @protected
+         * @param {PIXI.Renderer} renderer - The renderer
+         */
+        protected _resolveDirectShader(renderer: PIXI.Renderer): void;
+        /**
          * Retrieves the bounds of the graphic shape as a rectangle object
          *
          * @protected
@@ -9255,10 +10057,10 @@ declare namespace PIXI {
         /**
          * Tests if a point is inside this graphics object
          *
-         * @param {PIXI.Point} point - the point to test
+         * @param {PIXI.IPointData} point - the point to test
          * @return {boolean} the result of the test
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * Recalcuate the tint by applying tin to batches using Graphics tint.
          * @protected
@@ -9315,19 +10117,61 @@ declare namespace PIXI {
             baseTexture?: boolean;
         }): void;
         /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
+         * Draw Rectangle with chamfer corners.
+         *
+         * _Note: Only available with **@pixi/graphics-extras**._
+         *
+         * @method PIXI.Graphics#drawChamferRect
+         * @param {number} x - Upper left corner of rect
+         * @param {number} y - Upper right corner of rect
+         * @param {number} width - Width of rect
+         * @param {number} height - Height of rect
+         * @param {number} chamfer - accept negative or positive values
+         * @return {PIXI.Graphics} Returns self.
          */
-        renderWebGL(renderer: PIXI.Renderer): void;
+        drawChamferRect(x: number, y: number, width: number, height: number, chamfer: number): PIXI.Graphics;
         /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
+         * Draw Rectangle with fillet corners.
+         *
+         * _Note: Only available with **@pixi/graphics-extras**._
+         *
+         * @method PIXI.Graphics#drawFilletRect
+         * @param {number} x - Upper left corner of rect
+         * @param {number} y - Upper right corner of rect
+         * @param {number} width - Width of rect
+         * @param {number} height - Height of rect
+         * @param {number} fillet - non-zero real number, size of corner cutout
+         * @return {PIXI.Graphics} Returns self.
          */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
+        drawFilletRect(x: number, y: number, width: number, height: number, fillet: number): PIXI.Graphics;
+        /**
+         * Draw a regular polygon where all sides are the same length.
+         *
+         * _Note: Only available with **@pixi/graphics-extras**._
+         *
+         * @method PIXI.Graphics#drawRegularPolygon
+         * @param {number} x - X position
+         * @param {number} y - Y position
+         * @param {number} radius - Polygon radius
+         * @param {number} sides - Minimum value is 3
+         * @param {number} rotation - Starting rotation values in radians..
+         * @return {PIXI.Graphics}
+         */
+        drawRegularPolygon(x: number, y: number, radius: number, sides: number, rotation: number): PIXI.Graphics;
+        /**
+         * Draw a torus shape, like a donut. Can be used for something like a circle loader.
+         *
+         * _Note: Only available with **@pixi/graphics-extras**._
+         *
+         * @method PIXI.Graphics#drawTorus
+         * @param {number} x - X position
+         * @param {number} y - Y position
+         * @param {number} innerRadius - Inner circle radius
+         * @param {number} outerRadius - Outer circle radius
+         * @param {number} sweep - How much of the circle to fill, in radius
+         * @return {PIXI.Graphics}
+         */
+        drawTorus(x: number, y: number, innerRadius: number, outerRadius: number, sweep: number): PIXI.Graphics;
         /**
          * The array of children of this container.
          *
@@ -9369,10 +10213,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -9380,7 +10224,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -9412,10 +10256,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -9445,6 +10289,15 @@ declare namespace PIXI {
          */
         calculateBounds(): void;
         /**
+         * Retrieves the local bounds of the displayObject as a rectangle object.
+         *
+         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
+         * @param {boolean} [skipChildrenUpdate=false] - Setting to `true` will stop re-calculation of children transforms,
+         *  it was default behaviour of pixi 4.0-5.2 and caused many problems to users.
+         * @return {PIXI.Rectangle} The rectangular bounding area.
+         */
+        getLocalBounds(rect?: PIXI.Rectangle, skipChildrenUpdate?: boolean): PIXI.Rectangle;
+        /**
          * Renders the object using the WebGL renderer
          *
          * @param {PIXI.Renderer} renderer - The renderer
@@ -9470,6 +10323,14 @@ declare namespace PIXI {
          */
         height: number;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -9480,12 +10341,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -9522,6 +10386,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -9556,9 +10447,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -9600,19 +10490,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -9626,10 +10548,10 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -9646,33 +10568,26 @@ declare namespace PIXI {
          */
         getBounds(skipUpdate?: boolean, rect?: PIXI.Rectangle): PIXI.Rectangle;
         /**
-         * Retrieves the local bounds of the displayObject as a rectangle object.
-         *
-         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
-         * @return {PIXI.Rectangle} The rectangular bounding area.
-         */
-        getLocalBounds(rect?: PIXI.Rectangle): PIXI.Rectangle;
-        /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -9695,6 +10610,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -9727,23 +10664,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -9798,9 +10735,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -9823,10 +10768,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -9880,7 +10825,7 @@ declare namespace PIXI {
      * @memberof PIXI
      */
     class GraphicsData {
-        constructor(shape: PIXI.Circle | PIXI.Rectangle | PIXI.Ellipse | PIXI.Polygon, fillStyle?: PIXI.FillStyle, lineStyle?: PIXI.LineStyle, matrix?: PIXI.Matrix);
+        constructor(shape: PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.Rectangle | PIXI.RoundedRectangle, fillStyle?: PIXI.FillStyle, lineStyle?: PIXI.LineStyle, matrix?: PIXI.Matrix);
         /**
          * The shape object to draw.
          * @member {PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.Rectangle|PIXI.RoundedRectangle} PIXI.GraphicsData#shape
@@ -9924,6 +10869,7 @@ declare namespace PIXI {
         clone(): PIXI.GraphicsData;
         /**
          * Destroys the Graphics data.
+         *
          */
         destroy(): void;
     }
@@ -9941,12 +10887,12 @@ declare namespace PIXI {
     class GraphicsGeometry extends PIXI.BatchGeometry {
         constructor();
         /**
-         * An array of points to draw
+         * An array of points to draw, 2 numbers per point
          *
-         * @member {PIXI.Point[]} PIXI.GraphicsGeometry#points
+         * @member {number[]} PIXI.GraphicsGeometry#points
          * @protected
          */
-        protected points: PIXI.Point[];
+        protected points: number[];
         /**
          * The collection of colors
          *
@@ -9983,8 +10929,7 @@ declare namespace PIXI {
          */
         protected graphicsData: PIXI.GraphicsData[];
         /**
-         * Used to detect if the graphics object has changed. If this is set to true then the graphics
-         * object will be recalculated.
+         * Used to detect if the graphics object has changed.
          *
          * @member {number} PIXI.GraphicsGeometry#dirty
          * @protected
@@ -10005,7 +10950,7 @@ declare namespace PIXI {
          */
         protected cacheDirty: number;
         /**
-         * Used to detect if we clear the graphics WebGL data.
+         * Used to detect if we cleared the graphicsData.
          *
          * @member {number} PIXI.GraphicsGeometry#clearDirty
          * @default 0
@@ -10023,12 +10968,12 @@ declare namespace PIXI {
          * Intermediate abstract format sent to batch system.
          * Can be converted to drawCalls or to batchable objects.
          *
-         * @member {object[]} PIXI.GraphicsGeometry#batches
+         * @member {PIXI.graphicsUtils.BatchPart[]} PIXI.GraphicsGeometry#batches
          * @protected
          */
-        protected batches: any[];
+        protected batches: PIXI.graphicsUtils.BatchPart[];
         /**
-         * Index of the current last shape in the stack of calls.
+         * Index of the last batched shape in the stack of calls.
          *
          * @member {number} PIXI.GraphicsGeometry#shapeIndex
          * @protected
@@ -10056,12 +11001,24 @@ declare namespace PIXI {
          */
         boundsPadding: number;
         /**
+         * Minimal distance between points that are considered different.
+         * Affects line tesselation.
+         *
+         * @member {number} PIXI.GraphicsGeometry#closePointEps
+         */
+        closePointEps: number;
+        /**
          * Get the current bounds of the graphic geometry.
          *
          * @member {PIXI.Bounds}
          * @readonly
          */
         readonly bounds: PIXI.Bounds;
+        /**
+         * Call if you changed graphicsData manually.
+         * Empties all batch buffers.
+         */
+        invalidate(): void;
         /**
          * Clears the graphics that were drawn to this Graphics object, and resets fill and line style settings.
          *
@@ -10087,46 +11044,76 @@ declare namespace PIXI {
          */
         drawHole(shape: PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.Rectangle | PIXI.RoundedRectangle, matrix: PIXI.Matrix): PIXI.GraphicsGeometry;
         /**
-         * Destroys the Graphics object.
+         * Destroys the GraphicsGeometry object.
          *
-         * @param {object|boolean} [options] - Options parameter. A boolean will act as if all
-         *  options have been set to that value
-         * @param {boolean} [options.children=false] - if set to true, all the children will have
-         *  their destroy method called as well. 'options' will be passed on to those calls.
-         * @param {boolean} [options.texture=false] - Only used for child Sprites if options.children is set to true
-         *  Should it destroy the texture of the child sprite
-         * @param {boolean} [options.baseTexture=false] - Only used for child Sprites if options.children is set to true
-         *  Should it destroy the base texture of the child sprite
          */
-        destroy(options?: {
-            children?: boolean;
-            texture?: boolean;
-            baseTexture?: boolean;
-        }): void;
+        destroy(): void;
         /**
          * Check to see if a point is contained within this geometry.
          *
-         * @param {PIXI.Point} point - Point to check if it's contained.
+         * @param {PIXI.IPointData} point - Point to check if it's contained.
          * @return {Boolean} `true` if the point is contained within geometry.
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * Generates intermediate batch data. Either gets converted to drawCalls
          * or used to convert to batch objects directly by the Graphics object.
+         *
+         * @param {boolean} [aloow32Indices] - Allow using 32-bit indices for preventings artefacts when more that 65535 vertices
+         */
+        updateBatches(aloow32Indices?: boolean): void;
+        /**
+         * Affinity check
+         *
+         * @param {PIXI.FillStyle | PIXI.LineStyle} styleA
+         * @param {PIXI.FillStyle | PIXI.LineStyle} styleB
+         */
+        _compareStyles(styleA: PIXI.FillStyle | PIXI.LineStyle, styleB: PIXI.FillStyle | PIXI.LineStyle): void;
+        /**
+         * Test geometry for batching process.
+         *
          * @protected
          */
-        protected updateBatches(): void;
+        protected validateBatching(): void;
+        /**
+         * Offset the indices so that it works with the batcher.
+         *
+         * @protected
+         */
+        protected packBatches(): void;
         /**
          * Checks to see if this graphics geometry can be batched.
          * Currently it needs to be small enough and not contain any native lines.
+         *
          * @protected
          */
         protected isBatchable(): void;
         /**
          * Converts intermediate batches data to drawCalls.
+         *
          * @protected
          */
         protected buildDrawCalls(): void;
+        /**
+         * Packs attributes to single buffer.
+         *
+         * @protected
+         */
+        protected packAttributes(): void;
+        /**
+         * Process fill part of Graphics.
+         *
+         * @param {PIXI.GraphicsData} data
+         * @protected
+         */
+        protected processFill(data: PIXI.GraphicsData): void;
+        /**
+         * Process line part of Graphics.
+         *
+         * @param {PIXI.GraphicsData} data
+         * @protected
+         */
+        protected processLine(data: PIXI.GraphicsData): void;
         /**
          * Process the holes data.
          *
@@ -10136,6 +11123,7 @@ declare namespace PIXI {
         protected processHoles(holes: PIXI.GraphicsData[]): void;
         /**
          * Update the local bounds of the object. Expensive to use performance-wise.
+         *
          * @protected
          */
         protected calculateBounds(): void;
@@ -10181,12 +11169,13 @@ declare namespace PIXI {
         /**
          * Modify uvs array according to position of texture region
          * Does not work with rotated or trimmed textures
-         * @param {number} uvs array
-         * @param {PIXI.Texture} texture region
-         * @param {number} start starting index for uvs
-         * @param {number} size how many points to adjust
+         *
+         * @param {number[]} uvs - array
+         * @param {PIXI.Texture} texture - region
+         * @param {number} start - starting index for uvs
+         * @param {number} size - how many points to adjust
          */
-        adjustUvs(uvs: number, texture: PIXI.Texture, start: number, size: number): void;
+        adjustUvs(uvs: number[], texture: PIXI.Texture, start: number, size: number): void;
         /**
          * The maximum number of points to consider an object "batchable",
          * able to be batched by the renderer's batch system.
@@ -10211,6 +11200,43 @@ declare namespace PIXI {
          * @protected
          */
         protected _indexBuffer: PIXI.Buffer;
+    }
+    /**
+     * Supported line joints in `PIXI.LineStyle` for graphics.
+     *
+     * @see PIXI.Graphics#lineStyle
+     * @see https://graphicdesign.stackexchange.com/questions/59018/what-is-a-bevel-join-of-two-lines-exactly-illustrator
+     *
+     * @name LINE_JOIN
+     * @memberof PIXI
+     * @static
+     * @enum {string}
+     * @property {string} MITER - 'miter': make a sharp corner where outer part of lines meet
+     * @property {string} BEVEL - 'bevel': add a square butt at each end of line segment and fill the triangle at turn
+     * @property {string} ROUND - 'round': add an arc at the joint
+     */
+    enum LINE_JOIN {
+        MITER,
+        BEVEL,
+        ROUND
+    }
+    /**
+     * Support line caps in `PIXI.LineStyle` for graphics.
+     *
+     * @see PIXI.Graphics#lineStyle
+     *
+     * @name LINE_CAP
+     * @memberof PIXI
+     * @static
+     * @enum {string}
+     * @property {string} BUTT - 'butt': don't add any cap at line ends (leaves orthogonal edges)
+     * @property {string} ROUND - 'round': add semicircle at ends
+     * @property {string} SQUARE - 'square': add square at end (like `BUTT` except more length at end)
+     */
+    enum LINE_CAP {
+        BUTT,
+        ROUND,
+        SQUARE
     }
     /**
      * Graphics curves resolution settings. If `adaptive` flag is set to `true`,
@@ -10242,20 +11268,10 @@ declare namespace PIXI {
     class FillStyle {
         constructor();
         /**
-         * Clones the object
-         *
-         * @return {PIXI.FillStyle}
-         */
-        clone(): PIXI.FillStyle;
-        /**
-         * Reset
-         */
-        reset(): void;
-        /**
          * The hex color value used when coloring the Graphics object.
          *
          * @member {number} PIXI.FillStyle#color
-         * @default 1
+         * @default 0xFFFFFF
          */
         color: number;
         /**
@@ -10268,17 +11284,17 @@ declare namespace PIXI {
         /**
          * The texture to be used for the fill.
          *
-         * @member {string} PIXI.FillStyle#texture
+         * @member {PIXI.Texture} PIXI.FillStyle#texture
          * @default 0
          */
-        texture: string;
+        texture: PIXI.Texture;
         /**
          * The transform aplpied to the texture.
          *
-         * @member {string} PIXI.FillStyle#matrix
-         * @default 0
+         * @member {PIXI.Matrix} PIXI.FillStyle#matrix
+         * @default null
          */
-        matrix: string;
+        matrix: PIXI.Matrix;
         /**
          * If the current fill is visible.
          *
@@ -10286,6 +11302,16 @@ declare namespace PIXI {
          * @default false
          */
         visible: boolean;
+        /**
+         * Clones the object
+         *
+         * @return {PIXI.FillStyle}
+         */
+        clone(): PIXI.FillStyle;
+        /**
+         * Reset
+         */
+        reset(): void;
         /**
          * Destroy and don't use after this
          */
@@ -10298,6 +11324,49 @@ declare namespace PIXI {
      * @extends PIXI.FillStyle
      */
     class LineStyle extends PIXI.FillStyle {
+        constructor();
+        /**
+         * The width (thickness) of any lines drawn.
+         *
+         * @member {number} PIXI.LineStyle#width
+         * @default 0
+         */
+        width: number;
+        /**
+         * The alignment of any lines drawn (0.5 = middle, 1 = outer, 0 = inner).
+         *
+         * @member {number} PIXI.LineStyle#alignment
+         * @default 0.5
+         */
+        alignment: number;
+        /**
+         * If true the lines will be draw using LINES instead of TRIANGLE_STRIP
+         *
+         * @member {boolean} PIXI.LineStyle#native
+         * @default false
+         */
+        native: boolean;
+        /**
+         * Line cap style.
+         *
+         * @member {PIXI.LINE_CAP} PIXI.LineStyle#cap
+         * @default PIXI.LINE_CAP.BUTT
+         */
+        cap: PIXI.LINE_CAP;
+        /**
+         * Line join style.
+         *
+         * @member {PIXI.LINE_JOIN} PIXI.LineStyle#join
+         * @default PIXI.LINE_JOIN.MITER
+         */
+        join: PIXI.LINE_JOIN;
+        /**
+         * Miter limit.
+         *
+         * @member {number} PIXI.LineStyle#miterLimit
+         * @default 10
+         */
+        miterLimit: number;
         /**
          * Clones the object
          *
@@ -10309,31 +11378,10 @@ declare namespace PIXI {
          */
         reset(): void;
         /**
-         * The width (thickness) of any lines drawn.
-         *
-         * @member {number} PIXI.LineStyle#width
-         * @default 0
-         */
-        width: number;
-        /**
-         * The alignment of any lines drawn (0.5 = middle, 1 = outter, 0 = inner).
-         *
-         * @member {number} PIXI.LineStyle#alignment
-         * @default 0
-         */
-        alignment: number;
-        /**
-         * If true the lines will be draw using LINES instead of TRIANGLE_STRIP
-         *
-         * @member {boolean} PIXI.LineStyle#native
-         * @default false
-         */
-        native: boolean;
-        /**
          * The hex color value used when coloring the Graphics object.
          *
          * @member {number} PIXI.FillStyle#color
-         * @default 1
+         * @default 0xFFFFFF
          */
         color: number;
         /**
@@ -10346,17 +11394,17 @@ declare namespace PIXI {
         /**
          * The texture to be used for the fill.
          *
-         * @member {string} PIXI.FillStyle#texture
+         * @member {PIXI.Texture} PIXI.FillStyle#texture
          * @default 0
          */
-        texture: string;
+        texture: PIXI.Texture;
         /**
          * The transform aplpied to the texture.
          *
-         * @member {string} PIXI.FillStyle#matrix
-         * @default 0
+         * @member {PIXI.Matrix} PIXI.FillStyle#matrix
+         * @default null
          */
-        matrix: string;
+        matrix: PIXI.Matrix;
         /**
          * If the current fill is visible.
          *
@@ -10370,445 +11418,543 @@ declare namespace PIXI {
         destroy(): void;
     }
     /**
-     * Draw a star shape with an arbitrary number of points.
+     * Generalized convenience utilities for Graphics.
      *
-     * @class
-     * @extends PIXI.Polygon
+     * @namespace graphicsUtils
      * @memberof PIXI
-     * @param {number} x - Center X position of the star
-     * @param {number} y - Center Y position of the star
-     * @param {number} points - The number of points of the star, must be > 1
-     * @param {number} radius - The outer radius of the star
-     * @param {number} [innerRadius] - The inner radius between points, default half `radius`
-     * @param {number} [rotation=0] - The rotation of the star in radians, where 0 is vertical
-     * @return {PIXI.Graphics} This Graphics object. Good for chaining method calls
      */
-    class Star extends PIXI.Polygon {
-        constructor(x: number, y: number, points: number, radius: number, innerRadius?: number, rotation?: number);
+    namespace graphicsUtils {
         /**
-         * An array of the points of this polygon
-         *
-         * @member {number[]} PIXI.Polygon#points
-         */
-        points: number[];
-        /**
-         * The type of the object, mainly used to avoid `instanceof` checks
-         *
-         * @member {number} PIXI.Polygon#type
-         * @readOnly
-         * @default PIXI.SHAPES.POLY
-         * @see PIXI.SHAPES
-         */
-        readonly type: number;
-        /**
-         * `false` after moveTo, `true` after `closePath`. In all other cases it is `true`.
-         * @member {boolean} PIXI.Polygon#closeStroke
-         * @default true
-         */
-        closeStroke: boolean;
-        /**
-         * Creates a clone of this polygon
-         *
-         * @return {PIXI.Polygon} a copy of the polygon
-         */
-        clone(): PIXI.Polygon;
-        /**
-         * Checks whether the x and y coordinates passed to this function are contained within this polygon
-         *
-         * @param {number} x - The X coordinate of the point to test
-         * @param {number} y - The Y coordinate of the point to test
-         * @return {boolean} Whether the x/y coordinates are within this polygon
-         */
-        contains(x: number, y: number): boolean;
-    }
-    /**
-     * This namespace contains a renderer plugin for handling mouse, pointer, and touch events.
-     *
-     * Do not instantiate this plugin directly. It is available from the `renderer.plugins` property.
-     * See {@link PIXI.CanvasRenderer#plugins} or {@link PIXI.Renderer#plugins}.
-     * @namespace PIXI.interaction
-     */
-    namespace interaction {
-        /**
-         * Holds all information related to an Interaction event
-         *
+         * A structure to hold interim batch objects for Graphics.
          * @class
-         * @memberof PIXI.interaction
+         * @memberof PIXI.graphicsUtils
          */
-        class InteractionData {
+        class BatchPart {
             constructor();
             /**
-             * This point stores the global coords of where the touch/mouse event happened
+             * Begin batch part
              *
-             * @member {PIXI.Point} PIXI.interaction.InteractionData#global
+             * @param {PIXI.FillStyle | PIXI.LineStyle} style
+             * @param {number} startIndex
+             * @param {number} attribStart
              */
-            global: PIXI.Point;
+            begin(style: PIXI.FillStyle | PIXI.LineStyle, startIndex: number, attribStart: number): void;
             /**
-             * The target Sprite that was interacted with
+             * End batch part
              *
-             * @member {PIXI.Sprite} PIXI.interaction.InteractionData#target
+             * @param {number} endIndex
+             * @param {number} endAttrib
              */
-            target: PIXI.Sprite;
-            /**
-             * When passed to an event handler, this will be the original DOM Event that was captured
-             *
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent
-             * @member {MouseEvent|TouchEvent|PointerEvent} PIXI.interaction.InteractionData#originalEvent
-             */
-            originalEvent: MouseEvent | TouchEvent | PointerEvent;
-            /**
-             * Unique identifier for this interaction
-             *
-             * @member {number} PIXI.interaction.InteractionData#identifier
-             */
-            identifier: number;
-            /**
-             * Indicates whether or not the pointer device that created the event is the primary pointer.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/isPrimary
-             * @type {Boolean}
-             */
-            isPrimary: boolean;
-            /**
-             * Indicates which button was pressed on the mouse or pointer device to trigger the event.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-             * @type {number}
-             */
-            button: number;
-            /**
-             * Indicates which buttons are pressed on the mouse or pointer device when the event is triggered.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons
-             * @type {number}
-             */
-            buttons: number;
-            /**
-             * The width of the pointer's contact along the x-axis, measured in CSS pixels.
-             * radiusX of TouchEvents will be represented by this value.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/width
-             * @type {number}
-             */
-            width: number;
-            /**
-             * The height of the pointer's contact along the y-axis, measured in CSS pixels.
-             * radiusY of TouchEvents will be represented by this value.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/height
-             * @type {number}
-             */
-            height: number;
-            /**
-             * The angle, in degrees, between the pointer device and the screen.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/tiltX
-             * @type {number}
-             */
-            tiltX: number;
-            /**
-             * The angle, in degrees, between the pointer device and the screen.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/tiltY
-             * @type {number}
-             */
-            tiltY: number;
-            /**
-             * The type of pointer that triggered the event.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/pointerType
-             * @type {string}
-             */
-            pointerType: string;
-            /**
-             * Pressure applied by the pointing device during the event. A Touch's force property
-             * will be represented by this value.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/pressure
-             * @type {number}
-             */
-            pressure: number;
-            /**
-             * From TouchEvents (not PointerEvents triggered by touches), the rotationAngle of the Touch.
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/Touch/rotationAngle
-             * @type {number}
-             */
-            rotationAngle: number;
-            /**
-             * Twist of a stylus pointer.
-             * @see https://w3c.github.io/pointerevents/#pointerevent-interface
-             * @type {number}
-             */
-            twist: number;
-            /**
-             * Barrel pressure on a stylus pointer.
-             * @see https://w3c.github.io/pointerevents/#pointerevent-interface
-             * @type {number}
-             */
-            tangentialPressure: number;
-            /**
-             * The unique identifier of the pointer. It will be the same as `identifier`.
-             * @readonly
-             * @member {number}
-             * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/pointerId
-             */
-            readonly pointerId: number;
-            /**
-             * This will return the local coordinates of the specified displayObject for this InteractionData
-             *
-             * @param {PIXI.DisplayObject} displayObject - The DisplayObject that you would like the local
-             *  coords off
-             * @param {PIXI.Point} [point] - A Point object in which to store the value, optional (otherwise
-             *  will create a new point)
-             * @param {PIXI.Point} [globalPos] - A Point object containing your custom global coords, optional
-             *  (otherwise will use the current global coords)
-             * @return {PIXI.Point} A point containing the coordinates of the InteractionData position relative
-             *  to the DisplayObject
-             */
-            getLocalPosition(displayObject: PIXI.DisplayObject, point?: PIXI.Point, globalPos?: PIXI.Point): PIXI.Point;
-            /**
-             * Copies properties from normalized event data.
-             *
-             * @param {Touch|MouseEvent|PointerEvent} event The normalized event data
-             */
-            copyEvent(event: Touch | MouseEvent | PointerEvent): void;
-            /**
-             * Resets the data for pooling.
-             */
-            reset(): void;
+            end(endIndex: number, endAttrib: number): void;
         }
         /**
-         * Event class that mimics native DOM events.
+         * Draw a star shape with an arbitrary number of points.
          *
          * @class
-         * @memberof PIXI.interaction
+         * @extends PIXI.Polygon
+         * @memberof PIXI.graphicsUtils
+         * @param {number} x - Center X position of the star
+         * @param {number} y - Center Y position of the star
+         * @param {number} points - The number of points of the star, must be > 1
+         * @param {number} radius - The outer radius of the star
+         * @param {number} [innerRadius] - The inner radius between points, default half `radius`
+         * @param {number} [rotation=0] - The rotation of the star in radians, where 0 is vertical
+         * @return {PIXI.Graphics} This Graphics object. Good for chaining method calls
          */
-        class InteractionEvent {
-            constructor();
+        class Star extends PIXI.Polygon {
+            constructor(x: number, y: number, points: number, radius: number, innerRadius?: number, rotation?: number);
             /**
-             * Whether this event will continue propagating in the tree
+             * An array of the points of this polygon
              *
-             * @member {boolean} PIXI.interaction.InteractionEvent#stopped
+             * @member {number[]} PIXI.Polygon#points
              */
-            stopped: boolean;
+            points: number[];
             /**
-             * The object which caused this event to be dispatched.
-             * For listener callback see {@link PIXI.interaction.InteractionEvent.currentTarget}.
+             * The type of the object, mainly used to avoid `instanceof` checks
              *
-             * @member {PIXI.DisplayObject} PIXI.interaction.InteractionEvent#target
+             * @member {number} PIXI.Polygon#type
+             * @readOnly
+             * @default PIXI.SHAPES.POLY
+             * @see PIXI.SHAPES
              */
-            target: PIXI.DisplayObject;
+            readonly type: number;
             /**
-             * The object whose event listener’s callback is currently being invoked.
-             *
-             * @member {PIXI.DisplayObject} PIXI.interaction.InteractionEvent#currentTarget
-             */
-            currentTarget: PIXI.DisplayObject;
-            /**
-             * Type of the event
-             *
-             * @member {string} PIXI.interaction.InteractionEvent#type
-             */
-            type: string;
-            /**
-             * InteractionData related to this event
-             *
-             * @member {PIXI.interaction.InteractionData} PIXI.interaction.InteractionEvent#data
-             */
-            data: PIXI.interaction.InteractionData;
-            /**
-             * Prevents event from reaching any objects other than the current object.
-             *
-             */
-            stopPropagation(): void;
-            /**
-             * Resets the event.
-             */
-            reset(): void;
-        }
-        /**
-         * The interaction manager deals with mouse, touch and pointer events.
-         *
-         * Any DisplayObject can be interactive if its `interactive` property is set to true.
-         *
-         * This manager also supports multitouch.
-         *
-         * An instance of this class is automatically created by default, and can be found at `renderer.plugins.interaction`
-         *
-         * @class
-         * @extends PIXI.utils.EventEmitter
-         * @memberof PIXI.interaction
-         */
-        class InteractionManager extends PIXI.utils.EventEmitter {
-            constructor(renderer: PIXI.Renderer, options?: {
-                autoPreventDefault?: boolean;
-                interactionFrequency?: number;
-            });
-            /**
-             * The renderer this interaction manager works for.
-             *
-             * @member {PIXI.AbstractRenderer} PIXI.interaction.InteractionManager#renderer
-             */
-            renderer: PIXI.AbstractRenderer;
-            /**
-             * Should default browser actions automatically be prevented.
-             * Does not apply to pointer events for backwards compatibility
-             * preventDefault on pointer events stops mouse events from firing
-             * Thus, for every pointer event, there will always be either a mouse of touch event alongside it.
-             *
-             * @member {boolean} PIXI.interaction.InteractionManager#autoPreventDefault
+             * `false` after moveTo, `true` after `closePath`. In all other cases it is `true`.
+             * @member {boolean} PIXI.Polygon#closeStroke
              * @default true
              */
-            autoPreventDefault: boolean;
+            closeStroke: boolean;
             /**
-             * Frequency in milliseconds that the mousemove, mouseover & mouseout interaction events will be checked.
+             * Creates a clone of this polygon
              *
-             * @member {number} PIXI.interaction.InteractionManager#interactionFrequency
-             * @default 10
+             * @return {PIXI.Polygon} a copy of the polygon
              */
-            interactionFrequency: number;
+            clone(): PIXI.Polygon;
             /**
-             * The mouse data
+             * Checks whether the x and y coordinates passed to this function are contained within this polygon
              *
-             * @member {PIXI.interaction.InteractionData} PIXI.interaction.InteractionManager#mouse
+             * @param {number} x - The X coordinate of the point to test
+             * @param {number} y - The Y coordinate of the point to test
+             * @return {boolean} Whether the x/y coordinates are within this polygon
              */
-            mouse: PIXI.interaction.InteractionData;
-            /**
-             * An event data object to handle all the event tracking/dispatching
-             *
-             * @member {object} PIXI.interaction.InteractionManager#eventData
-             */
-            eventData: any;
-            /**
-             * The DOM element to bind to.
-             *
-             * @protected
-             * @member {HTMLElement} PIXI.interaction.InteractionManager#interactionDOMElement
-             */
-            protected interactionDOMElement: HTMLElement;
-            /**
-             * This property determines if mousemove and touchmove events are fired only when the cursor
-             * is over the object.
-             * Setting to true will make things work more in line with how the DOM version works.
-             * Setting to false can make things easier for things like dragging
-             * It is currently set to false as this is how PixiJS used to work. This will be set to true in
-             * future versions of pixi.
-             *
-             * @member {boolean} PIXI.interaction.InteractionManager#moveWhenInside
-             * @default false
-             */
-            moveWhenInside: boolean;
-            /**
-             * Have events been attached to the dom element?
-             *
-             * @protected
-             * @member {boolean} PIXI.interaction.InteractionManager#eventsAdded
-             */
-            protected eventsAdded: boolean;
-            /**
-             * Is the mouse hovering over the renderer?
-             *
-             * @protected
-             * @member {boolean} PIXI.interaction.InteractionManager#mouseOverRenderer
-             */
-            protected mouseOverRenderer: boolean;
-            /**
-             * Does the device support touch events
-             * https://www.w3.org/TR/touch-events/
-             *
-             * @readonly
-             * @member {boolean} PIXI.interaction.InteractionManager#supportsTouchEvents
-             */
-            readonly supportsTouchEvents: boolean;
-            /**
-             * Does the device support pointer events
-             * https://www.w3.org/Submission/pointer-events/
-             *
-             * @readonly
-             * @member {boolean} PIXI.interaction.InteractionManager#supportsPointerEvents
-             */
-            readonly supportsPointerEvents: boolean;
-            /**
-             * Dictionary of how different cursor modes are handled. Strings are handled as CSS cursor
-             * values, objects are handled as dictionaries of CSS values for interactionDOMElement,
-             * and functions are called instead of changing the CSS.
-             * Default CSS cursor values are provided for 'default' and 'pointer' modes.
-             * @member {Object.<string, Object>} PIXI.interaction.InteractionManager#cursorStyles
-             */
-            cursorStyles: {
-                [key: string]: any;
-            };
-            /**
-             * The mode of the cursor that is being used.
-             * The value of this is a key from the cursorStyles dictionary.
-             *
-             * @member {string} PIXI.interaction.InteractionManager#currentCursorMode
-             */
-            currentCursorMode: string;
-            /**
-             * The current resolution / device pixel ratio.
-             *
-             * @member {number} PIXI.interaction.InteractionManager#resolution
-             * @default 1
-             */
-            resolution: number;
-            /**
-             * Hit tests a point against the display tree, returning the first interactive object that is hit.
-             *
-             * @param {PIXI.Point} globalPoint - A point to hit test with, in global space.
-             * @param {PIXI.Container} [root] - The root display object to start from. If omitted, defaults
-             * to the last rendered root of the associated renderer.
-             * @return {PIXI.DisplayObject} The hit display object, if any.
-             */
-            hitTest(globalPoint: PIXI.Point, root?: PIXI.Container): PIXI.DisplayObject;
-            /**
-             * Sets the DOM element which will receive mouse/touch events. This is useful for when you have
-             * other DOM elements on top of the renderers Canvas element. With this you'll be bale to delegate
-             * another DOM element to receive those events.
-             *
-             * @param {HTMLCanvasElement} element - the DOM element which will receive mouse and touch events.
-             * @param {number} [resolution=1] - The resolution / device pixel ratio of the new element (relative to the canvas).
-             */
-            setTargetElement(element: HTMLCanvasElement, resolution?: number): void;
-            /**
-             * Updates the state of interactive objects.
-             * Invoked by a throttled ticker update from {@link PIXI.Ticker.system}.
-             *
-             * @param {number} deltaTime - time delta since last tick
-             */
-            update(deltaTime: number): void;
-            /**
-             * Sets the current cursor mode, handling any callbacks or CSS style changes.
-             *
-             * @param {string} mode - cursor mode, a key from the cursorStyles dictionary
-             */
-            setCursorMode(mode: string): void;
-            /**
-             * Maps x and y coords from a DOM object and maps them correctly to the PixiJS view. The
-             * resulting value is stored in the point. This takes into account the fact that the DOM
-             * element could be scaled and positioned anywhere on the screen.
-             *
-             * @param  {PIXI.Point} point - the point that the result will be stored in
-             * @param  {number} x - the x coord of the position to map
-             * @param  {number} y - the y coord of the position to map
-             */
-            mapPositionToPoint(point: PIXI.Point, x: number, y: number): void;
-            /**
-             * This function is provides a neat way of crawling through the scene graph and running a
-             * specified function on all interactive objects it finds. It will also take care of hit
-             * testing the interactive objects and passes the hit across in the function.
-             *
-             * @protected
-             * @param {PIXI.interaction.InteractionEvent} interactionEvent - event containing the point that
-             *  is tested for collision
-             * @param {PIXI.Container|PIXI.Sprite|PIXI.TilingSprite} displayObject - the displayObject
-             *  that will be hit test (recursively crawls its children)
-             * @param {Function} [func] - the function that will be called on each interactive object. The
-             *  interactionEvent, displayObject and hit will be passed to the function
-             * @param {boolean} [hitTest] - this indicates if the objects inside should be hit test against the point
-             * @param {boolean} [interactive] - Whether the displayObject is interactive
-             * @return {boolean} returns true if the displayObject hit the point
-             */
-            protected processInteractive(interactionEvent: PIXI.interaction.InteractionEvent, displayObject: PIXI.Container | PIXI.Sprite | PIXI.TilingSprite, func?: (...params: any[]) => any, hitTest?: boolean, interactive?: boolean): boolean;
-            /**
-             * Destroys the interaction manager
-             *
-             */
-            destroy(): void;
+            contains(x: number, y: number): boolean;
         }
+        /**
+         * Map of fill commands for each shape type.
+         *
+         * @memberof PIXI.graphicsUtils
+         * @member {Object} FILL_COMMANDS
+         */
+        var FILL_COMMANDS: any;
+        /**
+         * Batch pool, stores unused batches for preventing allocations.
+         *
+         * @memberof PIXI.graphicsUtils
+         * @member {Array<PIXI.graphicsUtils.BatchPart>} BATCH_POOL
+         */
+        var BATCH_POOL: PIXI.graphicsUtils.BatchPart[];
+        /**
+         * Draw call pool, stores unused draw calls for preventing allocations.
+         *
+         * @memberof PIXI.graphicsUtils
+         * @member {Array<PIXI.BatchDrawCall>} DRAW_CALL_POOL
+         */
+        var DRAW_CALL_POOL: PIXI.BatchDrawCall[];
+    }
+    /**
+     * Holds all information related to an Interaction event
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class InteractionData {
+        constructor();
+        /**
+         * This point stores the global coords of where the touch/mouse event happened
+         *
+         * @member {PIXI.Point} PIXI.InteractionData#global
+         */
+        global: PIXI.Point;
+        /**
+         * The target Sprite that was interacted with
+         *
+         * @member {PIXI.Sprite} PIXI.InteractionData#target
+         */
+        target: PIXI.Sprite;
+        /**
+         * When passed to an event handler, this will be the original DOM Event that was captured
+         *
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent
+         * @member {MouseEvent|TouchEvent|PointerEvent} PIXI.InteractionData#originalEvent
+         */
+        originalEvent: MouseEvent | TouchEvent | PointerEvent;
+        /**
+         * Unique identifier for this interaction
+         *
+         * @member {number} PIXI.InteractionData#identifier
+         */
+        identifier: number;
+        /**
+         * Indicates whether or not the pointer device that created the event is the primary pointer.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/isPrimary
+         * @type {Boolean}
+         */
+        isPrimary: boolean;
+        /**
+         * Indicates which button was pressed on the mouse or pointer device to trigger the event.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
+         * @type {number}
+         */
+        button: number;
+        /**
+         * Indicates which buttons are pressed on the mouse or pointer device when the event is triggered.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons
+         * @type {number}
+         */
+        buttons: number;
+        /**
+         * The width of the pointer's contact along the x-axis, measured in CSS pixels.
+         * radiusX of TouchEvents will be represented by this value.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/width
+         * @type {number}
+         */
+        width: number;
+        /**
+         * The height of the pointer's contact along the y-axis, measured in CSS pixels.
+         * radiusY of TouchEvents will be represented by this value.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/height
+         * @type {number}
+         */
+        height: number;
+        /**
+         * The angle, in degrees, between the pointer device and the screen.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/tiltX
+         * @type {number}
+         */
+        tiltX: number;
+        /**
+         * The angle, in degrees, between the pointer device and the screen.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/tiltY
+         * @type {number}
+         */
+        tiltY: number;
+        /**
+         * The type of pointer that triggered the event.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/pointerType
+         * @type {string}
+         */
+        pointerType: string;
+        /**
+         * Pressure applied by the pointing device during the event. A Touch's force property
+         * will be represented by this value.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/pressure
+         * @type {number}
+         */
+        pressure: number;
+        /**
+         * From TouchEvents (not PointerEvents triggered by touches), the rotationAngle of the Touch.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/Touch/rotationAngle
+         * @type {number}
+         */
+        rotationAngle: number;
+        /**
+         * Twist of a stylus pointer.
+         * @see https://w3c.github.io/pointerevents/#pointerevent-interface
+         * @type {number}
+         */
+        twist: number;
+        /**
+         * Barrel pressure on a stylus pointer.
+         * @see https://w3c.github.io/pointerevents/#pointerevent-interface
+         * @type {number}
+         */
+        tangentialPressure: number;
+        /**
+         * The unique identifier of the pointer. It will be the same as `identifier`.
+         * @readonly
+         * @member {number}
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/pointerId
+         */
+        readonly pointerId: number;
+        /**
+         * This will return the local coordinates of the specified displayObject for this InteractionData
+         *
+         * @param {PIXI.DisplayObject} displayObject - The DisplayObject that you would like the local
+         *  coords off
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional (otherwise
+         *  will create a new point)
+         * @param {PIXI.Point} [globalPos] - A Point object containing your custom global coords, optional
+         *  (otherwise will use the current global coords)
+         * @return {PIXI.Point} A point containing the coordinates of the InteractionData position relative
+         *  to the DisplayObject
+         */
+        getLocalPosition(displayObject: PIXI.DisplayObject, point?: PIXI.Point, globalPos?: PIXI.Point): PIXI.Point;
+        /**
+         * Copies properties from normalized event data.
+         *
+         * @param {Touch|MouseEvent|PointerEvent} event - The normalized event data
+         */
+        copyEvent(event: Touch | MouseEvent | PointerEvent): void;
+        /**
+         * Resets the data for pooling.
+         */
+        reset(): void;
+    }
+    /**
+     * Event class that mimics native DOM events.
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class InteractionEvent {
+        constructor();
+        /**
+         * Whether this event will continue propagating in the tree.
+         *
+         * Remaining events for the {@link stopsPropagatingAt} object
+         * will still be dispatched.
+         *
+         * @member {boolean} PIXI.InteractionEvent#stopped
+         */
+        stopped: boolean;
+        /**
+         * The object which caused this event to be dispatched.
+         * For listener callback see {@link PIXI.InteractionEvent.currentTarget}.
+         *
+         * @member {PIXI.DisplayObject} PIXI.InteractionEvent#target
+         */
+        target: PIXI.DisplayObject;
+        /**
+         * The object whose event listener’s callback is currently being invoked.
+         *
+         * @member {PIXI.DisplayObject} PIXI.InteractionEvent#currentTarget
+         */
+        currentTarget: PIXI.DisplayObject;
+        /**
+         * Type of the event
+         *
+         * @member {string} PIXI.InteractionEvent#type
+         */
+        type: string;
+        /**
+         * InteractionData related to this event
+         *
+         * @member {PIXI.InteractionData} PIXI.InteractionEvent#data
+         */
+        data: PIXI.InteractionData;
+        /**
+         * Prevents event from reaching any objects other than the current object.
+         *
+         */
+        stopPropagation(): void;
+        /**
+         * Resets the event.
+         */
+        reset(): void;
+    }
+    /**
+     * The interaction manager deals with mouse, touch and pointer events.
+     *
+     * Any DisplayObject can be interactive if its `interactive` property is set to true.
+     *
+     * This manager also supports multitouch.
+     *
+     * An instance of this class is automatically created by default, and can be found at `renderer.plugins.interaction`
+     *
+     * @class
+     * @extends PIXI.utils.EventEmitter
+     * @memberof PIXI
+     */
+    class InteractionManager extends PIXI.utils.EventEmitter {
+        constructor(renderer: PIXI.Renderer, options?: {
+            autoPreventDefault?: boolean;
+            interactionFrequency?: number;
+            useSystemTicker?: number;
+        });
+        /**
+         * The renderer this interaction manager works for.
+         *
+         * @member {PIXI.AbstractRenderer} PIXI.InteractionManager#renderer
+         */
+        renderer: PIXI.AbstractRenderer;
+        /**
+         * Should default browser actions automatically be prevented.
+         * Does not apply to pointer events for backwards compatibility
+         * preventDefault on pointer events stops mouse events from firing
+         * Thus, for every pointer event, there will always be either a mouse of touch event alongside it.
+         *
+         * @member {boolean} PIXI.InteractionManager#autoPreventDefault
+         * @default true
+         */
+        autoPreventDefault: boolean;
+        /**
+         * Maximum requency in milliseconds at which pointer over/out states will be checked by {@link tickerUpdate}.
+         *
+         * @member {number} PIXI.InteractionManager#interactionFrequency
+         * @default 10
+         */
+        interactionFrequency: number;
+        /**
+         * The mouse data
+         *
+         * @member {PIXI.InteractionData} PIXI.InteractionManager#mouse
+         */
+        mouse: PIXI.InteractionData;
+        /**
+         * An event data object to handle all the event tracking/dispatching
+         *
+         * @member {object} PIXI.InteractionManager#eventData
+         */
+        eventData: any;
+        /**
+         * The DOM element to bind to.
+         *
+         * @protected
+         * @member {HTMLElement} PIXI.InteractionManager#interactionDOMElement
+         */
+        protected interactionDOMElement: HTMLElement;
+        /**
+         * This property determines if mousemove and touchmove events are fired only when the cursor
+         * is over the object.
+         * Setting to true will make things work more in line with how the DOM version works.
+         * Setting to false can make things easier for things like dragging
+         * It is currently set to false as this is how PixiJS used to work. This will be set to true in
+         * future versions of pixi.
+         *
+         * @member {boolean} PIXI.InteractionManager#moveWhenInside
+         * @default false
+         */
+        moveWhenInside: boolean;
+        /**
+         * Have events been attached to the dom element?
+         *
+         * @protected
+         * @member {boolean} PIXI.InteractionManager#eventsAdded
+         */
+        protected eventsAdded: boolean;
+        /**
+         * Has the system ticker been added?
+         *
+         * @protected
+         * @member {boolean} PIXI.InteractionManager#tickerAdded
+         */
+        protected tickerAdded: boolean;
+        /**
+         * Is the mouse hovering over the renderer?
+         *
+         * @protected
+         * @member {boolean} PIXI.InteractionManager#mouseOverRenderer
+         */
+        protected mouseOverRenderer: boolean;
+        /**
+         * Does the device support touch events
+         * https://www.w3.org/TR/touch-events/
+         *
+         * @readonly
+         * @member {boolean} PIXI.InteractionManager#supportsTouchEvents
+         */
+        readonly supportsTouchEvents: boolean;
+        /**
+         * Does the device support pointer events
+         * https://www.w3.org/Submission/pointer-events/
+         *
+         * @readonly
+         * @member {boolean} PIXI.InteractionManager#supportsPointerEvents
+         */
+        readonly supportsPointerEvents: boolean;
+        /**
+         * Dictionary of how different cursor modes are handled. Strings are handled as CSS cursor
+         * values, objects are handled as dictionaries of CSS values for interactionDOMElement,
+         * and functions are called instead of changing the CSS.
+         * Default CSS cursor values are provided for 'default' and 'pointer' modes.
+         * @member {Object.<string, Object>} PIXI.InteractionManager#cursorStyles
+         */
+        cursorStyles: {
+            [key: string]: any;
+        };
+        /**
+         * The mode of the cursor that is being used.
+         * The value of this is a key from the cursorStyles dictionary.
+         *
+         * @member {string} PIXI.InteractionManager#currentCursorMode
+         */
+        currentCursorMode: string;
+        /**
+         * The current resolution / device pixel ratio.
+         *
+         * @member {number} PIXI.InteractionManager#resolution
+         * @default 1
+         */
+        resolution: number;
+        /**
+         * Should the InteractionManager automatically add {@link tickerUpdate} to {@link PIXI.Ticker.system}.
+         *
+         * @member {boolean}
+         * @default true
+         */
+        useSystemTicker: boolean;
+        /**
+         * Last rendered object or temp object
+         * @readonly
+         * @protected
+         * @member {PIXI.DisplayObject}
+         */
+        protected readonly lastObjectRendered: PIXI.DisplayObject;
+        /**
+         * Hit tests a point against the display tree, returning the first interactive object that is hit.
+         *
+         * @param {PIXI.Point} globalPoint - A point to hit test with, in global space.
+         * @param {PIXI.Container} [root] - The root display object to start from. If omitted, defaults
+         * to the last rendered root of the associated renderer.
+         * @return {PIXI.DisplayObject} The hit display object, if any.
+         */
+        hitTest(globalPoint: PIXI.Point, root?: PIXI.Container): PIXI.DisplayObject;
+        /**
+         * Sets the DOM element which will receive mouse/touch events. This is useful for when you have
+         * other DOM elements on top of the renderers Canvas element. With this you'll be bale to delegate
+         * another DOM element to receive those events.
+         *
+         * @param {HTMLElement} element - the DOM element which will receive mouse and touch events.
+         * @param {number} [resolution=1] - The resolution / device pixel ratio of the new element (relative to the canvas).
+         */
+        setTargetElement(element: HTMLElement, resolution?: number): void;
+        /**
+         * Updates the state of interactive objects if at least {@link interactionFrequency}
+         * milliseconds have passed since the last invocation.
+         *
+         * Invoked by a throttled ticker update from {@link PIXI.Ticker.system}.
+         *
+         * @param {number} deltaTime - time delta since the last call
+         */
+        tickerUpdate(deltaTime: number): void;
+        /**
+         * Updates the state of interactive objects.
+         */
+        update(): void;
+        /**
+         * Sets the current cursor mode, handling any callbacks or CSS style changes.
+         *
+         * @param {string} mode - cursor mode, a key from the cursorStyles dictionary
+         */
+        setCursorMode(mode: string): void;
+        /**
+         * Maps x and y coords from a DOM object and maps them correctly to the PixiJS view. The
+         * resulting value is stored in the point. This takes into account the fact that the DOM
+         * element could be scaled and positioned anywhere on the screen.
+         *
+         * @param  {PIXI.IPointData} point - the point that the result will be stored in
+         * @param  {number} x - the x coord of the position to map
+         * @param  {number} y - the y coord of the position to map
+         */
+        mapPositionToPoint(point: PIXI.IPointData, x: number, y: number): void;
+        /**
+         * This function is provides a neat way of crawling through the scene graph and running a
+         * specified function on all interactive objects it finds. It will also take care of hit
+         * testing the interactive objects and passes the hit across in the function.
+         *
+         * @protected
+         * @param {PIXI.InteractionEvent} interactionEvent - event containing the point that
+         *  is tested for collision
+         * @param {PIXI.Container|PIXI.Sprite|PIXI.TilingSprite} displayObject - the displayObject
+         *  that will be hit test (recursively crawls its children)
+         * @param {Function} [func] - the function that will be called on each interactive object. The
+         *  interactionEvent, displayObject and hit will be passed to the function
+         * @param {boolean} [hitTest] - indicates whether we want to calculate hits
+         *  or just iterate through all interactive objects
+         */
+        protected processInteractive(interactionEvent: PIXI.InteractionEvent, displayObject: PIXI.Container | PIXI.Sprite | PIXI.TilingSprite, func?: (...params: any[]) => any, hitTest?: boolean): void;
+        /**
+         * Destroys the interaction manager
+         *
+         */
+        destroy(): void;
+    }
+    /**
+     * Interface for classes that represent a hit area.
+     *
+     * It is implemented by the following classes:
+     * - {@link PIXI.Circle}
+     * - {@link PIXI.Ellipse}
+     * - {@link PIXI.Polygon}
+     * - {@link PIXI.RoundedRectangle}
+     *
+     * @interface IHitArea
+     * @memberof PIXI
+     */
+    interface IHitArea {
+        /**
+         * Checks whether the x and y coordinates given are contained within this area
+         *
+         * @method
+         * @name contains
+         * @memberof PIXI.IHitArea#
+         * @param {number} x - The X coordinate of the point to test
+         * @param {number} y - The Y coordinate of the point to test
+         * @return {boolean} Whether the x/y coordinates are within this area
+         */
+        contains(x: number, y: number): boolean;
     }
     /**
      * Application plugin for supporting loader option. Installing the LoaderPlugin
@@ -10826,7 +11972,7 @@ declare namespace PIXI {
      * Plugin to be installed for handling specific Loader resources.
      *
      * @memberof PIXI
-     * @typedef ILoaderPlugin
+     * @typedef {object} ILoaderPlugin
      * @property {function} [add] - Function to call immediate after registering plugin.
      * @property {PIXI.Loader.loaderMiddleware} [pre] - Middleware function to run before load, the
      *           arguments for this are `(resource, next)`
@@ -10839,6 +11985,37 @@ declare namespace PIXI {
         use?: PIXI.Loader.loaderMiddleware;
     };
     module Loader {
+        /**
+         * @memberof PIXI.Loader
+         * @typedef {object} ICallbackID
+         */
+        type ICallbackID = any;
+        /**
+         * @memberof PIXI.Loader
+         * @typedef {function} ISignalCallback
+         * @param {function} callback - Callback function
+         * @param {object} [context] - Context
+         * @returns {ICallbackID} - CallbackID
+         */
+        type ISignalCallback = (callback: (...params: any[]) => any, context?: any) => ICallbackID;
+        /**
+         * @memberof PIXI.Loader
+         * @typedef {function} ISignalDetach
+         * @param {ICallbackID} id - CallbackID returned by `add`/`once` methods
+         */
+        type ISignalDetach = (id: ICallbackID) => void;
+        /**
+         * @memberof PIXI.Loader
+         * @typedef ILoaderSignal
+         * @property {ISignalCallback} add - Register callback
+         * @property {ISignalCallback} once - Register oneshot callback
+         * @property {ISignalDetach} detach - Detach specific callback by ID
+         */
+        type ILoaderSignal = {
+            add: ISignalCallback;
+            once: ISignalCallback;
+            detach: ISignalDetach;
+        };
         /**
          * @memberof PIXI.Loader
          * @callback loaderMiddleware
@@ -10902,29 +12079,41 @@ declare namespace PIXI {
         constructor(baseUrl?: string, concurrency?: number);
         /**
          * @memberof PIXI.Loader#
-         * @member {object} onStart
+         * @description Dispatched when the loader begins to loading process.
+         * @member {PIXI.Loader.ILoaderSignal} onStart
          */
-        onStart: any;
+        onStart: PIXI.Loader.ILoaderSignal;
         /**
          * @memberof PIXI.Loader#
-         * @member {object} onProgress
+         * @description Dispatched once per loaded or errored resource.
+         * @member {PIXI.Loader.ILoaderSignal} onProgress
          */
-        onProgress: any;
+        onProgress: PIXI.Loader.ILoaderSignal;
         /**
          * @memberof PIXI.Loader#
-         * @member {object} onError
+         * @description Dispatched once per errored resource.
+         * @member {PIXI.Loader.ILoaderSignal} onError
          */
-        onError: any;
+        onError: PIXI.Loader.ILoaderSignal;
         /**
          * @memberof PIXI.Loader#
-         * @member {object} onLoad
+         * @description Dispatched once per loaded resource.
+         * @member {PIXI.Loader.ILoaderSignal} onLoad
          */
-        onLoad: any;
+        onLoad: PIXI.Loader.ILoaderSignal;
         /**
          * @memberof PIXI.Loader#
-         * @member {object} onComplete
+         * @description Dispatched when completely loaded all resources.
+         * @member {PIXI.Loader.ILoaderSignal} onComplete
          */
-        onComplete: any;
+        onComplete: PIXI.Loader.ILoaderSignal;
+        /**
+         * Destroy the loader, removes references.
+         * @memberof PIXI.Loader#
+         * @method destroy
+         * @public
+         */
+        public destroy(): void;
         /**
          * A premade instance of the loader that can be used to load resources.
          * @name shared
@@ -10945,6 +12134,15 @@ declare namespace PIXI {
          */
         static registerPlugin(plugin: PIXI.ILoaderPlugin): PIXI.Loader;
     }
+    /**
+    * Reference to **{@link https://github.com/englercj/resource-loader
+    * resource-loader}**'s Resource class.
+    * @see http://englercj.github.io/resource-loader/Resource.html
+    * @class LoaderResource
+    * @memberof PIXI
+     */
+    class LoaderResource {
+    }
     interface TextureLoader extends PIXI.ILoaderPlugin {
     }
     /**
@@ -10963,65 +12161,78 @@ declare namespace PIXI {
         static use(resource: PIXI.LoaderResource, next: (...params: any[]) => any): void;
     }
     /**
-     * Reference to **{@link https://github.com/englercj/resource-loader
-     * resource-loader}**'s Resource class.
-     * @see http://englercj.github.io/resource-loader/Resource.html
-     * @class LoaderResource
+     * Common interface for points. Both Point and ObservablePoint implement it
      * @memberof PIXI
+     * @interface IPoint
+     * @extends PIXI.IPointData
      */
-    class LoaderResource {
+    interface IPoint extends PIXI.IPointData {
+        /**
+         * Sets the point to a new x and y position.
+         * If y is omitted, both x and y will be set to x.
+         *
+         * @method set
+         * @memberof PIXI.IPoint#
+         * @param {number} [x=0] - position of the point on the x axis
+         * @param {number} [y=x] - position of the point on the y axis
+         */
+        set(x?: number, y?: number): void;
+        /**
+         * Copies x and y from the given point
+         * @method copyFrom
+         * @memberof PIXI.IPoint#
+         * @param {PIXI.IPointData} p - The point to copy from
+         * @returns {this} Returns itself.
+         */
+        copyFrom(p: PIXI.IPointData): this;
+        /**
+         * Copies x and y into the given point
+         * @method copyTo
+         * @memberof PIXI.IPoint#
+         * @param {PIXI.IPoint} p - The point to copy.
+         * @returns {PIXI.IPoint} Given point with values updated
+         */
+        copyTo(p: PIXI.IPoint): PIXI.IPoint;
+        /**
+         * Returns true if the given point is equal to this point
+         *
+         * @method equals
+         * @memberof PIXI.IPoint#
+         * @param {PIXI.IPointData} p - The point to check
+         * @returns {boolean} Whether the given point equal to this point
+         */
+        equals(p: PIXI.IPointData): boolean;
+        /**
+         * X coord
+         * @memberof PIXI.IPointData#
+         * @member {number} x
+         */
+        x: number;
+        /**
+         * Y coord
+         * @memberof PIXI.IPointData#
+         * @member {number} y
+         */
+        y: number;
     }
     /**
-     * Implements Dihedral Group D_8, see [group D4]{@link http://mathworld.wolfram.com/DihedralGroupD4.html},
-     * D8 is the same but with diagonals. Used for texture rotations.
-     *
-     * Vector xX(i), xY(i) is U-axis of sprite with rotation i
-     * Vector yY(i), yY(i) is V-axis of sprite with rotation i
-     * Rotations: 0 grad (0), 90 grad (2), 180 grad (4), 270 grad (6)
-     * Mirrors: vertical (8), main diagonal (10), horizontal (12), reverse diagonal (14)
-     * This is the small part of gameofbombs.com portal system. It works.
-     *
-     * @author Ivan @ivanpopelyshev
-     * @class
+     * Common interface for points. Both Point and ObservablePoint implement it
      * @memberof PIXI
+     * @interface IPointData
      */
-    class GroupD8 {
-        constructor();
+    interface IPointData {
         /**
-         * Adds 180 degrees to rotation. Commutative operation.
-         *
-         * @memberof PIXI.GroupD8
-         * @param {number} rotation - The number to rotate.
-         * @returns {number} rotated number
+         * X coord
+         * @memberof PIXI.IPointData#
+         * @member {number} x
          */
-        static rotate180(rotation: number): number;
+        x: number;
         /**
-         * Direction of main vector can be horizontal, vertical or diagonal.
-         * Some objects work with vertical directions different.
-         *
-         * @memberof PIXI.GroupD8
-         * @param {number} rotation - The number to check.
-         * @returns {boolean} Whether or not the direction is vertical
+         * Y coord
+         * @memberof PIXI.IPointData#
+         * @member {number} y
          */
-        static isVertical(rotation: number): boolean;
-        /**
-         * @memberof PIXI.GroupD8
-         * @param {number} dx - TODO
-         * @param {number} dy - TODO
-         *
-         * @return {number} TODO
-         */
-        static byDirection(dx: number, dy: number): number;
-        /**
-         * Helps sprite to compensate texture packer rotation.
-         *
-         * @memberof PIXI.GroupD8
-         * @param {PIXI.Matrix} matrix - sprite world matrix
-         * @param {number} rotation - The rotation factor to use.
-         * @param {number} tx - sprite anchoring
-         * @param {number} ty - sprite anchoring
-         */
-        static matrixAppendRotationInv(matrix: PIXI.Matrix, rotation: number, tx: number, ty: number): void;
+        y: number;
     }
     /**
      * The PixiJS Matrix as a class makes it a lot faster.
@@ -11037,12 +12248,6 @@ declare namespace PIXI {
      */
     class Matrix {
         constructor(a?: number, b?: number, c?: number, d?: number, tx?: number, ty?: number);
-        /**
-         * @method PIXI.Matrix#copy
-         * @deprecated since 5.0.0
-         * @see PIXI.Matrix#copyTo
-         */
-        copy(): void;
         /**
          * @member {number} PIXI.Matrix#a
          * @default 1
@@ -11111,33 +12316,33 @@ declare namespace PIXI {
          * Get a new position with the current transformation applied.
          * Can be used to go from a child's coordinate space to the world coordinate space. (e.g. rendering)
          *
-         * @param {PIXI.Point} pos - The origin
+         * @param {PIXI.IPointData} pos - The origin
          * @param {PIXI.Point} [newPos] - The point that the new position is assigned to (allowed to be same as input)
          * @return {PIXI.Point} The new point, transformed through this matrix
          */
-        apply(pos: PIXI.Point, newPos?: PIXI.Point): PIXI.Point;
+        apply(pos: PIXI.IPointData, newPos?: PIXI.Point): PIXI.Point;
         /**
          * Get a new position with the inverse of the current transformation applied.
          * Can be used to go from the world coordinate space to a child's coordinate space. (e.g. input)
          *
-         * @param {PIXI.Point} pos - The origin
+         * @param {PIXI.IPointData} pos - The origin
          * @param {PIXI.Point} [newPos] - The point that the new position is assigned to (allowed to be same as input)
          * @return {PIXI.Point} The new point, inverse-transformed through this matrix
          */
-        applyInverse(pos: PIXI.Point, newPos?: PIXI.Point): PIXI.Point;
+        applyInverse(pos: PIXI.IPointData, newPos?: PIXI.Point): PIXI.Point;
         /**
          * Translates the matrix on the x and y.
          *
-         * @param {number} x How much to translate x by
-         * @param {number} y How much to translate y by
+         * @param {number} x - How much to translate x by
+         * @param {number} y - How much to translate y by
          * @return {PIXI.Matrix} This matrix. Good for chaining method calls.
          */
         translate(x: number, y: number): PIXI.Matrix;
         /**
          * Applies a scale transformation to the matrix.
          *
-         * @param {number} x The amount to scale horizontally
-         * @param {number} y The amount to scale vertically
+         * @param {number} x - The amount to scale horizontally
+         * @param {number} y - The amount to scale vertically
          * @return {PIXI.Matrix} This matrix. Good for chaining method calls.
          */
         scale(x: number, y: number): PIXI.Matrix;
@@ -11233,12 +12438,8 @@ declare namespace PIXI {
          */
         static TEMP_MATRIX: PIXI.Matrix;
     }
-    /**
-     * A number, or a string containing a number.
-     * @memberof PIXI
-     * @typedef {(PIXI.Point|PIXI.ObservablePoint)} IPoint
-     */
-    type IPoint = PIXI.Point | PIXI.ObservablePoint;
+    interface ObservablePoint extends IPoint {
+    }
     /**
      * The Point object represents a location in a two-dimensional coordinate system, where x represents
      * the horizontal axis and y represents the vertical axis.
@@ -11247,15 +12448,10 @@ declare namespace PIXI {
      *
      * @class
      * @memberof PIXI
+     * @implements IPoint
      */
-    class ObservablePoint {
+    class ObservablePoint implements IPoint {
         constructor(cb: (...params: any[]) => any, scope: any, x?: number, y?: number);
-        /**
-         * @method PIXI.ObservablePoint#copy
-         * @deprecated since 5.0.0
-         * @see PIXI.ObservablePoint#copyFrom
-         */
-        copy(): void;
         /**
          * Creates a clone of this point.
          * The callback and scope params can be overidden otherwise they will default
@@ -11272,16 +12468,17 @@ declare namespace PIXI {
          * If y is omitted, both x and y will be set to x.
          *
          * @param {number} [x=0] - position of the point on the x axis
-         * @param {number} [y=0] - position of the point on the y axis
+         * @param {number} [y=x] - position of the point on the y axis
+         * @returns {this} Returns itself.
          */
-        set(x?: number, y?: number): void;
+        set(x?: number, y?: number): this;
         /**
          * Copies x and y from the given point
          *
-         * @param {PIXI.IPoint} p - The point to copy from.
-         * @returns {PIXI.IPoint} Returns itself.
+         * @param {PIXI.IPointData} p - The point to copy from.
+         * @returns {this} Returns itself.
          */
-        copyFrom(p: PIXI.IPoint): PIXI.IPoint;
+        copyFrom(p: PIXI.IPointData): this;
         /**
          * Copies x and y into the given point
          *
@@ -11292,10 +12489,10 @@ declare namespace PIXI {
         /**
          * Returns true if the given point is equal to this point
          *
-         * @param {PIXI.IPoint} p - The point to check
+         * @param {PIXI.IPointData} p - The point to check
          * @returns {boolean} Whether the given point equal to this point
          */
-        equals(p: PIXI.IPoint): boolean;
+        equals(p: PIXI.IPointData): boolean;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          *
@@ -11309,21 +12506,18 @@ declare namespace PIXI {
          */
         y: number;
     }
+    interface Point extends IPoint {
+    }
     /**
      * The Point object represents a location in a two-dimensional coordinate system, where x represents
      * the horizontal axis and y represents the vertical axis.
      *
      * @class
      * @memberof PIXI
+     * @implements IPoint
      */
-    class Point {
+    class Point implements IPoint {
         constructor(x?: number, y?: number);
-        /**
-         * @method PIXI.Point#copy
-         * @deprecated since 5.0.0
-         * @see PIXI.Point#copyFrom
-         */
-        copy(): void;
         /**
          * @member {number} PIXI.Point#x
          * @default 0
@@ -11343,10 +12537,10 @@ declare namespace PIXI {
         /**
          * Copies x and y from the given point
          *
-         * @param {PIXI.IPoint} p - The point to copy from
-         * @returns {PIXI.IPoint} Returns itself.
+         * @param {PIXI.IPointData} p - The point to copy from
+         * @returns {this} Returns itself.
          */
-        copyFrom(p: PIXI.IPoint): PIXI.IPoint;
+        copyFrom(p: PIXI.IPointData): this;
         /**
          * Copies x and y into the given point
          *
@@ -11357,18 +12551,19 @@ declare namespace PIXI {
         /**
          * Returns true if the given point is equal to this point
          *
-         * @param {PIXI.IPoint} p - The point to check
+         * @param {PIXI.IPointData} p - The point to check
          * @returns {boolean} Whether the given point equal to this point
          */
-        equals(p: PIXI.IPoint): boolean;
+        equals(p: PIXI.IPointData): boolean;
         /**
          * Sets the point to a new x and y position.
          * If y is omitted, both x and y will be set to x.
          *
          * @param {number} [x=0] - position of the point on the x axis
-         * @param {number} [y=0] - position of the point on the y axis
+         * @param {number} [y=x] - position of the point on the y axis
+         * @returns {this} Returns itself.
          */
-        set(x?: number, y?: number): void;
+        set(x?: number, y?: number): this;
     }
     /**
      * Transform that takes care about its versions
@@ -11379,13 +12574,13 @@ declare namespace PIXI {
     class Transform {
         constructor();
         /**
-         * The global matrix transform. It can be swapped temporarily by some functions like getLocalBounds()
+         * The world transformation matrix.
          *
          * @member {PIXI.Matrix} PIXI.Transform#worldTransform
          */
         worldTransform: PIXI.Matrix;
         /**
-         * The local matrix transform
+         * The local transformation matrix.
          *
          * @member {PIXI.Matrix} PIXI.Transform#localTransform
          */
@@ -11415,13 +12610,94 @@ declare namespace PIXI {
          */
         skew: PIXI.ObservablePoint;
         /**
-         * Updates only local matrix
+         * The rotation amount.
+         *
+         * @protected
+         * @member {number} PIXI.Transform#_rotation
+         */
+        protected _rotation: number;
+        /**
+         * The X-coordinate value of the normalized local X axis,
+         * the first column of the local transformation matrix without a scale.
+         *
+         * @protected
+         * @member {number} PIXI.Transform#_cx
+         */
+        protected _cx: number;
+        /**
+         * The Y-coordinate value of the normalized local X axis,
+         * the first column of the local transformation matrix without a scale.
+         *
+         * @protected
+         * @member {number} PIXI.Transform#_sx
+         */
+        protected _sx: number;
+        /**
+         * The X-coordinate value of the normalized local Y axis,
+         * the second column of the local transformation matrix without a scale.
+         *
+         * @protected
+         * @member {number} PIXI.Transform#_cy
+         */
+        protected _cy: number;
+        /**
+         * The Y-coordinate value of the normalized local Y axis,
+         * the second column of the local transformation matrix without a scale.
+         *
+         * @protected
+         * @member {number} PIXI.Transform#_sy
+         */
+        protected _sy: number;
+        /**
+         * The locally unique ID of the local transform.
+         *
+         * @protected
+         * @member {number} PIXI.Transform#_localID
+         */
+        protected _localID: number;
+        /**
+         * The locally unique ID of the local transform
+         * used to calculate the current local transformation matrix.
+         *
+         * @protected
+         * @member {number} PIXI.Transform#_currentLocalID
+         */
+        protected _currentLocalID: number;
+        /**
+         * The locally unique ID of the world transform.
+         *
+         * @protected
+         * @member {number} PIXI.Transform#_worldID
+         */
+        protected _worldID: number;
+        /**
+         * The locally unique ID of the parent's world transform
+         * used to calculate the current world transformation matrix.
+         *
+         * @protected
+         * @member {number} PIXI.Transform#_parentID
+         */
+        protected _parentID: number;
+        /**
+         * Called when a value changes.
+         *
+         * @protected
+         */
+        protected onChange(): void;
+        /**
+         * Called when the skew or the rotation changes.
+         *
+         * @protected
+         */
+        protected updateSkew(): void;
+        /**
+         * Updates the local transformation matrix.
          */
         updateLocalTransform(): void;
         /**
-         * Updates the values of the object and applies the parent's transform.
+         * Updates the local and the world transformation matrices.
          *
-         * @param {PIXI.Transform} parentTransform - The transform of the parent of this object
+         * @param {PIXI.Transform} parentTransform - The parent transform
          */
         updateTransform(parentTransform: PIXI.Transform): void;
         /**
@@ -11436,6 +12712,36 @@ declare namespace PIXI {
          * @member {number}
          */
         rotation: number;
+        /**
+         * A default (identity) transform
+         *
+         * @static
+         * @constant
+         * @member {PIXI.Transform}
+         */
+        static IDENTITY: PIXI.Transform;
+    }
+    /**
+     * Constants that identify shapes, mainly to prevent `instanceof` calls.
+     *
+     * @static
+     * @constant
+     * @name SHAPES
+     * @memberof PIXI
+     * @type {enum}
+     * @property {number} POLY Polygon
+     * @property {number} RECT Rectangle
+     * @property {number} CIRC Circle
+     * @property {number} ELIP Ellipse
+     * @property {number} RREC Rounded Rectangle
+     * @enum {number}
+     */
+    enum SHAPES {
+        POLY,
+        RECT,
+        CIRC,
+        ELIP,
+        RREC
     }
     /**
      * Two Pi.
@@ -11462,26 +12768,247 @@ declare namespace PIXI {
      */
     var DEG_TO_RAD: number;
     /**
-     * Constants that identify shapes, mainly to prevent `instanceof` calls.
-     *
-     * @static
-     * @constant
-     * @name SHAPES
      * @memberof PIXI
-     * @type {object}
-     * @property {number} POLY Polygon
-     * @property {number} RECT Rectangle
-     * @property {number} CIRC Circle
-     * @property {number} ELIP Ellipse
-     * @property {number} RREC Rounded Rectangle
+     * @typedef {number} GD8Symmetry
+     * @see PIXI.groupD8
      */
-    var SHAPES: {
-        POLY: number;
-        RECT: number;
-        CIRC: number;
-        ELIP: number;
-        RREC: number;
-    };
+    type GD8Symmetry = number;
+    /**
+     * Implements the dihedral group D8, which is similar to
+     * [group D4]{@link http://mathworld.wolfram.com/DihedralGroupD4.html};
+     * D8 is the same but with diagonals, and it is used for texture
+     * rotations.
+     *
+     * The directions the U- and V- axes after rotation
+     * of an angle of `a: GD8Constant` are the vectors `(uX(a), uY(a))`
+     * and `(vX(a), vY(a))`. These aren't necessarily unit vectors.
+     *
+     * **Origin:**<br>
+     *  This is the small part of gameofbombs.com portal system. It works.
+     *
+     * @see PIXI.groupD8.E
+     * @see PIXI.groupD8.SE
+     * @see PIXI.groupD8.S
+     * @see PIXI.groupD8.SW
+     * @see PIXI.groupD8.W
+     * @see PIXI.groupD8.NW
+     * @see PIXI.groupD8.N
+     * @see PIXI.groupD8.NE
+     * @author Ivan @ivanpopelyshev
+     * @namespace PIXI.groupD8
+     * @memberof PIXI
+     */
+    namespace groupD8 {
+        /**
+         * | Rotation | Direction |
+         * |----------|-----------|
+         * | 0°       | East      |
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var E: PIXI.GD8Symmetry;
+        /**
+         * | Rotation | Direction |
+         * |----------|-----------|
+         * | 45°↻     | Southeast |
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var SE: PIXI.GD8Symmetry;
+        /**
+         * | Rotation | Direction |
+         * |----------|-----------|
+         * | 90°↻     | South     |
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var S: PIXI.GD8Symmetry;
+        /**
+         * | Rotation | Direction |
+         * |----------|-----------|
+         * | 135°↻    | Southwest |
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var SW: PIXI.GD8Symmetry;
+        /**
+         * | Rotation | Direction |
+         * |----------|-----------|
+         * | 180°     | West      |
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var W: PIXI.GD8Symmetry;
+        /**
+         * | Rotation    | Direction    |
+         * |-------------|--------------|
+         * | -135°/225°↻ | Northwest    |
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var NW: PIXI.GD8Symmetry;
+        /**
+         * | Rotation    | Direction    |
+         * |-------------|--------------|
+         * | -90°/270°↻  | North        |
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var N: PIXI.GD8Symmetry;
+        /**
+         * | Rotation    | Direction    |
+         * |-------------|--------------|
+         * | -45°/315°↻  | Northeast    |
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var NE: PIXI.GD8Symmetry;
+        /**
+         * Reflection about Y-axis.
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var MIRROR_VERTICAL: PIXI.GD8Symmetry;
+        /**
+         * Reflection about the main diagonal.
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var MAIN_DIAGONAL: PIXI.GD8Symmetry;
+        /**
+         * Reflection about X-axis.
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var MIRROR_HORIZONTAL: PIXI.GD8Symmetry;
+        /**
+         * Reflection about reverse diagonal.
+         *
+         * @memberof PIXI.groupD8
+         * @constant {PIXI.GD8Symmetry}
+         */
+        var REVERSE_DIAGONAL: PIXI.GD8Symmetry;
+        /**
+         * @memberof PIXI.groupD8
+         * @param {PIXI.GD8Symmetry} ind - sprite rotation angle.
+         * @return {PIXI.GD8Symmetry} The X-component of the U-axis
+         *    after rotating the axes.
+         */
+        function uX(ind: PIXI.GD8Symmetry): PIXI.GD8Symmetry;
+        /**
+         * @memberof PIXI.groupD8
+         * @param {PIXI.GD8Symmetry} ind - sprite rotation angle.
+         * @return {PIXI.GD8Symmetry} The Y-component of the U-axis
+         *    after rotating the axes.
+         */
+        function uY(ind: PIXI.GD8Symmetry): PIXI.GD8Symmetry;
+        /**
+         * @memberof PIXI.groupD8
+         * @param {PIXI.GD8Symmetry} ind - sprite rotation angle.
+         * @return {PIXI.GD8Symmetry} The X-component of the V-axis
+         *    after rotating the axes.
+         */
+        function vX(ind: PIXI.GD8Symmetry): PIXI.GD8Symmetry;
+        /**
+         * @memberof PIXI.groupD8
+         * @param {PIXI.GD8Symmetry} ind - sprite rotation angle.
+         * @return {PIXI.GD8Symmetry} The Y-component of the V-axis
+         *    after rotating the axes.
+         */
+        function vY(ind: PIXI.GD8Symmetry): PIXI.GD8Symmetry;
+        /**
+         * @memberof PIXI.groupD8
+         * @param {PIXI.GD8Symmetry} rotation - symmetry whose opposite
+         *   is needed. Only rotations have opposite symmetries while
+         *   reflections don't.
+         * @return {PIXI.GD8Symmetry} The opposite symmetry of `rotation`
+         */
+        function inv(rotation: PIXI.GD8Symmetry): PIXI.GD8Symmetry;
+        /**
+         * Composes the two D8 operations.
+         *
+         * Taking `^` as reflection:
+         *
+         * |       | E=0 | S=2 | W=4 | N=6 | E^=8 | S^=10 | W^=12 | N^=14 |
+         * |-------|-----|-----|-----|-----|------|-------|-------|-------|
+         * | E=0   | E   | S   | W   | N   | E^   | S^    | W^    | N^    |
+         * | S=2   | S   | W   | N   | E   | S^   | W^    | N^    | E^    |
+         * | W=4   | W   | N   | E   | S   | W^   | N^    | E^    | S^    |
+         * | N=6   | N   | E   | S   | W   | N^   | E^    | S^    | W^    |
+         * | E^=8  | E^  | N^  | W^  | S^  | E    | N     | W     | S     |
+         * | S^=10 | S^  | E^  | N^  | W^  | S    | E     | N     | W     |
+         * | W^=12 | W^  | S^  | E^  | N^  | W    | S     | E     | N     |
+         * | N^=14 | N^  | W^  | S^  | E^  | N    | W     | S     | E     |
+         *
+         * [This is a Cayley table]{@link https://en.wikipedia.org/wiki/Cayley_table}
+         * @memberof PIXI.groupD8
+         * @param {PIXI.GD8Symmetry} rotationSecond - Second operation, which
+         *   is the row in the above cayley table.
+         * @param {PIXI.GD8Symmetry} rotationFirst - First operation, which
+         *   is the column in the above cayley table.
+         * @return {PIXI.GD8Symmetry} Composed operation
+         */
+        function add(rotationSecond: PIXI.GD8Symmetry, rotationFirst: PIXI.GD8Symmetry): PIXI.GD8Symmetry;
+        /**
+         * Reverse of `add`.
+         *
+         * @memberof PIXI.groupD8
+         * @param {PIXI.GD8Symmetry} rotationSecond - Second operation
+         * @param {PIXI.GD8Symmetry} rotationFirst - First operation
+         * @return {PIXI.GD8Symmetry} Result
+         */
+        function sub(rotationSecond: PIXI.GD8Symmetry, rotationFirst: PIXI.GD8Symmetry): PIXI.GD8Symmetry;
+        /**
+         * Adds 180 degrees to rotation, which is a commutative
+         * operation.
+         *
+         * @memberof PIXI.groupD8
+         * @param {number} rotation - The number to rotate.
+         * @returns {number} Rotated number
+         */
+        function rotate180(rotation: number): number;
+        /**
+         * Checks if the rotation angle is vertical, i.e. south
+         * or north. It doesn't work for reflections.
+         *
+         * @memberof PIXI.groupD8
+         * @param {PIXI.GD8Symmetry} rotation - The number to check.
+         * @returns {boolean} Whether or not the direction is vertical
+         */
+        function isVertical(rotation: PIXI.GD8Symmetry): boolean;
+        /**
+         * Approximates the vector `V(dx,dy)` into one of the
+         * eight directions provided by `groupD8`.
+         *
+         * @memberof PIXI.groupD8
+         * @param {number} dx - X-component of the vector
+         * @param {number} dy - Y-component of the vector
+         * @return {PIXI.GD8Symmetry} Approximation of the vector into
+         *  one of the eight symmetries.
+         */
+        function byDirection(dx: number, dy: number): PIXI.GD8Symmetry;
+        /**
+         * Helps sprite to compensate texture packer rotation.
+         *
+         * @memberof PIXI.groupD8
+         * @param {PIXI.Matrix} matrix - sprite world matrix
+         * @param {PIXI.GD8Symmetry} rotation - The rotation factor to use.
+         * @param {number} tx - sprite anchoring
+         * @param {number} ty - sprite anchoring
+         */
+        function matrixAppendRotationInv(matrix: PIXI.Matrix, rotation: PIXI.GD8Symmetry, tx: number, ty: number): void;
+    }
     /**
      * The Circle object is used to help draw graphics and can also be used to specify a hit area for displayObjects.
      *
@@ -11600,7 +13127,7 @@ declare namespace PIXI {
      * @memberof PIXI
      */
     class Polygon {
-        constructor(...points: (PIXI.Point[] | number[])[]);
+        constructor(...points: (PIXI.IPoint[] | number[])[]);
         /**
          * An array of the points of this polygon
          *
@@ -11638,6 +13165,18 @@ declare namespace PIXI {
         contains(x: number, y: number): boolean;
     }
     /**
+     * Size object, contains width and height
+     *
+     * @memberof PIXI
+     * @typedef {object} ISize
+     * @property {number} width - Width component
+     * @property {number} height - Height component
+     */
+    type ISize = {
+        width: number;
+        height: number;
+    };
+    /**
      * Rectangle object is an area defined by its position, as indicated by its top-left corner
      * point (x, y) and by its width and its height.
      *
@@ -11646,12 +13185,6 @@ declare namespace PIXI {
      */
     class Rectangle {
         constructor(x?: number, y?: number, width?: number, height?: number);
-        /**
-         * @method PIXI.Rectangle#copy
-         * @deprecated since 5.0.0
-         * @see PIXI.Rectangle#copyFrom
-         */
-        copy(): void;
         /**
          * @member {number} PIXI.Rectangle#x
          * @default 0
@@ -11711,6 +13244,7 @@ declare namespace PIXI {
          * @static
          * @constant
          * @member {PIXI.Rectangle}
+         * @return {PIXI.Rectangle} An empty rectangle
          */
         static EMPTY: PIXI.Rectangle;
         /**
@@ -11743,30 +13277,35 @@ declare namespace PIXI {
         contains(x: number, y: number): boolean;
         /**
          * Pads the rectangle making it grow in all directions.
+         * If paddingY is omitted, both paddingX and paddingY will be set to paddingX.
          *
-         * @param {number} paddingX - The horizontal padding amount.
-         * @param {number} paddingY - The vertical padding amount.
+         * @param {number} [paddingX=0] - The horizontal padding amount.
+         * @param {number} [paddingY=0] - The vertical padding amount.
+         * @return {PIXI.Rectangle} Returns itself.
          */
-        pad(paddingX: number, paddingY: number): void;
+        pad(paddingX?: number, paddingY?: number): PIXI.Rectangle;
         /**
          * Fits this rectangle around the passed one.
          *
          * @param {PIXI.Rectangle} rectangle - The rectangle to fit.
+         * @return {PIXI.Rectangle} Returns itself.
          */
-        fit(rectangle: PIXI.Rectangle): void;
+        fit(rectangle: PIXI.Rectangle): PIXI.Rectangle;
         /**
          * Enlarges rectangle that way its corners lie on grid
          *
          * @param {number} [resolution=1] resolution
          * @param {number} [eps=0.001] precision
+         * @return {PIXI.Rectangle} Returns itself.
          */
-        ceil(resolution?: number, eps?: number): void;
+        ceil(resolution?: number, eps?: number): PIXI.Rectangle;
         /**
          * Enlarges this rectangle to include the passed rectangle.
          *
          * @param {PIXI.Rectangle} rectangle - The rectangle to include.
+         * @return {PIXI.Rectangle} Returns itself.
          */
-        enlarge(rectangle: PIXI.Rectangle): void;
+        enlarge(rectangle: PIXI.Rectangle): PIXI.Rectangle;
     }
     /**
      * The Rounded Rectangle object is an area that has nice rounded corners, as indicated by its
@@ -11845,7 +13384,7 @@ declare namespace PIXI {
      * @memberof PIXI
      */
     class Mesh extends PIXI.Container {
-        constructor(geometry: PIXI.Geometry, shader: PIXI.Shader | PIXI.MeshMaterial, state?: PIXI.State, drawMode?: number);
+        constructor(geometry: PIXI.Geometry, shader: PIXI.MeshMaterial, state?: PIXI.State, drawMode?: number);
         /**
          * Includes vertex positions, face indices, normals, colors, UVs, and
          * custom attributes within buffers, reducing the cost of passing all
@@ -11900,9 +13439,9 @@ declare namespace PIXI {
         readonly verticesBuffer: PIXI.Buffer;
         /**
          * Alias for {@link PIXI.Mesh#shader}.
-         * @member {PIXI.Shader|PIXI.MeshMaterial}
+         * @member {PIXI.MeshMaterial}
          */
-        material: PIXI.Shader | PIXI.MeshMaterial;
+        material: PIXI.MeshMaterial;
         /**
          * The blend mode to be applied to the Mesh. Apply a value of
          * `PIXI.BLEND_MODES.NORMAL` to reset the blend mode.
@@ -11939,8 +13478,9 @@ declare namespace PIXI {
         /**
          * Standard renderer draw.
          * @protected
+         * @param {PIXI.Renderer} renderer - Instance to renderer.
          */
-        protected _render(): void;
+        protected _render(renderer: PIXI.Renderer): void;
         /**
          * Standard non-batching way of rendering.
          * @protected
@@ -11971,10 +13511,10 @@ declare namespace PIXI {
         /**
          * Tests if a point is inside this mesh. Works only for PIXI.DRAW_MODES.TRIANGLES.
          *
-         * @param {PIXI.Point} point the point to test
+         * @param {PIXI.IPointData} point - the point to test
          * @return {boolean} the result of the test
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * Destroys the Mesh object.
          *
@@ -11994,20 +13534,6 @@ declare namespace PIXI {
          * @member {number} BATCHABLE_SIZE
          */
         static BATCHABLE_SIZE: number;
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -12049,10 +13575,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -12060,7 +13586,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -12092,10 +13618,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -12125,6 +13651,15 @@ declare namespace PIXI {
          */
         calculateBounds(): void;
         /**
+         * Retrieves the local bounds of the displayObject as a rectangle object.
+         *
+         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
+         * @param {boolean} [skipChildrenUpdate=false] - Setting to `true` will stop re-calculation of children transforms,
+         *  it was default behaviour of pixi 4.0-5.2 and caused many problems to users.
+         * @return {PIXI.Rectangle} The rectangular bounding area.
+         */
+        getLocalBounds(rect?: PIXI.Rectangle, skipChildrenUpdate?: boolean): PIXI.Rectangle;
+        /**
          * Renders the object using the WebGL renderer
          *
          * @param {PIXI.Renderer} renderer - The renderer
@@ -12150,6 +13685,14 @@ declare namespace PIXI {
          */
         height: number;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -12160,12 +13703,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -12202,6 +13748,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -12236,9 +13809,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -12280,19 +13852,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -12306,10 +13910,10 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -12326,33 +13930,26 @@ declare namespace PIXI {
          */
         getBounds(skipUpdate?: boolean, rect?: PIXI.Rectangle): PIXI.Rectangle;
         /**
-         * Retrieves the local bounds of the displayObject as a rectangle object.
-         *
-         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
-         * @return {PIXI.Rectangle} The rectangular bounding area.
-         */
-        getLocalBounds(rect?: PIXI.Rectangle): PIXI.Rectangle;
-        /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -12375,6 +13972,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -12407,23 +14026,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -12478,9 +14097,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -12503,10 +14130,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -12593,9 +14220,9 @@ declare namespace PIXI {
         /**
          * updates
          *
-         * @param {boolean} forceUpdate - force the update
+         * @param {boolean} [forceUpdate] - force the update
          */
-        update(forceUpdate: boolean): void;
+        update(forceUpdate?: boolean): void;
     }
     /**
      * Standard 2D geometry used in PixiJS.
@@ -12615,7 +14242,7 @@ declare namespace PIXI {
      * @extends PIXI.Geometry
      */
     class MeshGeometry extends PIXI.Geometry {
-        constructor(vertices: Float32Array | number[], uvs: Float32Array | number[], index: Uint16Array | number[]);
+        constructor(vertices?: Float32Array | number[], uvs?: Float32Array | number[], index?: Uint16Array | number[]);
         /**
          * A map of renderer IDs to webgl VAOs
          *
@@ -12624,36 +14251,44 @@ declare namespace PIXI {
          */
         protected glVertexArrayObjects: any;
         /**
-         * Count of existing (not destroyed) meshes that reference this geometry
-         * @member {boolean} PIXI.Geometry#refCount
+         * Number of instances in this geometry, pass it to `GeometrySystem.draw()`
+         * @member {number} PIXI.Geometry#instanceCount
+         * @default 1
          */
-        refCount: boolean;
+        instanceCount: number;
+        /**
+         * Count of existing (not destroyed) meshes that reference this geometry
+         * @member {number} PIXI.Geometry#refCount
+         */
+        refCount: number;
         /**
          *
          * Adds an attribute to the geometry
+         * Note: `stride` and `start` should be `undefined` if you dont know them, not 0!
          *
          * @param {String} id - the name of the attribute (matching up to a shader)
-         * @param {PIXI.Buffer} [buffer] the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
-         * @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
-         * @param {Boolean} [normalized=false] should the data be normalized.
-         * @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
-         * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
-         * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
+         * @param {PIXI.Buffer|number[]} [buffer] - the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
+         * @param {Number} [size=0] - the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {Boolean} [normalized=false] - should the data be normalized.
+         * @param {Number} [type=PIXI.TYPES.FLOAT] - what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
+         * @param {Number} [stride] - How far apart (in floats) the start of each value is. (used for interleaving data)
+         * @param {Number} [start] - How far into the array to start reading values (used for interleaving data)
+         * @param {boolean} [instance=false] - Instancing flag
          *
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
-        addAttribute(id: string, buffer?: PIXI.Buffer, size?: number, normalized?: boolean, type?: number, stride?: number, start?: number): PIXI.Geometry;
+        addAttribute(id: string, buffer?: PIXI.Buffer | number[], size?: number, normalized?: boolean, type?: number, stride?: number, start?: number, instance?: boolean): PIXI.Geometry;
         /**
          * returns the requested attribute
          *
-         * @param {String} id  the name of the attribute required
+         * @param {String} id - the name of the attribute required
          * @return {PIXI.Attribute} the attribute requested.
          */
         getAttribute(id: string): PIXI.Attribute;
         /**
          * returns the requested buffer
          *
-         * @param {String} id  the name of the buffer required
+         * @param {String} id - the name of the buffer required
          * @return {PIXI.Buffer} the buffer requested.
          */
         getBuffer(id: string): PIXI.Buffer;
@@ -12662,10 +14297,10 @@ declare namespace PIXI {
          * Adds an index buffer to the geometry
          * The index buffer contains integers, three for each triangle in the geometry, which reference the various attribute buffers (position, colour, UV coordinates, other UV coordinates, normal, …). There is only ONE index buffer.
          *
-         * @param {PIXI.Buffer} [buffer] the buffer that holds the data of the index buffer. You can also provide an Array and a buffer will be created from it.
+         * @param {PIXI.Buffer|number[]} [buffer] - the buffer that holds the data of the index buffer. You can also provide an Array and a buffer will be created from it.
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
-        addIndex(buffer?: PIXI.Buffer): PIXI.Geometry;
+        addIndex(buffer?: PIXI.Buffer | number[]): PIXI.Geometry;
         /**
          * returns the index buffer
          *
@@ -12751,6 +14386,12 @@ declare namespace PIXI {
          * MeshMaterial objects.
          */
         update(): void;
+        /**
+         * Program that the shader uses
+         *
+         * @member {PIXI.Program} PIXI.Shader#program
+         */
+        program: PIXI.Program;
         /**
          * Shader uniform values, shortcut for `uniformGroup.uniforms`
          * @readonly
@@ -12914,9 +14555,9 @@ declare namespace PIXI {
         readonly verticesBuffer: PIXI.Buffer;
         /**
          * Alias for {@link PIXI.Mesh#shader}.
-         * @member {PIXI.Shader|PIXI.MeshMaterial}
+         * @member {PIXI.MeshMaterial}
          */
-        material: PIXI.Shader | PIXI.MeshMaterial;
+        material: PIXI.MeshMaterial;
         /**
          * The blend mode to be applied to the Mesh. Apply a value of
          * `PIXI.BLEND_MODES.NORMAL` to reset the blend mode.
@@ -12953,8 +14594,9 @@ declare namespace PIXI {
         /**
          * Standard renderer draw.
          * @protected
+         * @param {PIXI.Renderer} renderer - Instance to renderer.
          */
-        protected _render(): void;
+        protected _render(renderer: PIXI.Renderer): void;
         /**
          * Standard non-batching way of rendering.
          * @protected
@@ -12985,10 +14627,10 @@ declare namespace PIXI {
         /**
          * Tests if a point is inside this mesh. Works only for PIXI.DRAW_MODES.TRIANGLES.
          *
-         * @param {PIXI.Point} point the point to test
+         * @param {PIXI.IPointData} point - the point to test
          * @return {boolean} the result of the test
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * Destroys the Mesh object.
          *
@@ -13000,20 +14642,6 @@ declare namespace PIXI {
         destroy(options?: {
             children?: boolean;
         }): void;
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -13055,10 +14683,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -13066,7 +14694,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -13098,10 +14726,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -13131,6 +14759,15 @@ declare namespace PIXI {
          */
         calculateBounds(): void;
         /**
+         * Retrieves the local bounds of the displayObject as a rectangle object.
+         *
+         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
+         * @param {boolean} [skipChildrenUpdate=false] - Setting to `true` will stop re-calculation of children transforms,
+         *  it was default behaviour of pixi 4.0-5.2 and caused many problems to users.
+         * @return {PIXI.Rectangle} The rectangular bounding area.
+         */
+        getLocalBounds(rect?: PIXI.Rectangle, skipChildrenUpdate?: boolean): PIXI.Rectangle;
+        /**
          * Renders the object using the WebGL renderer
          *
          * @param {PIXI.Renderer} renderer - The renderer
@@ -13144,6 +14781,14 @@ declare namespace PIXI {
          */
         protected renderAdvanced(renderer: PIXI.Renderer): void;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -13154,12 +14799,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -13196,6 +14844,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -13230,9 +14905,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -13274,19 +14948,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -13300,10 +15006,10 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -13320,33 +15026,26 @@ declare namespace PIXI {
          */
         getBounds(skipUpdate?: boolean, rect?: PIXI.Rectangle): PIXI.Rectangle;
         /**
-         * Retrieves the local bounds of the displayObject as a rectangle object.
-         *
-         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
-         * @return {PIXI.Rectangle} The rectangular bounding area.
-         */
-        getLocalBounds(rect?: PIXI.Rectangle): PIXI.Rectangle;
-        /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -13369,6 +15068,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -13401,23 +15122,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -13472,9 +15193,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -13497,10 +15226,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -13634,9 +15363,9 @@ declare namespace PIXI {
         readonly verticesBuffer: PIXI.Buffer;
         /**
          * Alias for {@link PIXI.Mesh#shader}.
-         * @member {PIXI.Shader|PIXI.MeshMaterial}
+         * @member {PIXI.MeshMaterial}
          */
-        material: PIXI.Shader | PIXI.MeshMaterial;
+        material: PIXI.MeshMaterial;
         /**
          * The blend mode to be applied to the Mesh. Apply a value of
          * `PIXI.BLEND_MODES.NORMAL` to reset the blend mode.
@@ -13673,8 +15402,9 @@ declare namespace PIXI {
         /**
          * Standard renderer draw.
          * @protected
+         * @param {PIXI.Renderer} renderer - Instance to renderer.
          */
-        protected _render(): void;
+        protected _render(renderer: PIXI.Renderer): void;
         /**
          * Standard non-batching way of rendering.
          * @protected
@@ -13705,10 +15435,10 @@ declare namespace PIXI {
         /**
          * Tests if a point is inside this mesh. Works only for PIXI.DRAW_MODES.TRIANGLES.
          *
-         * @param {PIXI.Point} point the point to test
+         * @param {PIXI.IPointData} point - the point to test
          * @return {boolean} the result of the test
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * Destroys the Mesh object.
          *
@@ -13720,20 +15450,6 @@ declare namespace PIXI {
         destroy(options?: {
             children?: boolean;
         }): void;
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -13775,10 +15491,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -13786,7 +15502,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -13818,10 +15534,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -13851,6 +15567,15 @@ declare namespace PIXI {
          */
         calculateBounds(): void;
         /**
+         * Retrieves the local bounds of the displayObject as a rectangle object.
+         *
+         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
+         * @param {boolean} [skipChildrenUpdate=false] - Setting to `true` will stop re-calculation of children transforms,
+         *  it was default behaviour of pixi 4.0-5.2 and caused many problems to users.
+         * @return {PIXI.Rectangle} The rectangular bounding area.
+         */
+        getLocalBounds(rect?: PIXI.Rectangle, skipChildrenUpdate?: boolean): PIXI.Rectangle;
+        /**
          * Renders the object using the WebGL renderer
          *
          * @param {PIXI.Renderer} renderer - The renderer
@@ -13876,6 +15601,14 @@ declare namespace PIXI {
          */
         height: number;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -13886,12 +15619,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -13928,6 +15664,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -13962,9 +15725,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -14006,19 +15768,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -14032,10 +15826,10 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -14052,33 +15846,26 @@ declare namespace PIXI {
          */
         getBounds(skipUpdate?: boolean, rect?: PIXI.Rectangle): PIXI.Rectangle;
         /**
-         * Retrieves the local bounds of the displayObject as a rectangle object.
-         *
-         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
-         * @return {PIXI.Rectangle} The rectangular bounding area.
-         */
-        getLocalBounds(rect?: PIXI.Rectangle): PIXI.Rectangle;
-        /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -14101,6 +15888,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -14133,23 +15942,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -14204,9 +16013,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -14229,10 +16046,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -14368,9 +16185,9 @@ declare namespace PIXI {
         readonly verticesBuffer: PIXI.Buffer;
         /**
          * Alias for {@link PIXI.Mesh#shader}.
-         * @member {PIXI.Shader|PIXI.MeshMaterial}
+         * @member {PIXI.MeshMaterial}
          */
-        material: PIXI.Shader | PIXI.MeshMaterial;
+        material: PIXI.MeshMaterial;
         /**
          * The blend mode to be applied to the Mesh. Apply a value of
          * `PIXI.BLEND_MODES.NORMAL` to reset the blend mode.
@@ -14407,8 +16224,9 @@ declare namespace PIXI {
         /**
          * Standard renderer draw.
          * @protected
+         * @param {PIXI.Renderer} renderer - Instance to renderer.
          */
-        protected _render(): void;
+        protected _render(renderer: PIXI.Renderer): void;
         /**
          * Standard non-batching way of rendering.
          * @protected
@@ -14439,10 +16257,10 @@ declare namespace PIXI {
         /**
          * Tests if a point is inside this mesh. Works only for PIXI.DRAW_MODES.TRIANGLES.
          *
-         * @param {PIXI.Point} point the point to test
+         * @param {PIXI.IPointData} point - the point to test
          * @return {boolean} the result of the test
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * Destroys the Mesh object.
          *
@@ -14454,20 +16272,6 @@ declare namespace PIXI {
         destroy(options?: {
             children?: boolean;
         }): void;
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -14509,10 +16313,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -14520,7 +16324,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -14552,10 +16356,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -14585,6 +16389,15 @@ declare namespace PIXI {
          */
         calculateBounds(): void;
         /**
+         * Retrieves the local bounds of the displayObject as a rectangle object.
+         *
+         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
+         * @param {boolean} [skipChildrenUpdate=false] - Setting to `true` will stop re-calculation of children transforms,
+         *  it was default behaviour of pixi 4.0-5.2 and caused many problems to users.
+         * @return {PIXI.Rectangle} The rectangular bounding area.
+         */
+        getLocalBounds(rect?: PIXI.Rectangle, skipChildrenUpdate?: boolean): PIXI.Rectangle;
+        /**
          * Renders the object using the WebGL renderer
          *
          * @param {PIXI.Renderer} renderer - The renderer
@@ -14610,6 +16423,14 @@ declare namespace PIXI {
          */
         height: number;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -14620,12 +16441,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -14662,6 +16486,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -14696,9 +16547,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -14740,19 +16590,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -14766,10 +16648,10 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -14786,33 +16668,26 @@ declare namespace PIXI {
          */
         getBounds(skipUpdate?: boolean, rect?: PIXI.Rectangle): PIXI.Rectangle;
         /**
-         * Retrieves the local bounds of the displayObject as a rectangle object.
-         *
-         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
-         * @return {PIXI.Rectangle} The rectangular bounding area.
-         */
-        getLocalBounds(rect?: PIXI.Rectangle): PIXI.Rectangle;
-        /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -14835,6 +16710,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -14867,23 +16764,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -14938,9 +16835,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -14963,10 +16868,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -15033,7 +16938,7 @@ declare namespace PIXI {
      * for (let i = 0; i < 20; i++) {
      *     points.push(new PIXI.Point(i * 50, 0));
      * };
-     * let rope = new PIXI.Rope(PIXI.Texture.from("snake.png"), points);
+     * let rope = new PIXI.SimpleRope(PIXI.Texture.from("snake.png"), points);
      *  ```
      *
      * @class
@@ -15042,7 +16947,7 @@ declare namespace PIXI {
      *
      */
     class SimpleRope extends PIXI.Mesh {
-        constructor(texture: PIXI.Texture, points: PIXI.Point[]);
+        constructor(texture: PIXI.Texture, points: PIXI.Point[], textureScale?: number);
         /**
          * re-calculate vertices by rope points each frame
          *
@@ -15103,9 +17008,9 @@ declare namespace PIXI {
         readonly verticesBuffer: PIXI.Buffer;
         /**
          * Alias for {@link PIXI.Mesh#shader}.
-         * @member {PIXI.Shader|PIXI.MeshMaterial}
+         * @member {PIXI.MeshMaterial}
          */
-        material: PIXI.Shader | PIXI.MeshMaterial;
+        material: PIXI.MeshMaterial;
         /**
          * The blend mode to be applied to the Mesh. Apply a value of
          * `PIXI.BLEND_MODES.NORMAL` to reset the blend mode.
@@ -15142,8 +17047,9 @@ declare namespace PIXI {
         /**
          * Standard renderer draw.
          * @protected
+         * @param {PIXI.Renderer} renderer - Instance to renderer.
          */
-        protected _render(): void;
+        protected _render(renderer: PIXI.Renderer): void;
         /**
          * Standard non-batching way of rendering.
          * @protected
@@ -15174,10 +17080,10 @@ declare namespace PIXI {
         /**
          * Tests if a point is inside this mesh. Works only for PIXI.DRAW_MODES.TRIANGLES.
          *
-         * @param {PIXI.Point} point the point to test
+         * @param {PIXI.IPointData} point - the point to test
          * @return {boolean} the result of the test
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * Destroys the Mesh object.
          *
@@ -15189,20 +17095,6 @@ declare namespace PIXI {
         destroy(options?: {
             children?: boolean;
         }): void;
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -15244,10 +17136,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -15255,7 +17147,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -15287,10 +17179,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -15320,6 +17212,15 @@ declare namespace PIXI {
          */
         calculateBounds(): void;
         /**
+         * Retrieves the local bounds of the displayObject as a rectangle object.
+         *
+         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
+         * @param {boolean} [skipChildrenUpdate=false] - Setting to `true` will stop re-calculation of children transforms,
+         *  it was default behaviour of pixi 4.0-5.2 and caused many problems to users.
+         * @return {PIXI.Rectangle} The rectangular bounding area.
+         */
+        getLocalBounds(rect?: PIXI.Rectangle, skipChildrenUpdate?: boolean): PIXI.Rectangle;
+        /**
          * Renders the object using the WebGL renderer
          *
          * @param {PIXI.Renderer} renderer - The renderer
@@ -15345,6 +17246,14 @@ declare namespace PIXI {
          */
         height: number;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -15355,12 +17264,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -15397,6 +17309,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -15431,9 +17370,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -15475,19 +17413,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -15501,10 +17471,10 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -15521,33 +17491,26 @@ declare namespace PIXI {
          */
         getBounds(skipUpdate?: boolean, rect?: PIXI.Rectangle): PIXI.Rectangle;
         /**
-         * Retrieves the local bounds of the displayObject as a rectangle object.
-         *
-         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
-         * @return {PIXI.Rectangle} The rectangular bounding area.
-         */
-        getLocalBounds(rect?: PIXI.Rectangle): PIXI.Rectangle;
-        /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -15570,6 +17533,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -15602,23 +17587,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -15673,9 +17658,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -15698,10 +17691,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -15777,7 +17770,7 @@ declare namespace PIXI {
      *
      */
     class RopeGeometry extends PIXI.MeshGeometry {
-        constructor(width?: number, points?: PIXI.Point[]);
+        constructor(width?: number, points?: PIXI.Point[], textureScale?: number);
         /**
          * An array of points that determine the rope
          * @member {PIXI.Point[]} PIXI.RopeGeometry#points
@@ -15785,7 +17778,19 @@ declare namespace PIXI {
         points: PIXI.Point[];
         /**
          * The width (i.e., thickness) of the rope.
-         * @member {number} PIXI.RopeGeometry#width
+         * @member {number} PIXI.RopeGeometry#_width
+         * @readOnly
+         */
+        readonly _width: number;
+        /**
+         * Rope texture scale, if zero then the rope texture is stretched.
+         * @member {number} PIXI.RopeGeometry#textureScale
+         * @readOnly
+         */
+        readonly textureScale: number;
+        /**
+         * The width (i.e., thickness) of the rope.
+         * @member {number}
          * @readOnly
          */
         readonly width: number;
@@ -15801,36 +17806,44 @@ declare namespace PIXI {
          */
         protected glVertexArrayObjects: any;
         /**
-         * Count of existing (not destroyed) meshes that reference this geometry
-         * @member {boolean} PIXI.Geometry#refCount
+         * Number of instances in this geometry, pass it to `GeometrySystem.draw()`
+         * @member {number} PIXI.Geometry#instanceCount
+         * @default 1
          */
-        refCount: boolean;
+        instanceCount: number;
+        /**
+         * Count of existing (not destroyed) meshes that reference this geometry
+         * @member {number} PIXI.Geometry#refCount
+         */
+        refCount: number;
         /**
          *
          * Adds an attribute to the geometry
+         * Note: `stride` and `start` should be `undefined` if you dont know them, not 0!
          *
          * @param {String} id - the name of the attribute (matching up to a shader)
-         * @param {PIXI.Buffer} [buffer] the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
-         * @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
-         * @param {Boolean} [normalized=false] should the data be normalized.
-         * @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
-         * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
-         * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
+         * @param {PIXI.Buffer|number[]} [buffer] - the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
+         * @param {Number} [size=0] - the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {Boolean} [normalized=false] - should the data be normalized.
+         * @param {Number} [type=PIXI.TYPES.FLOAT] - what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
+         * @param {Number} [stride] - How far apart (in floats) the start of each value is. (used for interleaving data)
+         * @param {Number} [start] - How far into the array to start reading values (used for interleaving data)
+         * @param {boolean} [instance=false] - Instancing flag
          *
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
-        addAttribute(id: string, buffer?: PIXI.Buffer, size?: number, normalized?: boolean, type?: number, stride?: number, start?: number): PIXI.Geometry;
+        addAttribute(id: string, buffer?: PIXI.Buffer | number[], size?: number, normalized?: boolean, type?: number, stride?: number, start?: number, instance?: boolean): PIXI.Geometry;
         /**
          * returns the requested attribute
          *
-         * @param {String} id  the name of the attribute required
+         * @param {String} id - the name of the attribute required
          * @return {PIXI.Attribute} the attribute requested.
          */
         getAttribute(id: string): PIXI.Attribute;
         /**
          * returns the requested buffer
          *
-         * @param {String} id  the name of the buffer required
+         * @param {String} id - the name of the buffer required
          * @return {PIXI.Buffer} the buffer requested.
          */
         getBuffer(id: string): PIXI.Buffer;
@@ -15839,10 +17852,10 @@ declare namespace PIXI {
          * Adds an index buffer to the geometry
          * The index buffer contains integers, three for each triangle in the geometry, which reference the various attribute buffers (position, colour, UV coordinates, other UV coordinates, normal, …). There is only ONE index buffer.
          *
-         * @param {PIXI.Buffer} [buffer] the buffer that holds the data of the index buffer. You can also provide an Array and a buffer will be created from it.
+         * @param {PIXI.Buffer|number[]} [buffer] - the buffer that holds the data of the index buffer. You can also provide an Array and a buffer will be created from it.
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
-        addIndex(buffer?: PIXI.Buffer): PIXI.Geometry;
+        addIndex(buffer?: PIXI.Buffer | number[]): PIXI.Geometry;
         /**
          * returns the index buffer
          *
@@ -15975,20 +17988,6 @@ declare namespace PIXI {
             baseTexture?: boolean;
         }): void;
         /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
-        /**
          * The array of children of this container.
          *
          * @member {PIXI.DisplayObject[]} PIXI.Container#children
@@ -16023,10 +18022,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -16034,7 +18033,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -16066,10 +18065,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -16094,6 +18093,15 @@ declare namespace PIXI {
          *
          */
         calculateBounds(): void;
+        /**
+         * Retrieves the local bounds of the displayObject as a rectangle object.
+         *
+         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
+         * @param {boolean} [skipChildrenUpdate=false] - Setting to `true` will stop re-calculation of children transforms,
+         *  it was default behaviour of pixi 4.0-5.2 and caused many problems to users.
+         * @return {PIXI.Rectangle} The rectangular bounding area.
+         */
+        getLocalBounds(rect?: PIXI.Rectangle, skipChildrenUpdate?: boolean): PIXI.Rectangle;
         /**
          * Recalculates the bounds of the object. Override this to
          * calculate the bounds of the specific object (not including children).
@@ -16128,14 +18136,25 @@ declare namespace PIXI {
          */
         height: number;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Returns the display object in the container.
+         *
+         * Recursive searches are done in a preorder traversal.
          *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -16172,6 +18191,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -16206,9 +18252,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -16250,19 +18295,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -16276,10 +18353,10 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -16296,33 +18373,26 @@ declare namespace PIXI {
          */
         getBounds(skipUpdate?: boolean, rect?: PIXI.Rectangle): PIXI.Rectangle;
         /**
-         * Retrieves the local bounds of the displayObject as a rectangle object.
-         *
-         * @param {PIXI.Rectangle} [rect] - Optional rectangle to store the result of the bounds calculation.
-         * @return {PIXI.Rectangle} The rectangular bounding area.
-         */
-        getLocalBounds(rect?: PIXI.Rectangle): PIXI.Rectangle;
-        /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -16345,6 +18415,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -16377,23 +18469,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -16448,9 +18540,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -16473,10 +18573,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -16551,6 +18651,13 @@ declare namespace PIXI {
          */
         shader: PIXI.Shader;
         /**
+         * The WebGL state in which this renderer will work.
+         *
+         * @member {PIXI.State} PIXI.ParticleRenderer#state
+         * @readonly
+         */
+        readonly state: PIXI.State;
+        /**
          * Renders the particle container object.
          *
          * @param {PIXI.ParticleContainer} container - The container to render using this ParticleRenderer
@@ -16579,7 +18686,7 @@ declare namespace PIXI {
          */
         uploadPosition(children: PIXI.DisplayObject[], startIndex: number, amount: number, array: number[], stride: number, offset: number): void;
         /**
-         * Uploads the rotiation.
+         * Uploads the rotation.
          *
          * @param {PIXI.DisplayObject[]} children - the array of display objects to render
          * @param {number} startIndex - the index to start from in the children array
@@ -16617,10 +18724,111 @@ declare namespace PIXI {
         destroy(): void;
     }
     /**
-     * The prepare namespace provides renderer-specific plugins for pre-rendering DisplayObjects. These plugins are useful for
+     * The prepare manager provides functionality to upload content to the GPU.
+     *
+     * BasePrepare handles basic queuing functionality and is extended by
+     * {@link PIXI.Prepare} and {@link PIXI.CanvasPrepare}
+     * to provide preparation capabilities specific to their respective renderers.
+     *
+     * @example
+     * // Create a sprite
+     * const sprite = PIXI.Sprite.from('something.png');
+     *
+     * // Load object into GPU
+     * app.renderer.plugins.prepare.upload(sprite, () => {
+     *
+     *     //Texture(s) has been uploaded to GPU
+     *     app.stage.addChild(sprite);
+     *
+     * })
+     *
+     * @abstract
+     * @class
+     * @memberof PIXI
+     */
+    class BasePrepare {
+        constructor(renderer: PIXI.AbstractRenderer);
+        /**
+         * The limiter to be used to control how quickly items are prepared.
+         * @type {PIXI.CountLimiter|PIXI.TimeLimiter}
+         */
+        limiter: PIXI.CountLimiter | PIXI.TimeLimiter;
+        /**
+         * Reference to the renderer.
+         * @type {PIXI.AbstractRenderer}
+         * @protected
+         */
+        protected renderer: PIXI.AbstractRenderer;
+        /**
+         * The only real difference between CanvasPrepare and Prepare is what they pass
+         * to upload hooks. That different parameter is stored here.
+         * @type {object}
+         * @protected
+         */
+        protected uploadHookHelper: any;
+        /**
+         * Upload all the textures and graphics to the GPU.
+         *
+         * @param {Function|PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text} item -
+         *        Either the container or display object to search for items to upload, the items to upload themselves,
+         *        or the callback function, if items have been added using `prepare.add`.
+         * @param {Function} [done] - Optional callback when all queued uploads have completed
+         */
+        upload(item: ((...params: any[]) => any) | PIXI.DisplayObject | PIXI.Container | PIXI.BaseTexture | PIXI.Texture | PIXI.Graphics | PIXI.Text, done?: (...params: any[]) => any): void;
+        /**
+         * Adds hooks for finding items.
+         *
+         * @param {Function} addHook - Function call that takes two parameters: `item:*, queue:Array`
+         *          function must return `true` if it was able to add item to the queue.
+         * @return {this} Instance of plugin for chaining.
+         */
+        registerFindHook(addHook: (...params: any[]) => any): this;
+        /**
+         * Adds hooks for uploading items.
+         *
+         * @param {Function} uploadHook - Function call that takes two parameters: `prepare:CanvasPrepare, item:*` and
+         *          function must return `true` if it was able to handle upload of item.
+         * @return {this} Instance of plugin for chaining.
+         */
+        registerUploadHook(uploadHook: (...params: any[]) => any): this;
+        /**
+         * Manually add an item to the uploading queue.
+         *
+         * @param {PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text|*} item - Object to
+         *        add to the queue
+         * @return {this} Instance of plugin for chaining.
+         */
+        add(item: PIXI.DisplayObject | PIXI.Container | PIXI.BaseTexture | PIXI.Texture | PIXI.Graphics | PIXI.Text | any): this;
+        /**
+         * Destroys the plugin, don't use after this.
+         *
+         */
+        destroy(): void;
+    }
+    /**
+     * CountLimiter limits the number of items handled by a {@link PIXI.BasePrepare} to a specified
+     * number of items per frame.
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class CountLimiter {
+        constructor(maxItemsPerFrame: number);
+        /**
+         * Resets any counting properties to start fresh on a new frame.
+         */
+        beginFrame(): void;
+        /**
+         * Checks to see if another item can be uploaded. This should only be called once per item.
+         * @return {boolean} If the item is allowed to be uploaded.
+         */
+        allowedToUpload(): boolean;
+    }
+    /**
+     * The prepare plugin provides renderer-specific plugins for pre-rendering DisplayObjects. These plugins are useful for
      * asynchronously preparing and uploading to the GPU assets, textures, graphics waiting to be displayed.
      *
-     * Do not instantiate these plugins directly. It is available from the `renderer.plugins` property.
+     * Do not instantiate this plugin directly. It is available from the `renderer.plugins` property.
      * See {@link PIXI.CanvasRenderer#plugins} or {@link PIXI.Renderer#plugins}.
      * @example
      * // Create a new application
@@ -16642,204 +18850,88 @@ declare namespace PIXI {
      * app.renderer.plugins.prepare.upload(app.stage, () => {
      *     app.start();
      * });
-     * @namespace PIXI.prepare
+     *
+     * @class
+     * @extends PIXI.BasePrepare
+     * @memberof PIXI
      */
-    namespace prepare {
+    class Prepare extends PIXI.BasePrepare {
+        constructor(renderer: PIXI.Renderer);
         /**
-         * @class PIXI.prepare.WebGLPrepare
-         * @deprecated since 5.0.0
-         * @see PIXI.prepare.Prepare
+         * The limiter to be used to control how quickly items are prepared.
+         * @type {PIXI.CountLimiter|PIXI.TimeLimiter}
          */
-        class WebGLPrepare {
-        }
+        limiter: PIXI.CountLimiter | PIXI.TimeLimiter;
         /**
-         * The prepare manager provides functionality to upload content to the GPU.
-         *
-         * BasePrepare handles basic queuing functionality and is extended by
-         * {@link PIXI.prepare.Prepare} and {@link PIXI.prepare.CanvasPrepare}
-         * to provide preparation capabilities specific to their respective renderers.
-         *
-         * @example
-         * // Create a sprite
-         * const sprite = PIXI.Sprite.from('something.png');
-         *
-         * // Load object into GPU
-         * app.renderer.plugins.prepare.upload(sprite, () => {
-         *
-         *     //Texture(s) has been uploaded to GPU
-         *     app.stage.addChild(sprite);
-         *
-         * })
-         *
-         * @abstract
-         * @class
-         * @memberof PIXI.prepare
+         * Reference to the renderer.
+         * @type {PIXI.AbstractRenderer}
+         * @protected
          */
-        class BasePrepare {
-            constructor(renderer: PIXI.AbstractRenderer);
-            /**
-             * The limiter to be used to control how quickly items are prepared.
-             * @type {PIXI.prepare.CountLimiter|PIXI.prepare.TimeLimiter}
-             */
-            limiter: PIXI.prepare.CountLimiter | PIXI.prepare.TimeLimiter;
-            /**
-             * Reference to the renderer.
-             * @type {PIXI.AbstractRenderer}
-             * @protected
-             */
-            protected renderer: PIXI.AbstractRenderer;
-            /**
-             * The only real difference between CanvasPrepare and Prepare is what they pass
-             * to upload hooks. That different parameter is stored here.
-             * @type {PIXI.prepare.CanvasPrepare|PIXI.Renderer}
-             * @protected
-             */
-            protected uploadHookHelper: PIXI.Renderer;
-            /**
-             * Upload all the textures and graphics to the GPU.
-             *
-             * @param {Function|PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text} item -
-             *        Either the container or display object to search for items to upload, the items to upload themselves,
-             *        or the callback function, if items have been added using `prepare.add`.
-             * @param {Function} [done] - Optional callback when all queued uploads have completed
-             */
-            upload(item: ((...params: any[]) => any) | PIXI.DisplayObject | PIXI.Container | PIXI.BaseTexture | PIXI.Texture | PIXI.Graphics | PIXI.Text, done?: (...params: any[]) => any): void;
-            /**
-             * Adds hooks for finding items.
-             *
-             * @param {Function} addHook - Function call that takes two parameters: `item:*, queue:Array`
-             *          function must return `true` if it was able to add item to the queue.
-             * @return {PIXI.prepare.BasePrepare} Instance of plugin for chaining.
-             */
-            registerFindHook(addHook: (...params: any[]) => any): PIXI.prepare.BasePrepare;
-            /**
-             * Adds hooks for uploading items.
-             *
-             * @param {Function} uploadHook - Function call that takes two parameters: `prepare:CanvasPrepare, item:*` and
-             *          function must return `true` if it was able to handle upload of item.
-             * @return {PIXI.prepare.BasePrepare} Instance of plugin for chaining.
-             */
-            registerUploadHook(uploadHook: (...params: any[]) => any): PIXI.prepare.BasePrepare;
-            /**
-             * Manually add an item to the uploading queue.
-             *
-             * @param {PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text|*} item - Object to
-             *        add to the queue
-             * @return {PIXI.prepare.BasePrepare} Instance of plugin for chaining.
-             */
-            add(item: PIXI.DisplayObject | PIXI.Container | PIXI.BaseTexture | PIXI.Texture | PIXI.Graphics | PIXI.Text | any): PIXI.prepare.BasePrepare;
-            /**
-             * Destroys the plugin, don't use after this.
-             *
-             */
-            destroy(): void;
-        }
+        protected renderer: PIXI.AbstractRenderer;
         /**
-         * CountLimiter limits the number of items handled by a {@link PIXI.prepare.BasePrepare} to a specified
-         * number of items per frame.
-         *
-         * @class
-         * @memberof PIXI.prepare
+         * The only real difference between CanvasPrepare and Prepare is what they pass
+         * to upload hooks. That different parameter is stored here.
+         * @type {object}
+         * @protected
          */
-        class CountLimiter {
-            constructor(maxItemsPerFrame: number);
-            /**
-             * Resets any counting properties to start fresh on a new frame.
-             */
-            beginFrame(): void;
-            /**
-             * Checks to see if another item can be uploaded. This should only be called once per item.
-             * @return {boolean} If the item is allowed to be uploaded.
-             */
-            allowedToUpload(): boolean;
-        }
+        protected uploadHookHelper: any;
         /**
-         * The prepare manager provides functionality to upload content to the GPU.
+         * Upload all the textures and graphics to the GPU.
          *
-         * An instance of this class is automatically created by default, and can be found at `renderer.plugins.prepare`
-         *
-         * @class
-         * @extends PIXI.prepare.BasePrepare
-         * @memberof PIXI.prepare
+         * @param {Function|PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text} item -
+         *        Either the container or display object to search for items to upload, the items to upload themselves,
+         *        or the callback function, if items have been added using `prepare.add`.
+         * @param {Function} [done] - Optional callback when all queued uploads have completed
          */
-        class Prepare extends PIXI.prepare.BasePrepare {
-            constructor(renderer: PIXI.Renderer);
-            /**
-             * The limiter to be used to control how quickly items are prepared.
-             * @type {PIXI.prepare.CountLimiter|PIXI.prepare.TimeLimiter}
-             */
-            limiter: PIXI.prepare.CountLimiter | PIXI.prepare.TimeLimiter;
-            /**
-             * Reference to the renderer.
-             * @type {PIXI.AbstractRenderer}
-             * @protected
-             */
-            protected renderer: PIXI.AbstractRenderer;
-            /**
-             * The only real difference between CanvasPrepare and Prepare is what they pass
-             * to upload hooks. That different parameter is stored here.
-             * @type {PIXI.prepare.CanvasPrepare|PIXI.Renderer}
-             * @protected
-             */
-            protected uploadHookHelper: PIXI.Renderer;
-            /**
-             * Upload all the textures and graphics to the GPU.
-             *
-             * @param {Function|PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text} item -
-             *        Either the container or display object to search for items to upload, the items to upload themselves,
-             *        or the callback function, if items have been added using `prepare.add`.
-             * @param {Function} [done] - Optional callback when all queued uploads have completed
-             */
-            upload(item: ((...params: any[]) => any) | PIXI.DisplayObject | PIXI.Container | PIXI.BaseTexture | PIXI.Texture | PIXI.Graphics | PIXI.Text, done?: (...params: any[]) => any): void;
-            /**
-             * Adds hooks for finding items.
-             *
-             * @param {Function} addHook - Function call that takes two parameters: `item:*, queue:Array`
-             *          function must return `true` if it was able to add item to the queue.
-             * @return {PIXI.prepare.BasePrepare} Instance of plugin for chaining.
-             */
-            registerFindHook(addHook: (...params: any[]) => any): PIXI.prepare.BasePrepare;
-            /**
-             * Adds hooks for uploading items.
-             *
-             * @param {Function} uploadHook - Function call that takes two parameters: `prepare:CanvasPrepare, item:*` and
-             *          function must return `true` if it was able to handle upload of item.
-             * @return {PIXI.prepare.BasePrepare} Instance of plugin for chaining.
-             */
-            registerUploadHook(uploadHook: (...params: any[]) => any): PIXI.prepare.BasePrepare;
-            /**
-             * Manually add an item to the uploading queue.
-             *
-             * @param {PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text|*} item - Object to
-             *        add to the queue
-             * @return {PIXI.prepare.BasePrepare} Instance of plugin for chaining.
-             */
-            add(item: PIXI.DisplayObject | PIXI.Container | PIXI.BaseTexture | PIXI.Texture | PIXI.Graphics | PIXI.Text | any): PIXI.prepare.BasePrepare;
-            /**
-             * Destroys the plugin, don't use after this.
-             *
-             */
-            destroy(): void;
-        }
+        upload(item: ((...params: any[]) => any) | PIXI.DisplayObject | PIXI.Container | PIXI.BaseTexture | PIXI.Texture | PIXI.Graphics | PIXI.Text, done?: (...params: any[]) => any): void;
         /**
-         * TimeLimiter limits the number of items handled by a {@link PIXI.BasePrepare} to a specified
-         * number of milliseconds per frame.
+         * Adds hooks for finding items.
          *
-         * @class
-         * @memberof PIXI.prepare
+         * @param {Function} addHook - Function call that takes two parameters: `item:*, queue:Array`
+         *          function must return `true` if it was able to add item to the queue.
+         * @return {this} Instance of plugin for chaining.
          */
-        class TimeLimiter {
-            constructor(maxMilliseconds: number);
-            /**
-             * Resets any counting properties to start fresh on a new frame.
-             */
-            beginFrame(): void;
-            /**
-             * Checks to see if another item can be uploaded. This should only be called once per item.
-             * @return {boolean} If the item is allowed to be uploaded.
-             */
-            allowedToUpload(): boolean;
-        }
+        registerFindHook(addHook: (...params: any[]) => any): this;
+        /**
+         * Adds hooks for uploading items.
+         *
+         * @param {Function} uploadHook - Function call that takes two parameters: `prepare:CanvasPrepare, item:*` and
+         *          function must return `true` if it was able to handle upload of item.
+         * @return {this} Instance of plugin for chaining.
+         */
+        registerUploadHook(uploadHook: (...params: any[]) => any): this;
+        /**
+         * Manually add an item to the uploading queue.
+         *
+         * @param {PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text|*} item - Object to
+         *        add to the queue
+         * @return {this} Instance of plugin for chaining.
+         */
+        add(item: PIXI.DisplayObject | PIXI.Container | PIXI.BaseTexture | PIXI.Texture | PIXI.Graphics | PIXI.Text | any): this;
+        /**
+         * Destroys the plugin, don't use after this.
+         *
+         */
+        destroy(): void;
+    }
+    /**
+     * TimeLimiter limits the number of items handled by a {@link PIXI.BasePrepare} to a specified
+     * number of milliseconds per frame.
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class TimeLimiter {
+        constructor(maxMilliseconds: number);
+        /**
+         * Resets any counting properties to start fresh on a new frame.
+         */
+        beginFrame(): void;
+        /**
+         * Checks to see if another item can be uploaded. This should only be called once per item.
+         * @return {boolean} If the item is allowed to be uploaded.
+         */
+        allowedToUpload(): boolean;
     }
     /**
      * A Runner is a highly performant and simple alternative to signals. Best used in situations
@@ -16848,8 +18940,10 @@ declare namespace PIXI {
      *
      * like a signal..
      * ```
+     * import { Runner } from '@pixi/runner';
+     *
      * const myObject = {
-     *     loaded: new PIXI.Runner('loaded')
+     *     loaded: new Runner('loaded')
      * }
      *
      * const listener = {
@@ -16865,8 +18959,10 @@ declare namespace PIXI {
      *
      * Or for handling calling the same function on many items
      * ```
+     * import { Runner } from '@pixi/runner';
+     *
      * const myGame = {
-     *     update: new PIXI.Runner('update')
+     *     update: new Runner('update')
      * }
      *
      * const gameObject = {
@@ -16887,8 +18983,9 @@ declare namespace PIXI {
         /**
          * Dispatch/Broadcast Runner to all listeners added to the queue.
          * @param {...any} params - optional parameters to pass to each listener
+         * @return {PIXI.Runner}
          */
-        emit(...params: any[]): void;
+        emit(...params: any[]): PIXI.Runner;
         /**
          * Add a listener to the Runner
          *
@@ -16899,19 +18996,23 @@ declare namespace PIXI {
          * Eg A listener passed to this Runner will require a 'complete' function.
          *
          * ```
-         * const complete = new PIXI.Runner('complete');
+         * import { Runner } from '@pixi/runner';
+         *
+         * const complete = new Runner('complete');
          * ```
          *
          * The scope used will be the object itself.
          *
          * @param {any} item - The object that will be listening.
+         * @return {PIXI.Runner}
          */
-        add(item: any): void;
+        add(item: any): PIXI.Runner;
         /**
          * Remove a single listener from the dispatch queue.
          * @param {any} item - The listenr that you would like to remove.
+         * @return {PIXI.Runner}
          */
-        remove(item: any): void;
+        remove(item: any): PIXI.Runner;
         /**
          * Check to see if the listener is already in the Runner
          * @param {any} item - The listener that you would like to check.
@@ -16919,8 +19020,9 @@ declare namespace PIXI {
         contains(item: any): void;
         /**
          * Remove all listeners from the Runner
+         * @return {PIXI.Runner}
          */
-        removeAll(): void;
+        removeAll(): PIXI.Runner;
         /**
          * Remove all references, don't use after this.
          */
@@ -16960,23 +19062,13 @@ declare namespace PIXI {
      * @example
      * // Use the native window resolution as the default resolution
      * // will support high-density displays when rendering
-     * PIXI.settings.RESOLUTION = window.devicePixelRatio.
+     * PIXI.settings.RESOLUTION = window.devicePixelRatio;
      *
      * // Disable interpolation when scaling, will make texture be pixelated
      * PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
      * @namespace PIXI.settings
      */
     namespace settings {
-        /**
-         * Default transform type.
-         *
-         * @static
-         * @deprecated since 5.0.0
-         * @memberof PIXI.settings
-         * @type {PIXI.TRANSFORM_MODE}
-         * @default PIXI.TRANSFORM_MODE.STATIC
-         */
-        var TRANSFORM_MODE: PIXI.TRANSFORM_MODE;
         /**
          * The maximum support for using WebGL. If a device does not
          * support WebGL version, for instance WebGL 2, it will still
@@ -16994,6 +19086,23 @@ declare namespace PIXI {
          * @default PIXI.ENV.WEBGL2
          */
         var PREFER_ENV: number;
+        /**
+         * If set to `true`, *only* Textures and BaseTexture objects stored
+         * in the caches ({@link PIXI.utils.TextureCache TextureCache} and
+         * {@link PIXI.utils.BaseTextureCache BaseTextureCache}) can be
+         * used when calling {@link PIXI.Texture.from Texture.from} or
+         * {@link PIXI.BaseTexture.from BaseTexture.from}.
+         * Otherwise, these `from` calls throw an exception. Using this property
+         * can be useful if you want to enforce preloading all assets with
+         * {@link PIXI.Loader Loader}.
+         *
+         * @static
+         * @name STRICT_TEXTURE_CACHE
+         * @memberof PIXI.settings
+         * @type {boolean}
+         * @default false
+         */
+        var STRICT_TEXTURE_CACHE: boolean;
         /**
          * Sets the default value for the container property 'sortableChildren'.
          * If set to true, the container will sort its children by zIndex value
@@ -17035,6 +19144,17 @@ declare namespace PIXI {
          * @default PIXI.MIPMAP_MODES.POW2
          */
         var MIPMAP_TEXTURES: PIXI.MIPMAP_MODES;
+        /**
+         * Default anisotropic filtering level of textures.
+         * Usually from 0 to 16
+         *
+         * @static
+         * @name ANISOTROPIC_LEVEL
+         * @memberof PIXI.settings
+         * @type {number}
+         * @default 0
+         */
+        var ANISOTROPIC_LEVEL: number;
         /**
          * Default resolution / device pixel ratio of the renderer.
          *
@@ -17088,7 +19208,6 @@ declare namespace PIXI {
          * @property {HTMLCanvasElement} view=null
          * @property {number} resolution=1
          * @property {boolean} antialias=false
-         * @property {boolean} forceFXAA=false
          * @property {boolean} autoDensity=false
          * @property {boolean} transparent=false
          * @property {number} backgroundColor=0x000000
@@ -17102,7 +19221,6 @@ declare namespace PIXI {
             view: HTMLCanvasElement;
             resolution: number;
             antialias: boolean;
-            forceFXAA: boolean;
             autoDensity: boolean;
             transparent: boolean;
             backgroundColor: number;
@@ -17235,6 +19353,18 @@ declare namespace PIXI {
          * @example `@2x`
          */
         var RETINA_PREFIX: RegExp;
+        /**
+         * Should the `failIfMajorPerformanceCaveat` flag be enabled as a context option used in the `isWebGLSupported` function.
+         * For most scenarios this should be left as true, as otherwise the user may have a poor experience.
+         * However, it can be useful to disable under certain scenarios, such as headless unit tests.
+         *
+         * @static
+         * @name FAIL_IF_MAJOR_PERFORMANCE_CAVEAT
+         * @memberof PIXI.settings
+         * @type {boolean}
+         * @default true
+         */
+        var FAIL_IF_MAJOR_PERFORMANCE_CAVEAT: boolean;
     }
     /**
      * The Sprite object is the base for all textured objects that are rendered to the screen
@@ -17265,40 +19395,19 @@ declare namespace PIXI {
     class Sprite extends PIXI.Container {
         constructor(texture?: PIXI.Texture);
         /**
-         * @deprecated since 5.0.0
-         * @see PIXI.Sprite.from
-         * @method PIXI.Sprite.fromImage
-         * @return {PIXI.Sprite}
+         * The width of the sprite (this is initially set by the texture)
+         *
+         * @protected
+         * @member {number} PIXI.Sprite#_width
          */
-        static fromImage(): PIXI.Sprite;
+        protected _width: number;
         /**
-         * @deprecated since 5.0.0
-         * @method PIXI.Sprite.fromSVG
-         * @see PIXI.Sprite.from
-         * @return {PIXI.Sprite}
+         * The height of the sprite (this is initially set by the texture)
+         *
+         * @protected
+         * @member {number} PIXI.Sprite#_height
          */
-        static fromSVG(): PIXI.Sprite;
-        /**
-         * @deprecated since 5.0.0
-         * @method PIXI.Sprite.fromCanvas
-         * @see PIXI.Sprite.from
-         * @return {PIXI.Sprite}
-         */
-        static fromCanvas(): PIXI.Sprite;
-        /**
-         * @deprecated since 5.0.0
-         * @method PIXI.Sprite.fromVideo
-         * @see PIXI.Sprite.from
-         * @return {PIXI.Sprite}
-         */
-        static fromVideo(): PIXI.Sprite;
-        /**
-         * @deprecated since 5.0.0
-         * @method PIXI.Sprite.fromFrame
-         * @see PIXI.Sprite.from
-         * @return {PIXI.Sprite}
-         */
-        static fromFrame(): PIXI.Sprite;
+        protected _height: number;
         /**
          * The blend mode to be applied to the sprite. Apply a value of `PIXI.BLEND_MODES.NORMAL` to reset the blend mode.
          *
@@ -17307,12 +19416,6 @@ declare namespace PIXI {
          * @see PIXI.BLEND_MODES
          */
         blendMode: number;
-        /**
-         * The shader that will be used to render the sprite. Set to null to remove a current shader.
-         *
-         * @member {PIXI.Filter|PIXI.Shader} PIXI.Sprite#shader
-         */
-        shader: PIXI.Filter | PIXI.Shader;
         /**
          * Cached tint value so we can tell when the tint is changed.
          * Value is used for 2d CanvasRenderer.
@@ -17327,7 +19430,7 @@ declare namespace PIXI {
          * Allows to customize the rendering process without overriding '_render' & '_renderCanvas' methods.
          *
          * @member {string} PIXI.Sprite#pluginName
-         * @default 'sprite'
+         * @default 'batch'
          */
         pluginName: string;
         /**
@@ -17335,6 +19438,12 @@ declare namespace PIXI {
          * @member {boolean} PIXI.Sprite#isSprite
          */
         isSprite: boolean;
+        /**
+         * When the texture is updated, this event will fire to update the scale and frame
+         *
+         * @protected
+         */
+        protected _onTextureUpdate(): void;
         /**
          * calculates worldTransform * vertices, store it in vertexData
          */
@@ -17368,10 +19477,10 @@ declare namespace PIXI {
         /**
          * Tests if a point is inside this sprite
          *
-         * @param {PIXI.Point} point - the point to test
+         * @param {PIXI.IPointData} point - the point to test
          * @return {boolean} the result of the test
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * Destroys this sprite and optionally its texture and children
          *
@@ -17392,11 +19501,11 @@ declare namespace PIXI {
          * The source can be - frame id, image url, video url, canvas element, video element, base texture
          *
          * @static
-         * @param {number|string|PIXI.Texture|HTMLCanvasElement|HTMLVideoElement} source Source to create texture from
-         * @param {object} [options] See {@link PIXI.BaseTexture}'s constructor for options.
+         * @param {string|PIXI.Texture|HTMLCanvasElement|HTMLVideoElement} source - Source to create texture from
+         * @param {object} [options] - See {@link PIXI.BaseTexture}'s constructor for options.
          * @return {PIXI.Sprite} The newly created sprite
          */
-        static from(source: number | string | PIXI.Texture | HTMLCanvasElement | HTMLVideoElement, options?: any): PIXI.Sprite;
+        static from(source: string | PIXI.Texture | HTMLCanvasElement | HTMLVideoElement, options?: any): PIXI.Sprite;
         /**
          * If true PixiJS will Math.floor() x/y values when rendering, stopping pixel interpolation.
          * Advantages can include sharper image quality (like text) and faster rendering on canvas.
@@ -17420,14 +19529,14 @@ declare namespace PIXI {
          */
         height: number;
         /**
-         * The anchor sets the origin point of the text. The default value is taken from the {@link PIXI.Texture|Texture}
+         * The anchor sets the origin point of the sprite. The default value is taken from the {@link PIXI.Texture|Texture}
          * and passed to the constructor.
          *
-         * The default is `(0,0)`, this means the text's origin is the top left.
+         * The default is `(0,0)`, this means the sprite's origin is the top left.
          *
-         * Setting the anchor to `(0.5,0.5)` means the text's origin is centered.
+         * Setting the anchor to `(0.5,0.5)` means the sprite's origin is centered.
          *
-         * Setting the anchor to `(1,1)` would mean the text's origin point will be the bottom right corner.
+         * Setting the anchor to `(1,1)` would mean the sprite's origin point will be the bottom right corner.
          *
          * If you pass only single parameter, it will set both x and y to the same value as shown in the example below.
          *
@@ -17452,20 +19561,6 @@ declare namespace PIXI {
          * @member {PIXI.Texture}
          */
         texture: PIXI.Texture;
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -17507,10 +19602,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -17518,7 +19613,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -17550,10 +19645,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -17596,6 +19691,14 @@ declare namespace PIXI {
          */
         protected renderAdvanced(renderer: PIXI.Renderer): void;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -17606,12 +19709,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -17648,6 +19754,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -17682,9 +19815,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -17726,19 +19858,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -17747,10 +19911,10 @@ declare namespace PIXI {
          */
         protected _destroyed: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -17769,24 +19933,24 @@ declare namespace PIXI {
         /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -17809,6 +19973,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -17841,23 +20027,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -17912,9 +20098,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -17937,10 +20131,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -18076,30 +20270,36 @@ declare namespace PIXI {
          */
         updateAnchor: boolean;
         /**
-         * Function to call when an AnimatedSprite finishes playing.
+         * User-assigned function to call when an AnimatedSprite finishes playing.
          *
+         * @example
+         * animation.onComplete = function () {
+         *   // finished!
+         * };
          * @member {Function} PIXI.AnimatedSprite#onComplete
          */
         onComplete: (...params: any[]) => any;
         /**
-         * Function to call when an AnimatedSprite changes which texture is being rendered.
+         * User-assigned function to call when an AnimatedSprite changes which texture is being rendered.
          *
+         * @example
+         * animation.onFrameChange = function () {
+         *   // updated!
+         * };
          * @member {Function} PIXI.AnimatedSprite#onFrameChange
          */
         onFrameChange: (...params: any[]) => any;
         /**
-         * Function to call when `loop` is true, and an AnimatedSprite is played and loops around to start again.
+         * User-assigned function to call when `loop` is true, and an AnimatedSprite is played and
+         * loops around to start again.
          *
+         * @example
+         * animation.onLoop = function () {
+         *   // looped!
+         * };
          * @member {Function} PIXI.AnimatedSprite#onLoop
          */
         onLoop: (...params: any[]) => any;
-        /**
-         * Indicates if the AnimatedSprite is currently playing.
-         *
-         * @member {boolean} PIXI.AnimatedSprite#playing
-         * @readonly
-         */
-        readonly playing: boolean;
         /**
          * Stops the AnimatedSprite.
          *
@@ -18123,6 +20323,12 @@ declare namespace PIXI {
          */
         gotoAndPlay(frameNumber: number): void;
         /**
+         * Updates the object transform for rendering.
+         *
+         * @param {number} deltaTime - Time since last tick.
+         */
+        update(deltaTime: number): void;
+        /**
          * Stops the AnimatedSprite and destroys it.
          *
          * @param {object|boolean} [options] - Options parameter. A boolean will act as if all options
@@ -18142,17 +20348,17 @@ declare namespace PIXI {
          *
          * @static
          * @param {string[]} frames - The array of frames ids the AnimatedSprite will use as its texture frames.
-         * @return {AnimatedSprite} The new animated sprite with the specified frames.
+         * @return {PIXI.AnimatedSprite} The new animated sprite with the specified frames.
          */
-        static fromFrames(frames: string[]): AnimatedSprite;
+        static fromFrames(frames: string[]): PIXI.AnimatedSprite;
         /**
          * A short hand way of creating an AnimatedSprite from an array of image ids.
          *
          * @static
          * @param {string[]} images - The array of image urls the AnimatedSprite will use as its texture frames.
-         * @return {AnimatedSprite} The new animate sprite with the specified images as frames.
+         * @return {PIXI.AnimatedSprite} The new animate sprite with the specified images as frames.
          */
-        static fromImages(images: string[]): AnimatedSprite;
+        static fromImages(images: string[]): PIXI.AnimatedSprite;
         /**
          * The total number of frames in the AnimatedSprite. This is the same as number of textures
          * assigned to the AnimatedSprite.
@@ -18176,6 +20382,33 @@ declare namespace PIXI {
          */
         readonly currentFrame: number;
         /**
+         * Indicates if the AnimatedSprite is currently playing.
+         *
+         * @member {boolean}
+         * @readonly
+         */
+        readonly playing: boolean;
+        /**
+         * Whether to use PIXI.Ticker.shared to auto update animation time
+         *
+         * @member {boolean}
+         */
+        autoUpdate: boolean;
+        /**
+         * The width of the sprite (this is initially set by the texture)
+         *
+         * @protected
+         * @member {number} PIXI.Sprite#_width
+         */
+        protected _width: number;
+        /**
+         * The height of the sprite (this is initially set by the texture)
+         *
+         * @protected
+         * @member {number} PIXI.Sprite#_height
+         */
+        protected _height: number;
+        /**
          * The blend mode to be applied to the sprite. Apply a value of `PIXI.BLEND_MODES.NORMAL` to reset the blend mode.
          *
          * @member {number} PIXI.Sprite#blendMode
@@ -18183,12 +20416,6 @@ declare namespace PIXI {
          * @see PIXI.BLEND_MODES
          */
         blendMode: number;
-        /**
-         * The shader that will be used to render the sprite. Set to null to remove a current shader.
-         *
-         * @member {PIXI.Filter|PIXI.Shader} PIXI.Sprite#shader
-         */
-        shader: PIXI.Filter | PIXI.Shader;
         /**
          * Cached tint value so we can tell when the tint is changed.
          * Value is used for 2d CanvasRenderer.
@@ -18203,7 +20430,7 @@ declare namespace PIXI {
          * Allows to customize the rendering process without overriding '_render' & '_renderCanvas' methods.
          *
          * @member {string} PIXI.Sprite#pluginName
-         * @default 'sprite'
+         * @default 'batch'
          */
         pluginName: string;
         /**
@@ -18211,6 +20438,12 @@ declare namespace PIXI {
          * @member {boolean} PIXI.Sprite#isSprite
          */
         isSprite: boolean;
+        /**
+         * When the texture is updated, this event will fire to update the scale and frame
+         *
+         * @protected
+         */
+        protected _onTextureUpdate(): void;
         /**
          * calculates worldTransform * vertices, store it in vertexData
          */
@@ -18244,10 +20477,10 @@ declare namespace PIXI {
         /**
          * Tests if a point is inside this sprite
          *
-         * @param {PIXI.Point} point - the point to test
+         * @param {PIXI.IPointData} point - the point to test
          * @return {boolean} the result of the test
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * If true PixiJS will Math.floor() x/y values when rendering, stopping pixel interpolation.
          * Advantages can include sharper image quality (like text) and faster rendering on canvas.
@@ -18271,14 +20504,14 @@ declare namespace PIXI {
          */
         height: number;
         /**
-         * The anchor sets the origin point of the text. The default value is taken from the {@link PIXI.Texture|Texture}
+         * The anchor sets the origin point of the sprite. The default value is taken from the {@link PIXI.Texture|Texture}
          * and passed to the constructor.
          *
-         * The default is `(0,0)`, this means the text's origin is the top left.
+         * The default is `(0,0)`, this means the sprite's origin is the top left.
          *
-         * Setting the anchor to `(0.5,0.5)` means the text's origin is centered.
+         * Setting the anchor to `(0.5,0.5)` means the sprite's origin is centered.
          *
-         * Setting the anchor to `(1,1)` would mean the text's origin point will be the bottom right corner.
+         * Setting the anchor to `(1,1)` would mean the sprite's origin point will be the bottom right corner.
          *
          * If you pass only single parameter, it will set both x and y to the same value as shown in the example below.
          *
@@ -18303,20 +20536,6 @@ declare namespace PIXI {
          * @member {PIXI.Texture}
          */
         texture: PIXI.Texture;
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -18358,10 +20577,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -18369,7 +20588,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -18401,10 +20620,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -18447,6 +20666,14 @@ declare namespace PIXI {
          */
         protected renderAdvanced(renderer: PIXI.Renderer): void;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -18457,12 +20684,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -18499,6 +20729,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -18533,9 +20790,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -18577,19 +20833,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -18598,10 +20886,10 @@ declare namespace PIXI {
          */
         protected _destroyed: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -18620,24 +20908,24 @@ declare namespace PIXI {
         /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -18660,6 +20948,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -18692,23 +21002,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -18763,9 +21073,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -18788,10 +21106,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -18911,6 +21229,10 @@ declare namespace PIXI {
          */
         tilePosition: PIXI.ObservablePoint;
         /**
+         * @protected
+         */
+        protected _onTextureUpdate(): void;
+        /**
          * Renders the object using the WebGL renderer
          *
          * @protected
@@ -18933,10 +21255,10 @@ declare namespace PIXI {
         /**
          * Checks if a point is inside this tiling sprite.
          *
-         * @param {PIXI.Point} point - the point to check
+         * @param {PIXI.IPointData} point - the point to check
          * @return {boolean} Whether or not the sprite contains the point.
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * Destroys this sprite and optionally its texture and children
          *
@@ -18957,35 +21279,16 @@ declare namespace PIXI {
          * The source can be - frame id, image url, video url, canvas element, video element, base texture
          *
          * @static
-         * @param {number|string|PIXI.Texture|HTMLCanvasElement|HTMLVideoElement} source - Source to create texture from
-         * @param {number} width - the width of the tiling sprite
-         * @param {number} height - the height of the tiling sprite
+         * @param {string|PIXI.Texture|HTMLCanvasElement|HTMLVideoElement} source - Source to create texture from
+         * @param {Object} options - See {@link PIXI.BaseTexture}'s constructor for options.
+         * @param {number} options.width - required width of the tiling sprite
+         * @param {number} options.height - required height of the tiling sprite
          * @return {PIXI.TilingSprite} The newly created texture
          */
-        static from(source: number | string | PIXI.Texture | HTMLCanvasElement | HTMLVideoElement, width: number, height: number): PIXI.TilingSprite;
-        /**
-         * Helper function that creates a tiling sprite that will use a texture from the TextureCache based on the frameId
-         * The frame ids are created when a Texture packer file has been loaded
-         *
-         * @static
-         * @param {string} frameId - The frame Id of the texture in the cache
-         * @param {number} width - the width of the tiling sprite
-         * @param {number} height - the height of the tiling sprite
-         * @return {PIXI.TilingSprite} A new TilingSprite using a texture from the texture cache matching the frameId
-         */
-        static fromFrame(frameId: string, width: number, height: number): PIXI.TilingSprite;
-        /**
-         * Helper function that creates a sprite that will contain a texture based on an image url
-         * If the image is not in the texture cache it will be loaded
-         *
-         * @static
-         * @param {string} imageId - The image url of the texture
-         * @param {number} width - the width of the tiling sprite
-         * @param {number} height - the height of the tiling sprite
-         * @param {Object} [options] - See {@link PIXI.BaseTexture}'s constructor for options.
-         * @return {PIXI.TilingSprite} A new TilingSprite using a texture from the texture cache matching the image id
-         */
-        static fromImage(imageId: string, width: number, height: number, options?: any): PIXI.TilingSprite;
+        static from(source: string | PIXI.Texture | HTMLCanvasElement | HTMLVideoElement, options: {
+            width: number;
+            height: number;
+        }): PIXI.TilingSprite;
         /**
          * The width of the sprite, setting this will actually modify the scale to achieve the value set
          *
@@ -19006,12 +21309,6 @@ declare namespace PIXI {
          * @see PIXI.BLEND_MODES
          */
         blendMode: number;
-        /**
-         * The shader that will be used to render the sprite. Set to null to remove a current shader.
-         *
-         * @member {PIXI.Filter|PIXI.Shader} PIXI.Sprite#shader
-         */
-        shader: PIXI.Filter | PIXI.Shader;
         /**
          * Cached tint value so we can tell when the tint is changed.
          * Value is used for 2d CanvasRenderer.
@@ -19046,14 +21343,14 @@ declare namespace PIXI {
          */
         roundPixels: boolean;
         /**
-         * The anchor sets the origin point of the text. The default value is taken from the {@link PIXI.Texture|Texture}
+         * The anchor sets the origin point of the sprite. The default value is taken from the {@link PIXI.Texture|Texture}
          * and passed to the constructor.
          *
-         * The default is `(0,0)`, this means the text's origin is the top left.
+         * The default is `(0,0)`, this means the sprite's origin is the top left.
          *
-         * Setting the anchor to `(0.5,0.5)` means the text's origin is centered.
+         * Setting the anchor to `(0.5,0.5)` means the sprite's origin is centered.
          *
-         * Setting the anchor to `(1,1)` would mean the text's origin point will be the bottom right corner.
+         * Setting the anchor to `(1,1)` would mean the sprite's origin point will be the bottom right corner.
          *
          * If you pass only single parameter, it will set both x and y to the same value as shown in the example below.
          *
@@ -19078,20 +21375,6 @@ declare namespace PIXI {
          * @member {PIXI.Texture}
          */
         texture: PIXI.Texture;
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -19133,10 +21416,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -19144,7 +21427,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -19176,10 +21459,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -19222,6 +21505,14 @@ declare namespace PIXI {
          */
         protected renderAdvanced(renderer: PIXI.Renderer): void;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -19232,12 +21523,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -19274,6 +21568,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -19308,9 +21629,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -19352,19 +21672,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -19373,10 +21725,10 @@ declare namespace PIXI {
          */
         protected _destroyed: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -19395,24 +21747,24 @@ declare namespace PIXI {
         /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -19435,6 +21787,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -19467,23 +21841,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -19538,9 +21912,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -19563,10 +21945,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -19636,41 +22018,45 @@ declare namespace PIXI {
     class TilingSpriteRenderer extends PIXI.ObjectRenderer {
         constructor(renderer: PIXI.Renderer);
         /**
+         * The WebGL state in which this renderer will work.
          *
-         * @param {PIXI.TilingSprite} ts tilingSprite to be rendered
+         * @member {PIXI.State} PIXI.TilingSpriteRenderer#state
+         * @readonly
+         */
+        readonly state: PIXI.State;
+        /**
+         *
+         * @param {PIXI.TilingSprite} ts - tilingSprite to be rendered
          */
         render(ts: PIXI.TilingSprite): void;
         /**
-         * Starts the renderer and sets the shader
-         *
-         */
-        start(): void;
-        /**
-         * Stops the renderer
-         *
-         */
-        stop(): void;
-        /**
-         * Stub method for rendering content and emptying the current batch.
-         *
-         */
-        flush(): void;
-        /**
          * The renderer this manager works for.
          *
-         * @member {PIXI.Renderer} PIXI.System#renderer
+         * @member {PIXI.Renderer} PIXI.ObjectRenderer#renderer
          */
         renderer: PIXI.Renderer;
         /**
-         * Generic method called when there is a WebGL context change.
-         *
-         * @param {WebGLRenderingContext} gl new webgl context
+         * Stub method that should be used to empty the current
+         * batch by rendering objects now.
          */
-        contextChange(gl: WebGLRenderingContext): void;
+        flush(): void;
         /**
-         * Generic destroy methods to be overridden by the subclass
+         * Generic destruction method that frees all resources. This
+         * should be called by subclasses.
          */
         destroy(): void;
+        /**
+         * Stub method that initializes any state required before
+         * rendering starts. It is different from the `prerender`
+         * signal, which occurs every frame, in that it is called
+         * whenever an object requests _this_ renderer specifically.
+         */
+        start(): void;
+        /**
+         * Stops the renderer. It should free up any state and
+         * become dormant.
+         */
+        stop(): void;
     }
     /**
      * Utility class for maintaining reference to a collection
@@ -19697,16 +22083,9 @@ declare namespace PIXI {
      * @memberof PIXI
      */
     class Spritesheet {
-        constructor(baseTexture: PIXI.BaseTexture, data: any, resolutionFilename?: string);
+        constructor(baseTexture: PIXI.BaseTexture | PIXI.Texture, data: any, resolutionFilename?: string);
         /**
-         * The maximum number of Textures to build per process.
-         *
-         * @type {number}
-         * @default 1000
-         */
-        static BATCH_SIZE: number;
-        /**
-         * Reference to ths source texture
+         * Reference to ths source texture.
          * @type {PIXI.BaseTexture}
          */
         baseTexture: PIXI.BaseTexture;
@@ -19749,9 +22128,16 @@ declare namespace PIXI {
         /**
          * Destroy Spritesheet and don't use after this.
          *
-         * @param {boolean} [destroyBase=false] Whether to destroy the base texture as well
+         * @param {boolean} [destroyBase=false] - Whether to destroy the base texture as well
          */
         destroy(destroyBase?: boolean): void;
+        /**
+         * The maximum number of Textures to build per process.
+         *
+         * @type {number}
+         * @default 1000
+         */
+        static BATCH_SIZE: number;
     }
     interface SpritesheetLoader extends PIXI.ILoaderPlugin {
     }
@@ -19826,11 +22212,21 @@ declare namespace PIXI {
          */
         _resolution: number;
         /**
+         * Renders text to its canvas, and updates its texture.
+         * By default this is used internally to ensure the texture is correct before rendering,
+         * but it can be used called externally, for example from this class to 'pre-generate' the texture from a piece of text,
+         * and then shared across multiple Sprites.
+         *
+         * @param {boolean} respectDirty - Whether to abort updating the text if the Text isn't dirty and the function is called.
+         */
+        updateText(respectDirty: boolean): void;
+        /**
          * Renders the object using the WebGL renderer
          *
+         * @protected
          * @param {PIXI.Renderer} renderer - The renderer
          */
-        render(renderer: PIXI.Renderer): void;
+        protected _render(renderer: PIXI.Renderer): void;
         /**
          * Gets the local bounds of the text object.
          *
@@ -19893,6 +22289,20 @@ declare namespace PIXI {
          */
         resolution: number;
         /**
+         * The width of the sprite (this is initially set by the texture)
+         *
+         * @protected
+         * @member {number} PIXI.Sprite#_width
+         */
+        protected _width: number;
+        /**
+         * The height of the sprite (this is initially set by the texture)
+         *
+         * @protected
+         * @member {number} PIXI.Sprite#_height
+         */
+        protected _height: number;
+        /**
          * The blend mode to be applied to the sprite. Apply a value of `PIXI.BLEND_MODES.NORMAL` to reset the blend mode.
          *
          * @member {number} PIXI.Sprite#blendMode
@@ -19900,12 +22310,6 @@ declare namespace PIXI {
          * @see PIXI.BLEND_MODES
          */
         blendMode: number;
-        /**
-         * The shader that will be used to render the sprite. Set to null to remove a current shader.
-         *
-         * @member {PIXI.Filter|PIXI.Shader} PIXI.Sprite#shader
-         */
-        shader: PIXI.Filter | PIXI.Shader;
         /**
          * Cached tint value so we can tell when the tint is changed.
          * Value is used for 2d CanvasRenderer.
@@ -19920,7 +22324,7 @@ declare namespace PIXI {
          * Allows to customize the rendering process without overriding '_render' & '_renderCanvas' methods.
          *
          * @member {string} PIXI.Sprite#pluginName
-         * @default 'sprite'
+         * @default 'batch'
          */
         pluginName: string;
         /**
@@ -19928,6 +22332,12 @@ declare namespace PIXI {
          * @member {boolean} PIXI.Sprite#isSprite
          */
         isSprite: boolean;
+        /**
+         * When the texture is updated, this event will fire to update the scale and frame
+         *
+         * @protected
+         */
+        protected _onTextureUpdate(): void;
         /**
          * calculates worldTransform * vertices, store it in vertexData
          */
@@ -19938,20 +22348,12 @@ declare namespace PIXI {
          */
         calculateTrimmedVertices(): void;
         /**
-         *
-         * Renders the object using the WebGL renderer
-         *
-         * @protected
-         * @param {PIXI.Renderer} renderer - The webgl renderer to use.
-         */
-        protected _render(renderer: PIXI.Renderer): void;
-        /**
          * Tests if a point is inside this sprite
          *
-         * @param {PIXI.Point} point - the point to test
+         * @param {PIXI.IPointData} point - the point to test
          * @return {boolean} the result of the test
          */
-        containsPoint(point: PIXI.Point): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         /**
          * If true PixiJS will Math.floor() x/y values when rendering, stopping pixel interpolation.
          * Advantages can include sharper image quality (like text) and faster rendering on canvas.
@@ -19963,14 +22365,14 @@ declare namespace PIXI {
          */
         roundPixels: boolean;
         /**
-         * The anchor sets the origin point of the text. The default value is taken from the {@link PIXI.Texture|Texture}
+         * The anchor sets the origin point of the sprite. The default value is taken from the {@link PIXI.Texture|Texture}
          * and passed to the constructor.
          *
-         * The default is `(0,0)`, this means the text's origin is the top left.
+         * The default is `(0,0)`, this means the sprite's origin is the top left.
          *
-         * Setting the anchor to `(0.5,0.5)` means the text's origin is centered.
+         * Setting the anchor to `(0.5,0.5)` means the sprite's origin is centered.
          *
-         * Setting the anchor to `(1,1)` would mean the text's origin point will be the bottom right corner.
+         * Setting the anchor to `(1,1)` would mean the sprite's origin point will be the bottom right corner.
          *
          * If you pass only single parameter, it will set both x and y to the same value as shown in the example below.
          *
@@ -19995,20 +22397,6 @@ declare namespace PIXI {
          * @member {PIXI.Texture}
          */
         texture: PIXI.Texture;
-        /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
         /**
          * The array of children of this container.
          *
@@ -20050,10 +22438,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -20061,7 +22449,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -20093,10 +22481,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -20126,12 +22514,26 @@ declare namespace PIXI {
          */
         calculateBounds(): void;
         /**
+         * Renders the object using the WebGL renderer
+         *
+         * @param {PIXI.Renderer} renderer - The renderer
+         */
+        render(renderer: PIXI.Renderer): void;
+        /**
          * Render the object using the WebGL renderer and advanced features.
          *
          * @protected
          * @param {PIXI.Renderer} renderer - The renderer
          */
         protected renderAdvanced(renderer: PIXI.Renderer): void;
+        /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
         /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
@@ -20143,12 +22545,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -20185,6 +22590,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -20219,9 +22651,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -20263,19 +22694,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -20284,10 +22747,10 @@ declare namespace PIXI {
          */
         protected _destroyed: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -20306,24 +22769,24 @@ declare namespace PIXI {
         /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -20346,6 +22809,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -20378,23 +22863,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -20449,9 +22934,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -20474,10 +22967,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -20629,6 +23122,49 @@ declare namespace PIXI {
          */
         static measureText(text: string, style: PIXI.TextStyle, wordWrap?: boolean, canvas?: HTMLCanvasElement): PIXI.TextMetrics;
         /**
+         * Overridable helper method used internally by TextMetrics, exposed to allow customizing the class's behavior.
+         *
+         * It allows one to customise which words should break
+         * Examples are if the token is CJK or numbers.
+         * It must return a boolean.
+         *
+         * @param  {string}  token       - The token
+         * @param  {boolean}  breakWords - The style attr break words
+         * @return {boolean} whether to break word or not
+         */
+        static canBreakWords(token: string, breakWords: boolean): boolean;
+        /**
+         * Overridable helper method used internally by TextMetrics, exposed to allow customizing the class's behavior.
+         *
+         * It allows one to determine whether a pair of characters
+         * should be broken by newlines
+         * For example certain characters in CJK langs or numbers.
+         * It must return a boolean.
+         *
+         * @param  {string}  char        - The character
+         * @param  {string}  nextChar    - The next character
+         * @param  {string}  token       - The token/word the characters are from
+         * @param  {number}  index       - The index in the token of the char
+         * @param  {boolean}  breakWords - The style attr break words
+         * @return {boolean} whether to break word or not
+         */
+        static canBreakChars(char: string, nextChar: string, token: string, index: number, breakWords: boolean): boolean;
+        /**
+         * Overridable helper method used internally by TextMetrics, exposed to allow customizing the class's behavior.
+         *
+         * It is called when a token (usually a word) has to be split into separate pieces
+         * in order to determine the point to break a word.
+         * It must return an array of characters.
+         *
+         * @example
+         * // Correctly splits emojis, eg "🤪🤪" will result in two element array, each with one emoji.
+         * TextMetrics.wordWrapSplit = (token) => [...token];
+         *
+         * @param  {string}  token - The token to split
+         * @return {string[]} The characters of the token
+         */
+        static wordWrapSplit(token: string): string[];
+        /**
          * Calculates the ascent, descent and fontSize of a given font-style
          *
          * @static
@@ -20713,7 +23249,7 @@ declare namespace PIXI {
             strokeThickness?: number;
             trim?: boolean;
             textBaseline?: string;
-            whiteSpace?: boolean;
+            whiteSpace?: string;
             wordWrap?: boolean;
             wordWrapWidth?: number;
         });
@@ -20944,6 +23480,287 @@ declare namespace PIXI {
         LINEAR_VERTICAL: number;
         LINEAR_HORIZONTAL: number;
     };
+    /**
+     * @memberof PIXI
+     * @interface IBitmapFontOptions
+     * @property {string | string[] | string[][]} [chars=PIXI.BitmapFont.ALPHANUMERIC] - the character set to generate
+     * @property {number} [resolution=1] - the resolution for rendering
+     * @property {number} [padding=4] - the padding between glyphs in the atlas
+     * @property {number} [textureWidth=512] - the width of the texture atlas
+     * @property {number} [textureHeight=512] - the height of the texture atlas
+     */
+    interface IBitmapFontOptions {
+    }
+    /**
+     * BitmapFont represents a typeface available for use with the BitmapText class. Use the `install`
+     * method for adding a font to be used.
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class BitmapFont {
+        constructor(data: PIXI.BitmapFontData, textures: PIXI.Texture[] | {
+            [key: string]: PIXI.Texture;
+        });
+        /**
+         * The name of the font face.
+         *
+         * @member {string} PIXI.BitmapFont#font
+         * @readonly
+         */
+        readonly font: string;
+        /**
+         * The size of the font face in pixels.
+         *
+         * @member {number} PIXI.BitmapFont#size
+         * @readonly
+         */
+        readonly size: number;
+        /**
+         * The line-height of the font face in pixels.
+         *
+         * @member {number} PIXI.BitmapFont#lineHeight
+         * @readonly
+         */
+        readonly lineHeight: number;
+        /**
+         * The map of characters by character code.
+         *
+         * @member {object} PIXI.BitmapFont#chars
+         * @readonly
+         */
+        readonly chars: any;
+        /**
+         * Remove references to created glyph textures.
+         */
+        destroy(): void;
+        /**
+         * Register a new bitmap font.
+         *
+         * @static
+         * @param {XMLDocument|string|PIXI.BitmapFontData} data - The
+         *        characters map that could be provided as xml or raw string.
+         * @param {Object.<string, PIXI.Texture>|PIXI.Texture|PIXI.Texture[]}
+         *        textures - List of textures for each page.
+         * @return {PIXI.BitmapFont} Result font object with font, size, lineHeight
+         *         and char fields.
+         */
+        static install(data: XMLDocument | string | PIXI.BitmapFontData, textures: {
+            [key: string]: PIXI.Texture;
+        } | PIXI.Texture | PIXI.Texture[]): PIXI.BitmapFont;
+        /**
+         * Remove bitmap font by name.
+         *
+         * @static
+         * @param {string} name
+         */
+        static uninstall(name: string): void;
+        /**
+         * Generates a bitmap-font for the given style and character set. This does not support
+         * kernings yet. With `style` properties, only the following non-layout properties are used:
+         *
+         * - {@link PIXI.TextStyle#dropShadow|dropShadow}
+         * - {@link PIXI.TextStyle#dropShadowDistance|dropShadowDistance}
+         * - {@link PIXI.TextStyle#dropShadowColor|dropShadowColor}
+         * - {@link PIXI.TextStyle#dropShadowBlur|dropShadowBlur}
+         * - {@link PIXI.TextStyle#dropShadowAngle|dropShadowAngle}
+         * - {@link PIXI.TextStyle#fill|fill}
+         * - {@link PIXI.TextStyle#fillGradientStops|fillGradientStops}
+         * - {@link PIXI.TextStyle#fillGradientType|fillGradientType}
+         * - {@link PIXI.TextStyle#fontFamily|fontFamily}
+         * - {@link PIXI.TextStyle#fontSize|fontSize}
+         * - {@link PIXI.TextStyle#fontVariant|fontVariant}
+         * - {@link PIXI.TextStyle#fontWeight|fontWeight}
+         * - {@link PIXI.TextStyle#lineJoin|lineJoin}
+         * - {@link PIXI.TextStyle#miterLimit|miterLimit}
+         * - {@link PIXI.TextStyle#stroke|stroke}
+         * - {@link PIXI.TextStyle#strokeThickness|strokeThickness}
+         * - {@link PIXI.TextStyle#textBaseline|textBaseline}
+         *
+         * @param {string} name - The name of the custom font to use with BitmapText.
+         * @param {object|PIXI.TextStyle} [style] - Style options to render with BitmapFont.
+         * @param {PIXI.IBitmapFontOptions} [options] - Setup options for font or name of the font.
+         * @param {string|string[]|string[][]} [options.chars=PIXI.BitmapFont.ALPHANUMERIC] - characters included
+         *      in the font set. You can also use ranges. For example, `[['a', 'z'], ['A', 'Z'], "!@#$%^&*()~{}[] "]`.
+         *      Don't forget to include spaces ' ' in your character set!
+         * @param {number} [options.resolution=1] - Render resolution for glyphs.
+         * @param {number} [options.textureWidth=512] - Optional width of atlas, smaller values to reduce memory.
+         * @param {number} [options.textureHeight=512] - Optional height of atlas, smaller values to reduce memory.
+         * @param {number} [options.padding=4] - Padding between glyphs on texture atlas.
+         * @return {PIXI.BitmapFont} Font generated by style options.
+         * @static
+         * @example
+         * PIXI.BitmapFont.from("TitleFont", {
+         *     fontFamily: "Arial",
+         *     fontSize: 12,
+         *     strokeThickness: 2,
+         *     fill: "purple"
+         * });
+         *
+         * const title = new PIXI.BitmapText("This is the title", { fontName: "TitleFont" });
+         */
+        static from(name: string, style?: any | PIXI.TextStyle, options?: {
+            chars?: string | string[] | string[][];
+            resolution?: number;
+            textureWidth?: number;
+            textureHeight?: number;
+            padding?: number;
+        }): PIXI.BitmapFont;
+        /**
+         * This character set includes all the letters in the alphabet (both lower- and upper- case).
+         * @readonly
+         * @static
+         * @member {string[][]}
+         * @example
+         * BitmapFont.from("ExampleFont", style, { chars: BitmapFont.ALPHA })
+         */
+        static readonly ALPHA: string[][];
+        /**
+         * This character set includes all decimal digits (from 0 to 9).
+         * @readonly
+         * @static
+         * @member {string[][]}
+         * @example
+         * BitmapFont.from("ExampleFont", style, { chars: BitmapFont.NUMERIC })
+         */
+        static readonly NUMERIC: string[][];
+        /**
+         * This character set is the union of `BitmapFont.ALPHA` and `BitmapFont.NUMERIC`.
+         * @readonly
+         * @static
+         * @member {string[][]}
+         */
+        static readonly ALPHANUMERIC: string[][];
+        /**
+         * This character set consists of all the ASCII table.
+         * @readonly
+         * @static
+         * @member {string[][]}
+         * @see http://www.asciitable.com/
+         */
+        static readonly ASCII: string[][];
+        /**
+         * Collection of default options when using `BitmapFont.from`.
+         *
+         * @readonly
+         * @static
+         * @member {PIXI.IBitmapFontOptions}
+         * @property {number} resolution=1
+         * @property {number} textureWidth=512
+         * @property {number} textureHeight=512
+         * @property {number} padding=4
+         * @property {string|string[]|string[][]} chars=PIXI.BitmapFont.ALPHANUMERIC
+         */
+        static readonly defaultOptions: PIXI.IBitmapFontOptions;
+        /**
+         * Collection of available/installed fonts.
+         *
+         * @readonly
+         * @static
+         * @member {Object.<string, PIXI.BitmapFont>}
+         */
+        static readonly available: {
+            [key: string]: PIXI.BitmapFont;
+        };
+    }
+    /**
+     * @memberof PIXI
+     * @typedef {object} IBitmapFontDataInfo
+     * @property {string} face
+     * @property {number} size
+     */
+    type IBitmapFontDataInfo = {
+        face: string;
+        size: number;
+    };
+    /**
+     * @memberof PIXI
+     * @typedef {object} IBitmapFontDataCommon
+     * @property {number} lineHeight
+     */
+    type IBitmapFontDataCommon = {
+        lineHeight: number;
+    };
+    /**
+     * @memberof PIXI
+     * @typedef {object} IBitmapFontDataPage
+     * @property {number} id
+     * @property {string} file
+     */
+    type IBitmapFontDataPage = {
+        id: number;
+        file: string;
+    };
+    /**
+     * @memberof PIXI
+     * @typedef {object} IBitmapFontDataChar
+     * @property {string} id
+     * @property {number} page
+     * @property {number} x
+     * @property {number} y
+     * @property {number} width
+     * @property {number} height
+     * @property {number} xoffset
+     * @property {number} yoffset
+     * @property {number} xadvance
+     */
+    type IBitmapFontDataChar = {
+        id: string;
+        page: number;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        xoffset: number;
+        yoffset: number;
+        xadvance: number;
+    };
+    /**
+     * @memberof PIXI
+     * @typedef {object} IBitmapFontDataKerning
+     * @property {number} first
+     * @property {number} second
+     * @property {number} amount
+     */
+    type IBitmapFontDataKerning = {
+        first: number;
+        second: number;
+        amount: number;
+    };
+    /**
+     * Normalized parsed data from .fnt files.
+     *
+     * @class
+     * @memberof PIXI
+     */
+    class BitmapFontData {
+        constructor();
+        /**
+         * @member {PIXI.IBitmapFontDataInfo[]} PIXI.BitmapFontData#info
+         * @readOnly
+         */
+        readonly info: PIXI.IBitmapFontDataInfo[];
+        /**
+         * @member {PIXI.IBitmapFontDataCommon[]} PIXI.BitmapFontData#common
+         * @readOnly
+         */
+        readonly common: PIXI.IBitmapFontDataCommon[];
+        /**
+         * @member {PIXI.IBitmapFontDataPage[]} PIXI.BitmapFontData#page
+         * @readOnly
+         */
+        readonly page: PIXI.IBitmapFontDataPage[];
+        /**
+         * @member {PIXI.IBitmapFontDataChar[]} PIXI.BitmapFontData#char
+         * @readOnly
+         */
+        readonly char: PIXI.IBitmapFontDataChar[];
+        /**
+         * @member {PIXI.IBitmapFontDataKerning[]} PIXI.BitmapFontData#kerning
+         * @readOnly
+         */
+        readonly kerning: PIXI.IBitmapFontDataKerning[];
+    }
     interface BitmapFontLoader extends PIXI.ILoaderPlugin {
     }
     /**
@@ -20954,13 +23771,6 @@ declare namespace PIXI {
      * @implements PIXI.ILoaderPlugin
      */
     class BitmapFontLoader implements PIXI.ILoaderPlugin {
-        /**
-         * Register a BitmapText font from loader resource.
-         *
-         * @param {PIXI.LoaderResource} resource - Loader resource.
-         * @param {PIXI.Texture} texture - Reference to texture.
-         */
-        static parse(resource: PIXI.LoaderResource, texture: PIXI.Texture): void;
         /**
          * Called when the plugin is installed.
          *
@@ -20981,12 +23791,11 @@ declare namespace PIXI {
      * The primary advantage of this class over Text is that all of your textures are pre-generated and loading,
      * meaning that rendering is fast, and changing text has no performance implications.
      *
-     * The primary disadvantage is that you need to preload the bitmap font assets, and thus the styling is set in stone.
      * Supporting character sets other than latin, such as CJK languages, may be impractical due to the number of characters.
      *
      * To split a line you can use '\n', '\r' or '\r\n' in your string.
      *
-     * You can generate the fnt files using
+     * PixiJS can auto-generate fonts on-the-fly using BitmapFont or use fnt files provided by:
      * http://www.angelcode.com/products/bmfont/ for Windows or
      * http://www.bmglyph.com/ for Mac.
      *
@@ -21003,19 +23812,13 @@ declare namespace PIXI {
      */
     class BitmapText extends PIXI.Container {
         constructor(text: string, style: {
-            font: {
-                name?: string;
-                size?: number;
-            };
+            fontName: string;
+            fontSize?: number;
             align?: string;
             tint?: number;
+            letterSpacing?: number;
+            maxWidth?: number;
         });
-        /**
-         * The dirty state of this object.
-         *
-         * @member {boolean} PIXI.BitmapText#dirty
-         */
-        dirty: boolean;
         /**
          * If true PixiJS will Math.floor() x/y values when rendering, stopping pixel interpolation.
          * Advantages can include sharper image quality (like text) and faster rendering on canvas.
@@ -21023,9 +23826,20 @@ declare namespace PIXI {
          * To set the global default, change {@link PIXI.settings.ROUND_PIXELS}
          *
          * @member {boolean} PIXI.BitmapText#roundPixels
-         * @default false
+         * @default PIXI.settings.ROUND_PIXELS
          */
         roundPixels: boolean;
+        /**
+         * Set to `true` if the BitmapText needs to be redrawn.
+         *
+         * @member {boolean} PIXI.BitmapText#dirty
+         */
+        dirty: boolean;
+        /**
+         * Renders text and updates it when needed. This should only be called
+         * if the BitmapFont is regenerated.
+         */
+        updateText(): void;
         /**
          * Validates text before calling parent's getLocalBounds
          *
@@ -21036,6 +23850,7 @@ declare namespace PIXI {
          * The tint of the BitmapText object.
          *
          * @member {number}
+         * @default 0xffffff
          */
         tint: number;
         /**
@@ -21045,6 +23860,18 @@ declare namespace PIXI {
          * @default 'left'
          */
         align: string;
+        /**
+         * The name of the BitmapFont.
+         *
+         * @member {string}
+         */
+        fontName: string;
+        /**
+         * The size of the font to display.
+         *
+         * @member {number}
+         */
+        fontSize: number;
         /**
          * The anchor sets the origin point of the text.
          *
@@ -21057,12 +23884,6 @@ declare namespace PIXI {
          * @member {PIXI.Point | number}
          */
         anchor: PIXI.Point | number;
-        /**
-         * The font descriptor of the BitmapText object.
-         *
-         * @member {object}
-         */
-        font: any;
         /**
          * The text of the BitmapText object.
          *
@@ -21110,29 +23931,23 @@ declare namespace PIXI {
         /**
          * Register a bitmap font with data and a texture.
          *
+         * @deprecated since 5.3.0
+         * @see PIXI.BitmapFont.install
          * @static
-         * @param {XMLDocument} xml - The XML document data.
-         * @param {Object.<string, PIXI.Texture>|PIXI.Texture|PIXI.Texture[]} textures - List of textures for each page.
-         *  If providing an object, the key is the `<page>` element's `file` attribute in the FNT file.
-         * @return {Object} Result font object with font, size, lineHeight and char fields.
          */
-        static registerFont(xml: XMLDocument, textures: {
-            [key: string]: PIXI.Texture;
-        } | PIXI.Texture | PIXI.Texture[]): any;
+        static registerFont(): void;
         /**
-         * @method PIXI.Container#renderWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#render
-         * @param {PIXI.Renderer} renderer Instance of renderer
+         * Get the list of installed fonts.
+         *
+         * @see PIXI.BitmapFont.available
+         * @deprecated since 5.3.0
+         * @static
+         * @readonly
+         * @member {Object.<string, PIXI.BitmapFont>}
          */
-        renderWebGL(renderer: PIXI.Renderer): void;
-        /**
-         * @method PIXI.Container#renderAdvancedWebGL
-         * @deprecated since 5.0.0
-         * @see PIXI.Container#renderAdvanced
-         * @param {PIXI.Renderer} renderer Instance of renderer
-         */
-        renderAdvancedWebGL(renderer: PIXI.Renderer): void;
+        static readonly fonts: {
+            [key: string]: PIXI.BitmapFont;
+        };
         /**
          * The array of children of this container.
          *
@@ -21174,10 +23989,10 @@ declare namespace PIXI {
          *
          * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to add to the container
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to add to the container
          * @return {PIXI.DisplayObject} The first child that was added.
          */
-        addChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        addChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
          *
@@ -21185,7 +24000,7 @@ declare namespace PIXI {
          * @param {number} index - The index to place the child in
          * @return {PIXI.DisplayObject} The child that was added.
          */
-        addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+        addChildAt<T extends PIXI.DisplayObject>(child: T, index: number): T;
         /**
          * Swaps the position of 2 Display Objects within this container.
          *
@@ -21217,10 +24032,10 @@ declare namespace PIXI {
         /**
          * Removes one or more children from the container.
          *
-         * @param {...PIXI.DisplayObject} child - The DisplayObject(s) to remove
+         * @param {...PIXI.DisplayObject} children - The DisplayObject(s) to remove
          * @return {PIXI.DisplayObject} The first child that was removed.
          */
-        removeChild(...child: PIXI.DisplayObject[]): PIXI.DisplayObject;
+        removeChild<TChildren extends PIXI.DisplayObject[]>(...children: TChildren): TChildren[0];
         /**
          * Removes a child from the specified index position.
          *
@@ -21303,6 +24118,14 @@ declare namespace PIXI {
          */
         height: number;
         /**
+         * Container default updateTransform, does update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.Container#
+         * @function containerUpdateTransform
+         */
+        containerUpdateTransform(): void;
+        /**
          * Determines if the children to the displayObject can be clicked/touched
          * Setting this to false allows PixiJS to bypass a recursive `hitTest` function
          *
@@ -21313,12 +24136,15 @@ declare namespace PIXI {
         /**
          * Returns the display object in the container.
          *
+         * Recursive searches are done in a preorder traversal.
+         *
          * @method getChildByName
          * @memberof PIXI.Container#
          * @param {string} name - Instance name.
+         * @param {boolean}[deep=false] - Whether to search recursively
          * @return {PIXI.DisplayObject} The child with the specified name.
          */
-        getChildByName(name: string): PIXI.DisplayObject;
+        getChildByName(name: string, deep?: boolean): PIXI.DisplayObject;
         /**
          *  Flag for if the object is accessible. If true AccessibilityManager will overlay a
          *   shadow div with attributes set
@@ -21355,6 +24181,33 @@ declare namespace PIXI {
          */
         _accessibleDiv: boolean;
         /**
+         * Specify the type of div the accessible layer is. Screen readers treat the element differently
+         * depending on this type. Defaults to button.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'button'
+         */
+        accessibleType: string;
+        /**
+         * Specify the pointer-events the accessible div will use
+         * Defaults to auto.
+         *
+         * @member {string}
+         * @memberof PIXI.DisplayObject#
+         * @default 'auto'
+         */
+        accessiblePointerEvents: string;
+        /**
+         * Setting to false will prevent any children inside this container to
+         * be accessible. Defaults to true.
+         *
+         * @member {boolean}
+         * @memberof PIXI.DisplayObject#
+         * @default true
+         */
+        accessibleChildren: boolean;
+        /**
          * World transform and local transform of this object.
          * This will become read-only later, please do not assign anything there unless you know what are you doing.
          *
@@ -21389,9 +24242,8 @@ declare namespace PIXI {
          * The display object container that contains this display object.
          *
          * @member {PIXI.Container} PIXI.DisplayObject#parent
-         * @readonly
          */
-        readonly parent: PIXI.Container;
+        parent: PIXI.Container;
         /**
          * The multiplied alpha of the displayObject.
          *
@@ -21433,19 +24285,51 @@ declare namespace PIXI {
          */
         filters: PIXI.Filter[];
         /**
+         * Currently enabled filters
+         * @member {PIXI.Filter[]} PIXI.DisplayObject#_enabledFilters
+         * @protected
+         */
+        protected _enabledFilters: PIXI.Filter[];
+        /**
          * The bounds object, this is used to calculate and store the bounds of the displayObject.
          *
          * @member {PIXI.Bounds} PIXI.DisplayObject#_bounds
+         */
+        _bounds: PIXI.Bounds;
+        /**
+         * Local bounds object, swapped with `_bounds` when using `getLocalBounds()`.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBounds
+         */
+        _localBounds: PIXI.Bounds;
+        /**
+         * Flags the cached bounds as dirty.
+         *
+         * @member {number} PIXI.DisplayObject#_boundsID
          * @protected
          */
-        protected _bounds: PIXI.Bounds;
+        protected _boundsID: number;
+        /**
+         * Cache of this display-object's bounds-rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_boundsRect
+         * @protected
+         */
+        protected _boundsRect: PIXI.Bounds;
+        /**
+         * Cache of this display-object's local-bounds rectangle.
+         *
+         * @member {PIXI.Bounds} PIXI.DisplayObject#_localBoundsRect
+         * @protected
+         */
+        protected _localBoundsRect: PIXI.Bounds;
         /**
          * The original, cached mask of the object.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite} PIXI.DisplayObject#_mask
+         * @member {PIXI.Container|PIXI.MaskData|null} PIXI.DisplayObject#_mask
          * @protected
          */
-        protected _mask: PIXI.Graphics | PIXI.Sprite;
+        protected _mask: PIXI.Container | PIXI.MaskData | null;
         /**
          * If the object has been destroyed via destroy(). If true, it should not be used.
          *
@@ -21459,10 +24343,10 @@ declare namespace PIXI {
          */
         isSprite: boolean;
         /**
-         * @protected
-         * @member {PIXI.DisplayObject}
+         * Does any other displayObject use this object as a mask?
+         * @member {boolean} PIXI.DisplayObject#isMask
          */
-        protected _tempDisplayObjectParent: PIXI.DisplayObject;
+        isMask: boolean;
         /**
          * Recursively updates transform of all objects from the root to this one
          * internal function for toLocal()
@@ -21481,24 +24365,24 @@ declare namespace PIXI {
         /**
          * Calculates the global position of the display object.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform.
-         * @return {PIXI.IPoint} A point object representing the position of this object.
+         * @return {PIXI.Point} A point object representing the position of this object.
          */
-        toGlobal(position: PIXI.IPoint, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toGlobal(position: PIXI.IPointData, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Calculates the local position of the display object relative to another point.
          *
-         * @param {PIXI.IPoint} position - The world origin to calculate from.
+         * @param {PIXI.IPointData} position - The world origin to calculate from.
          * @param {PIXI.DisplayObject} [from] - The DisplayObject to calculate the global position from.
-         * @param {PIXI.IPoint} [point] - A Point object in which to store the value, optional
+         * @param {PIXI.Point} [point] - A Point object in which to store the value, optional
          *  (otherwise will create a new Point).
          * @param {boolean} [skipUpdate=false] - Should we skip the update transform
-         * @return {PIXI.IPoint} A point object representing the position of this object
+         * @return {PIXI.Point} A point object representing the position of this object
          */
-        toLocal(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: PIXI.IPoint, skipUpdate?: boolean): PIXI.IPoint;
+        toLocal(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: PIXI.Point, skipUpdate?: boolean): PIXI.Point;
         /**
          * Set the parent Container of this DisplayObject.
          *
@@ -21521,6 +24405,28 @@ declare namespace PIXI {
          * @return {PIXI.DisplayObject} The DisplayObject instance
          */
         setTransform(x?: number, y?: number, scaleX?: number, scaleY?: number, rotation?: number, skewX?: number, skewY?: number, pivotX?: number, pivotY?: number): PIXI.DisplayObject;
+        /**
+         * @protected
+         * @member {PIXI.Container}
+         */
+        protected _tempDisplayObjectParent: PIXI.Container;
+        /**
+         * Used in Renderer, cacheAsBitmap and other places where you call an `updateTransform` on root
+         *
+         * ```
+         * const cacheParent = elem.enableTempParent();
+         * elem.updateTransform();
+         * elem.disableTempParent(cacheParent);
+         * ```
+         *
+         * @returns {PIXI.DisplayObject} current parent
+         */
+        enableTempParent(): PIXI.DisplayObject;
+        /**
+         * Pair method for `enableTempParent`
+         * @param {PIXI.DisplayObject} cacheParent actual parent of element
+         */
+        disableTempParent(cacheParent: PIXI.DisplayObject): void;
         /**
          * The position of the displayObject on the x axis relative to the local coordinates of the parent.
          * An alias to position.x
@@ -21553,23 +24459,23 @@ declare namespace PIXI {
          * The coordinate of the object relative to the local coordinates of the parent.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        position: PIXI.IPoint;
+        position: PIXI.ObservablePoint;
         /**
          * The scale factor of the object.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        scale: PIXI.IPoint;
+        scale: PIXI.ObservablePoint;
         /**
          * The pivot point of the displayObject that it rotates around.
          * Assignment by value since pixi-v4.
          *
-         * @member {PIXI.IPoint}
+         * @member {PIXI.ObservablePoint}
          */
-        pivot: PIXI.IPoint;
+        pivot: PIXI.ObservablePoint;
         /**
          * The skew factor for the object in radians.
          * Assignment by value since pixi-v4.
@@ -21624,9 +24530,17 @@ declare namespace PIXI {
          * sprite.mask = graphics;
          * @todo At the moment, PIXI.CanvasRenderer doesn't support PIXI.Sprite as mask.
          *
-         * @member {PIXI.Graphics|PIXI.Sprite}
+         * @member {PIXI.Container|PIXI.MaskData|null}
          */
-        mask: PIXI.Graphics | PIXI.Sprite;
+        mask: PIXI.Container | PIXI.MaskData | null;
+        /**
+         * DisplayObject default updateTransform, does not update children of container.
+         * Will crash if there's no parent element.
+         *
+         * @memberof PIXI.DisplayObject#
+         * @function displayObjectUpdateTransform
+         */
+        displayObjectUpdateTransform(): void;
         /**
          * Enable interaction events for the DisplayObject. Touch, pointer and mouse
          * events will not be emitted unless `interactive` is set to `true`.
@@ -21649,10 +24563,10 @@ declare namespace PIXI {
          * const sprite = new PIXI.Sprite(texture);
          * sprite.interactive = true;
          * sprite.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
-         * @member {PIXI.Rectangle|PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.RoundedRectangle}
+         * @member {PIXI.IHitArea}
          * @memberof PIXI.DisplayObject#
          */
-        hitArea: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle;
+        hitArea: PIXI.IHitArea;
         /**
          * If enabled, the mouse cursor use the pointer behavior when hovered over the displayObject if it is interactive
          * Setting this changes the 'cursor' property to `'pointer'`.
@@ -21830,6 +24744,13 @@ declare namespace PIXI {
          */
         remove(fn: (...params: any[]) => any, context?: any): PIXI.Ticker;
         /**
+         * The number of listeners on this ticker, calculated by walking through linked list
+         *
+         * @readonly
+         * @member {number}
+         */
+        readonly count: number;
+        /**
          * Starts the ticker. If the ticker has listeners
          * a new animation frame is requested at this point.
          */
@@ -21882,14 +24803,14 @@ declare namespace PIXI {
          */
         minFPS: number;
         /**
-         * Manages the minimum amount of milliseconds allowed to
+         * Manages the minimum amount of milliseconds required to
          * elapse between invoking {@link PIXI.Ticker#update}.
          * This will effect the measured value of {@link PIXI.Ticker#FPS}.
-         * When setting this property it is clamped to a value between
-         * `1` and `TARGET_FPMS * 1000`.
+         * If it is set to `0`, then there is no limit; PixiJS will render as many frames as it can.
+         * Otherwise it will be at least `minFPS`
          *
          * @member {number}
-         * @default 60
+         * @default 0
          */
         maxFPS: number;
         /**
@@ -21937,7 +24858,7 @@ declare namespace PIXI {
          */
         static shared: PIXI.Ticker;
         /**
-         * The system ticker instance used by {@link PIXI.interaction.InteractionManager} and by
+         * The system ticker instance used by {@link PIXI.InteractionManager} and by
          * {@link PIXI.BasePrepare} for core timing functionality that shouldn't usually need to be paused,
          * unlike the `shared` ticker which drives visual animations and rendering which may want to be paused.
          *
@@ -21970,20 +24891,20 @@ declare namespace PIXI {
      * @constant
      * @name UPDATE_PRIORITY
      * @memberof PIXI
-     * @type {object}
-     * @property {number} INTERACTION=50 Highest priority, used for {@link PIXI.interaction.InteractionManager}
+     * @enum {number}
+     * @property {number} INTERACTION=50 Highest priority, used for {@link PIXI.InteractionManager}
      * @property {number} HIGH=25 High priority updating, {@link PIXI.VideoBaseTexture} and {@link PIXI.AnimatedSprite}
      * @property {number} NORMAL=0 Default priority for ticker events, see {@link PIXI.Ticker#add}.
      * @property {number} LOW=-25 Low priority used for {@link PIXI.Application} rendering.
-     * @property {number} UTILITY=-50 Lowest priority used for {@link PIXI.prepare.BasePrepare} utility.
+     * @property {number} UTILITY=-50 Lowest priority used for {@link PIXI.BasePrepare} utility.
      */
-    var UPDATE_PRIORITY: {
-        INTERACTION: number;
-        HIGH: number;
-        NORMAL: number;
-        LOW: number;
-        UTILITY: number;
-    };
+    enum UPDATE_PRIORITY {
+        INTERACTION,
+        HIGH,
+        NORMAL,
+        LOW,
+        UTILITY
+    }
     /**
      * Regexp for data URI.
      * Based on: {@link https://github.com/ragingwind/data-uri-regex}
@@ -22014,36 +24935,6 @@ declare namespace PIXI {
      */
     namespace utils {
         /**
-         * @function PIXI.utils.getSvgSize
-         * @see PIXI.resources.SVGResource.getSize
-         * @deprecated since 5.0.0
-         */
-        function getSvgSize(): void;
-        /**
-         * @namespace PIXI.utils.mixins
-         * @deprecated since 5.0.0
-         */
-        namespace mixins {
-            /**
-             * @memberof PIXI.utils.mixins
-             * @function mixin
-             * @deprecated since 5.0.0
-             */
-            function mixin(): void;
-            /**
-             * @memberof PIXI.utils.mixins
-             * @function delayMixin
-             * @deprecated since 5.0.0
-             */
-            function delayMixin(): void;
-            /**
-             * @memberof PIXI.utils.mixins
-             * @function performMixins
-             * @deprecated since 5.0.0
-             */
-            function performMixins(): void;
-        }
-        /**
          * Skips the hello message of renderers that are created after this is run.
          *
          * @function skipHello
@@ -22053,7 +24944,7 @@ declare namespace PIXI {
         /**
          * Logs out the version and renderer information for this running instance of PIXI.
          * If you don't want to see this message you can run `PIXI.utils.skipHello()` before
-         * creating your renderer. Keep in mind that doing that will forever makes you a jerk face.
+         * creating your renderer. Keep in mind that doing that will forever make you a jerk face.
          *
          * @static
          * @function sayHello
@@ -22077,7 +24968,7 @@ declare namespace PIXI {
          * @memberof PIXI.utils
          * @function hex2rgb
          * @param {number} hex - The hexadecimal number to convert
-         * @param  {number[]} [out=[]] If supplied, this array will be used rather than returning a new one
+         * @param  {number[]} [out=[]] - If supplied, this array will be used rather than returning a new one
          * @return {number[]} An array representing the [R, G, B] of the color where all values are floats.
          */
         function hex2rgb(hex: number, out?: number[]): number[];
@@ -22099,10 +24990,10 @@ declare namespace PIXI {
          * PIXI.utils.string2hex("#ffffff"); // returns 0xffffff
          * @memberof PIXI.utils
          * @function string2hex
-         * @param {string} The string color (e.g., `"#ffffff"`)
+         * @param {string} string - The string color (e.g., `"#ffffff"`)
          * @return {number} Number in hexadecimal.
          */
-        function string2hex(The: string): number;
+        function string2hex(string: string): number;
         /**
          * Converts a color as an [R, G, B] array of normalized floats to a hexadecimal number.
          *
@@ -22126,8 +25017,8 @@ declare namespace PIXI {
          *
          * @memberof PIXI.utils
          * @function correctBlendMode
-         * @param {number} blendMode supposed blend mode
-         * @param {boolean} premultiplied  whether source is premultiplied
+         * @param {number} blendMode - supposed blend mode
+         * @param {boolean} premultiplied - whether source is premultiplied
          * @returns {number} true blend mode for this texture
          */
         function correctBlendMode(blendMode: number, premultiplied: boolean): number;
@@ -22136,10 +25027,10 @@ declare namespace PIXI {
          *
          * @memberof PIXI.utils
          * @function premultiplyRgba
-         * @param {Float32Array|number[]} rgb input rgb
-         * @param {number} alpha alpha param
-         * @param {Float32Array} [out] output
-         * @param {boolean} [premultiply=true] do premultiply it
+         * @param {Float32Array|number[]} rgb - input rgb
+         * @param {number} alpha - alpha param
+         * @param {Float32Array} [out] - output
+         * @param {boolean} [premultiply=true] - do premultiply it
          * @returns {Float32Array} vec4 rgba
          */
         function premultiplyRgba(rgb: Float32Array | number[], alpha: number, out?: Float32Array, premultiply?: boolean): Float32Array;
@@ -22148,8 +25039,8 @@ declare namespace PIXI {
          *
          * @memberof PIXI.utils
          * @function premultiplyTint
-         * @param {number} tint integer RGB
-         * @param {number} alpha floating point alpha (0.0-1.0)
+         * @param {number} tint - integer RGB
+         * @param {number} alpha - floating point alpha (0.0-1.0)
          * @returns {number} tint multiplied by alpha
          */
         function premultiplyTint(tint: number, alpha: number): number;
@@ -22158,37 +25049,47 @@ declare namespace PIXI {
          *
          * @memberof PIXI.utils
          * @function premultiplyTintToRgba
-         * @param {number} tint input tint
-         * @param {number} alpha alpha param
+         * @param {number} tint - input tint
+         * @param {number} alpha - alpha param
          * @param {Float32Array} [out] output
-         * @param {boolean} [premultiply=true] do premultiply it
+         * @param {boolean} [premultiply=true] - do premultiply it
          * @returns {Float32Array} vec4 rgba
          */
         function premultiplyTintToRgba(tint: number, alpha: number, out?: Float32Array, premultiply?: boolean): Float32Array;
         /**
-         * Rounds to next power of two.
+         * Generic Mask Stack data structure
          *
-         * @function isPow2
          * @memberof PIXI.utils
-         * @param {number} v input value
-         * @return {number}
+         * @function createIndicesForQuads
+         * @param {number} size - Number of quads
+         * @param {Uint16Array|Uint32Array} [outBuffer] - Buffer for output, length has to be `6 * size`
+         * @return {Uint16Array|Uint32Array} - Resulting index buffer
          */
-        function isPow2(v: number): number;
+        function createIndicesForQuads(size: number, outBuffer?: Uint16Array | Uint32Array): Uint16Array | Uint32Array;
         /**
          * Rounds to next power of two.
          *
-         * @function isPow2
+         * @function nextPow2
          * @memberof PIXI.utils
-         * @param {number} v input value
+         * @param {number} v - input value
          * @return {number}
          */
-        function isPow2(v: number): number;
+        function nextPow2(v: number): number;
+        /**
+         * Checks if a number is a power of two.
+         *
+         * @function isPow2
+         * @memberof PIXI.utils
+         * @param {number} v - input value
+         * @return {boolean} `true` if value is power of two
+         */
+        function isPow2(v: number): boolean;
         /**
          * Computes ceil of log base 2
          *
          * @function log2
          * @memberof PIXI.utils
-         * @param {number} v input value
+         * @param {number} v - input value
          * @return {number} logarithm base 2
          */
         function log2(v: number): number;
@@ -22197,9 +25098,9 @@ declare namespace PIXI {
          *
          * @function removeItems
          * @memberof PIXI.utils
-         * @param {Array<any>} arr Array to remove elements from
-         * @param {number} startIdx starting index
-         * @param {number} removeCount how many to remove
+         * @param {Array<any>} arr - Array to remove elements from
+         * @param {number} startIdx - starting index
+         * @param {number} removeCount - how many to remove
          */
         function removeItems(arr: any[], startIdx: number, removeCount: number): void;
         /**
@@ -22294,7 +25195,7 @@ declare namespace PIXI {
          * @function earcut
          * @param {number[]} vertices - A flat array of vertex coordinates
          * @param {number[]} [holes] - An array of hole indices
-         * @param {number} [dimensions=2] The number of coordinates per vertex in the input array
+         * @param {number} [dimensions=2] - The number of coordinates per vertex in the input array
          * @return {number[]} Triangulated polygon
          */
         function earcut(vertices: number[], holes?: number[], dimensions?: number): number[];
@@ -22417,21 +25318,40 @@ declare namespace PIXI {
          */
         function trimCanvas(canvas: HTMLCanvasElement): any;
         /**
-         * Typedef for decomposeDataUri return object.
-         *
          * @memberof PIXI.utils
-         * @typedef {object} DecomposedDataUri
-         * @property {string} mediaType Media type, eg. `image`
-         * @property {string} subType Sub type, eg. `png`
-         * @property {string} encoding Data encoding, eg. `base64`
-         * @property {string} data The actual data
+         * @interface DecomposedDataUri
          */
-        type DecomposedDataUri = {
+        interface DecomposedDataUri {
+            /**
+             * type, eg. `image`
+             * @memberof PIXI.utils.DecomposedDataUri#
+             * @member {string} mediaType
+             */
             mediaType: string;
+            /**
+             * Sub type, eg. `png`
+             * @memberof PIXI.utils.DecomposedDataUri#
+             * @member {string} subType
+             */
             subType: string;
+            /**
+             * @memberof PIXI.utils.DecomposedDataUri#
+             * @member {string} charset
+             */
+            charset: string;
+            /**
+             * Data encoding, eg. `base64`
+             * @memberof PIXI.utils.DecomposedDataUri#
+             * @member {string} encoding
+             */
             encoding: string;
+            /**
+             * The actual data
+             * @memberof PIXI.utils.DecomposedDataUri#
+             * @member {string} data
+             */
             data: string;
-        };
+        }
         /**
          * Split a data URI into components. Returns undefined if
          * parameter `dataUri` is not a valid data URI.
@@ -22460,6 +25380,12 @@ declare namespace PIXI {
  * @interface SharedArrayBuffer
  */
 declare interface SharedArrayBuffer {
+}
+
+/**
+ * @interface OffscreenCanvas
+ */
+declare interface OffscreenCanvas {
 }
 
 
@@ -22556,21 +25482,31 @@ declare namespace PIXI {
         }
     }
 
-    namespace interaction {
-        type InteractionPointerEvents = "pointerdown" | "pointercancel" | "pointerup" | "pointertap" | "pointerupoutside" | "pointermove" | "pointerover" | "pointerout";
-        type InteractionTouchEvents = "touchstart" | "touchcancel" | "touchend" | "touchendoutside" | "touchmove" | "tap";
-        type InteractionMouseEvents = "rightdown" | "mousedown" | "rightup" | "mouseup" | "rightclick" | "click" | "rightupoutside" | "mouseupoutside" | "mousemove" | "mouseover" | "mouseout" | "mouseover";
-        type InteractionPixiEvents = "added" | "removed";
-        type InteractionEventTypes = InteractionPointerEvents | InteractionTouchEvents | InteractionMouseEvents | InteractionPixiEvents;
-    }
+
+    type InteractionPointerEvents = "pointerdown" | "pointercancel" | "pointerup" | "pointertap" | "pointerupoutside" | "pointermove" | "pointerover" | "pointerout";
+    type InteractionTouchEvents = "touchstart" | "touchcancel" | "touchend" | "touchendoutside" | "touchmove" | "tap";
+    type InteractionMouseEvents = "rightdown" | "mousedown" | "rightup" | "mouseup" | "rightclick" | "click" | "rightupoutside" | "mouseupoutside" | "mousemove" | "mouseover" | "mouseout";
+    type InteractionPixiEvents = "added" | "removed";
+    type InteractionEventTypes = InteractionPointerEvents | InteractionTouchEvents | InteractionMouseEvents | InteractionPixiEvents;
 
     export interface DisplayObject {
-        on(event: interaction.InteractionEventTypes, fn: (event: interaction.InteractionEvent) => void, context?: any): this;
-        once(event: interaction.InteractionEventTypes, fn: (event: interaction.InteractionEvent) => void, context?: any): this;
-        removeListener(event: interaction.InteractionEventTypes, fn?: (event: interaction.InteractionEvent) => void, context?: any): this;
-        removeAllListeners(event?: interaction.InteractionEventTypes): this;
-        off(event: interaction.InteractionEventTypes, fn?: (event: interaction.InteractionEvent) => void, context?: any): this;
-        addListener(event: interaction.InteractionEventTypes, fn: (event: interaction.InteractionEvent) => void, context?: any): this;
+        on(event: InteractionEventTypes, fn: (event: InteractionEvent) => void, context?: any): this;
+        //tslint:disable-next-line:ban-types forbidden-types
+        on(event: string | symbol, fn: Function, context?: any): this;
+        once(event: InteractionEventTypes, fn: (event: InteractionEvent) => void, context?: any): this;
+        //tslint:disable-next-line:ban-types forbidden-types
+        once(event: string | symbol, fn: Function, context?: any): this;
+        removeListener(event: InteractionEventTypes, fn?: (event: InteractionEvent) => void, context?: any): this;
+        //tslint:disable-next-line:ban-types forbidden-types
+        removeListener(event: string | symbol, fn?: Function, context?: any): this;
+        removeAllListeners(event?: InteractionEventTypes): this;
+        removeAllListeners(event?: string | symbol): this;
+        off(event: InteractionEventTypes, fn?: (event: InteractionEvent) => void, context?: any): this;
+        //tslint:disable-next-line:ban-types forbidden-types
+        off(event: string | symbol, fn?: Function, context?: any): this;
+        addListener(event: InteractionEventTypes, fn: (event: InteractionEvent) => void, context?: any): this;
+        //tslint:disable-next-line:ban-types forbidden-types
+        addListener(event: string | symbol, fn: Function, context?: any): this;
     }
 
     export interface Container {
@@ -22586,7 +25522,7 @@ declare namespace PIXI {
 }
 
 declare namespace PIXI {
-    export interface Loader extends utils.EventEmitter {
+    export interface Loader {
         baseUrl: string;
         progress: number;
         loading: boolean;
@@ -22606,24 +25542,9 @@ declare namespace PIXI {
         use(fn: Function): this;
         reset(): this;
         //tslint:disable-next-line:ban-types forbidden-types
-        load(cb?: Function): this;
+        load(cb?: (loader: Loader, resources: Partial<Record<string, LoaderResource>>) => void): this;
 
         destroy(): void;
-
-        // depreciation
-
-        on(event: "complete", fn: (loader: Loader, object: any) => void, context?: any): this;
-        on(event: "error", fn: (error: Error, loader: Loader, resource: LoaderResource) => void, context?: any): this;
-        on(event: "load" | "progress", fn: (loader: Loader, resource: LoaderResource) => void, context?: any): this;
-        on(event: "start", fn: (loader: Loader) => void, context?: any): this;
-
-        once(event: "complete", fn: (loader: Loader, object: any) => void, context?: any): this;
-        once(event: "error", fn: (error: Error, loader: Loader, resource: LoaderResource) => void, context?: any): this;
-        once(event: "load" | "progress", fn: (loader: Loader, resource: LoaderResource) => void, context?: any): this;
-        once(event: "start", fn: (loader: Loader) => void, context?: any): this;
-        //tslint:disable-next-line:ban-types forbidden-types
-        off(event: "complete" | "error" | "load" | "progress" | "start" | string, fn?: Function, context?: any): this;
-
     }
 
     export interface IResourceDictionary {

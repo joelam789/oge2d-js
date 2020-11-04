@@ -23,8 +23,8 @@
 		[
 			"img/main.png",
 
-			"spine/atlas1.png",
-			"spine/demos.json",
+			"spine/raptor.png",
+			"spine/raptor-pro.json",
 
 			"audio/musics/menu.mp3",
 			"audio/sounds/select.mp3",

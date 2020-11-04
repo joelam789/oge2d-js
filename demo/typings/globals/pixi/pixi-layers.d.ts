@@ -14,6 +14,8 @@ declare namespace PIXI {
         updateOrder?: number;
         displayOrder?: number;
         layerableChildren?: boolean;
+        isLayer?: boolean;
+        containsPoint?(p: PIXI.IPoint): boolean;
     }
 }
 declare namespace PIXI.display {
@@ -50,6 +52,11 @@ declare namespace PIXI.display {
     }
 }
 declare namespace PIXI.display {
+    import DisplayObject = PIXI.DisplayObject;
+    import Point = PIXI.Point;
+    import InteractionEvent = PIXI.InteractionEvent;
+    function processInteractive51(strangeStuff: InteractionEvent | Point, displayObject: DisplayObject, func: Function, hitTest: boolean, interactive: boolean): void;
+    function patchInteractionManager(interactionManager: any): void;
 }
 declare namespace PIXI.display {
     class LayerTextureCache {
@@ -80,10 +87,14 @@ declare namespace PIXI.display {
         insertChildrenAfterActive: boolean;
         beginWork(stage: Stage): void;
         endWork(): void;
-        useRenderTexture: boolean;
-        useDoubleBuffer: boolean;
-        clearColor: ArrayLike<number>;
-        sortPriority: number;
+        get useRenderTexture(): boolean;
+        set useRenderTexture(value: boolean);
+        get useDoubleBuffer(): boolean;
+        set useDoubleBuffer(value: boolean);
+        get clearColor(): ArrayLike<number>;
+        set clearColor(value: ArrayLike<number>);
+        get sortPriority(): number;
+        set sortPriority(value: number);
         getRenderTexture(): PIXI.RenderTexture;
         updateDisplayLayers(): void;
         doSort(): void;
@@ -91,6 +102,22 @@ declare namespace PIXI.display {
         _postRender(renderer: PIXI.Renderer): void;
         render(renderer: PIXI.Renderer): void;
         destroy(options?: any): void;
+    }
+}
+declare namespace PIXI.display {
+    import DisplayObject = PIXI.DisplayObject;
+    import Point = PIXI.Point;
+    import InteractionEvent = PIXI.InteractionEvent;
+    class LayersTreeSearch {
+        _tempPoint: Point;
+        _queue: DisplayObject[][];
+        _eventDisplayOrder: number;
+        worksWithDisplay: boolean;
+        recursiveFindHit(point: Point, displayObject: DisplayObject, hitTestOrder: number, interactive: boolean, outOfMask: boolean): number;
+        findHit(strangeStuff: InteractionEvent | Point, displayObject: DisplayObject, func: Function, hitTest: boolean): void;
+        _startInteractionProcess(): void;
+        _queueAdd(displayObject: DisplayObject, order: number): void;
+        _finishInteractionProcess(event: InteractionEvent, func: Function): void;
     }
 }
 declare namespace PIXI {

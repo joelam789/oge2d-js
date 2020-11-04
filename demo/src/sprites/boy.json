@@ -5,9 +5,9 @@
     {
         "spine":
         {
-            "png": "spine/atlas1.png",
-			"atlas": "spine/atlas1.atlas",
-			"json": "spine/demos.json"
+            "png": "spine/raptor.png",
+			"atlas": "spine/raptor-pma.atlas",
+			"json": "spine/raptor-pro.json"
         },
 
         "display":

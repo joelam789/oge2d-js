@@ -12,7 +12,7 @@ export class SpriteBoy {
                 sprite.game.lib("json").loadJson(spineConfig.json, (jsonObj) => {
                     if (!jsonObj) callback(null);
 
-                    let rawSkeletonData = jsonObj['spineboy']; //your skeleton.json file here
+                    let rawSkeletonData = jsonObj; //your skeleton.json file here
                     let rawAtlasData = atlasObj; //your atlas file 
 
                     let spineAtlas = new PIXI.spine.core.TextureAtlas(rawAtlasData, (line, addTextureFunc) => {
