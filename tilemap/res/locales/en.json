@@ -51,7 +51,8 @@
         "show-grids": "Show grids",
         "replacement-mode": "Replacement",
         "cost": "Cost",
-        "set-cost": "Set Cost"
+        "set-cost": "Set Cost",
+        "resize-map": "Resize"
     },
 
     "tileset": {
