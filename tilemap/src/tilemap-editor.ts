@@ -13,10 +13,12 @@ import { NewTilemapDlg } from "./popups/tilemap/new-tilemap";
 import { SaveTilemapDlg } from "./popups/tilemap/save-tilemap";
 import { SelectTilesetDlg } from "./popups/tileset/select-tileset";
 import { SelectTilemapDlg } from "./popups/tilemap/select-tilemap";
+import { ResizeTilemapDlg } from "./popups/tilemap/resize-tilemap";
 import { SetCostDlg } from "./popups/tilemap/set-cost";
 
-import { HttpClient } from "./http-client";
 import { App } from './app';
+import { HttpClient } from "./http-client";
+
 import * as UI from './ui-messages';
 
 @autoinject()
@@ -132,7 +134,7 @@ export class TilemapEditorPage {
         if (this.tilemap && this.tilemap.cells && this.tilemap.cells.length > 0) {
             this.histRecords.length = this.histCursor + 1;
             this.histRecords[this.histRecords.length] = JSON.parse(JSON.stringify(this.tilemap));
-            console.log(this.tilemap);
+            //console.log(this.tilemap);
             this.histCursor = this.histRecords.length - 1;
         }
     }
@@ -314,11 +316,12 @@ export class TilemapEditorPage {
         if (showingGrids) {
             if (this.startRect.x >= 0 && this.startRect.y >= 0 && this.startRect.w > 0 && this.startRect.h > 0
                 && this.endRect.x >= 0 && this.endRect.y >= 0 && this.endRect.w > 0 && this.endRect.h > 0
-                && (this.startRect.x != this.endRect.x || this.startRect.y != this.endRect.y)) {
+                //&& (this.startRect.x != this.endRect.x || this.startRect.y != this.endRect.y)
+                ) {
                 
                 this.dialogService.open({viewModel: SetCostDlg, model: 0})
                 .whenClosed((response) => {
-                    if (!response.wasCancelled && response.output) {
+                    if (!response.wasCancelled && response.output != undefined) {
                         //console.log(response.output);
                         let cost = response.output;
                         let x= 0, y = 0, pos = 0;
@@ -344,6 +347,21 @@ export class TilemapEditorPage {
             }
         }
         
+    }
+
+    resetMapSize() {
+        this.dialogService.open({viewModel: ResizeTilemapDlg, model: this.tilemap.rowCount + "," + this.tilemap.columnCount})
+                .whenClosed((response) => {
+                    if (!response.wasCancelled && response.output) {
+                        //console.log(response.output);
+                        let settings = response.output;
+                        this.resizeMap(settings.rowCount, settings.columnCount);
+                        console.log(this.tilemap);
+                        this.refreshTilemap();
+                    } else {
+                        console.log('Give up setting new size of the map');
+                    }
+                });
     }
 
     loadTileset(tilesetName: string, callback: (tileset: any)=>void) {
@@ -533,7 +551,7 @@ export class TilemapEditorPage {
                 ctx.font = 'bold ' + (this.tileWidth / 2) + 'px arial, serif';
                 ctx.fillStyle = 'white';
 
-                console.log(this.tilemap);
+                //console.log(this.tilemap);
 
                 let x= 0, y = 0, pos = 0;
                 for (let row=0; row<this.tilemap.rowCount; row++) {
@@ -905,6 +923,41 @@ export class TilemapEditorPage {
             x = 0;
             y += this.tileHeight;
         }
+    }
+
+    resizeMap(newRowCount: number, newColCount: number) {
+        
+        let minRow = this.tilemap.rowCount >  newRowCount ? newRowCount : this.tilemap.rowCount;
+        let minCol = this.tilemap.columnCount >  newColCount ? newColCount : this.tilemap.columnCount;
+
+        let newCells = [];
+        let oldCells = this.tilemap.cells;
+        let x= 0, y = 0, pos = 0;
+        for (let row=0; row<newRowCount; row++) {
+            for (let col=0; col<newColCount; col++) {
+                let newCell = { cost: -1, ids: [-1, -1] };
+                if (row < this.tilemap.rowCount && col < this.tilemap.columnCount) {
+                    let oldCell = oldCells[row * this.tilemap.columnCount + col];
+                    if (oldCell.cost != undefined) newCell.cost = oldCell.cost;
+                    if (oldCell.ids != undefined) newCell.ids = oldCell.ids;
+                }
+                newCells[pos] = newCell;
+                pos++;
+                x += this.tileWidth;
+            }
+            x = 0;
+            y += this.tileHeight;
+        }
+
+        oldCells = [];
+
+        this.tilemap.cells = newCells;
+        this.tilemap.rowCount = newRowCount;
+        this.tilemap.columnCount = newColCount;
+
+        this.rowCount = this.tilemap.rowCount;
+        this.columnCount = this.tilemap.columnCount;
+        
     }
 
     reloadTilemap(tilemap) {

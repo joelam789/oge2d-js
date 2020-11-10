@@ -20,20 +20,21 @@
           </div>
           <div class="col-lg-9">
             <div class="row">
-                <div class="col-lg-6 text-right">
+                <div class="col-lg-2">
                   <div class="btn-group">
                       <a href="javascript:;" click.trigger="undo()" class="btn btn-default" i18n="tilemap.undo">Undo</a>
                       <a href="javascript:;" click.trigger="redo()" class="btn btn-default" i18n="tilemap.redo">Redo</a>
                   </div>
                 </div>
-                <div class="col-lg-2">
+                <div class="col-lg-3">
                   <button type="button" class="btn btn-default" click.trigger="fillUp()" i18n="tilemap.fill-up">Fill up</button>
                   <button type="button" class="btn btn-default" click.trigger="setCost()" i18n="tilemap.cost" disabled.bind="gridFlags.length == 0">Cost</button>
+                  <button type="button" class="btn btn-default" click.trigger="resetMapSize()" i18n="tilemap.resize-map">Resize</button>
                 </div>
                 <div class="col-lg-2">
                   <div class="form-group">
                       <div class="checkbox">
-                        <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="replacement" checked.bind="replacementFlags"><span i18n="tilemap.replacement-mode">Replacement</span></label>
+                        <label><input type="checkbox" value="replacement" checked.bind="replacementFlags"><span i18n="tilemap.replacement-mode">Replacement</span></label>
                       </div>
                   </div>
                 </div>
