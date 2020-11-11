@@ -18,7 +18,7 @@ export class SceneStage1SpritePlot1 {
 		yield plot.wait(3000);
 		console.log("plot - start to send enemies ... ");
 
-		let enemy1 = scene.spr("enemy-a1").proxy;
+		let enemy1 = scene.spr("enemy-a1").script;
 
 		enemy1.go(scene, 300, 0, 4);
 		yield plot.wait(300);
@@ -36,7 +36,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(2500);
 
-		let enemy2 = scene.spr("enemy-b1").proxy;
+		let enemy2 = scene.spr("enemy-b1").script;
 
 		enemy2.go(scene, 0, -32, 4);
 		yield plot.wait(300);
@@ -50,7 +50,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(3000);
 
-		let enemy3 = scene.spr("enemy-c1").proxy;
+		let enemy3 = scene.spr("enemy-c1").script;
 
 		enemy3.go(scene, 600, -20, 2);
 		yield plot.wait(300);
@@ -108,7 +108,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(2000);
 
-		let enemy4 = scene.spr("enemy-d1").proxy;
+		let enemy4 = scene.spr("enemy-d1").script;
 
 		enemy4.go(scene, 200, -100, "right");
 		enemy4.go(scene, 400, -200, "left");
@@ -119,7 +119,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(2000);
 
-		let enemy5 = scene.spr("enemy-e1").proxy;
+		let enemy5 = scene.spr("enemy-e1").script;
 
 		enemy5.go(scene, 0, 0, 1);
 		yield plot.wait(12000);
@@ -127,7 +127,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(12000);
 
-		let enemy6 = scene.spr("enemy-f1").proxy;
+		let enemy6 = scene.spr("enemy-f1").script;
 
 		enemy6.go(scene);
 		yield plot.wait(2000);
@@ -210,7 +210,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(500);
 
-		let boss1 = scene.spr("boss-a1").proxy;
+		let boss1 = scene.spr("boss-a1").script;
 
 		boss1.go(scene, 320, -128, 1);
 		boss1.go(scene, -128, 192, 1);

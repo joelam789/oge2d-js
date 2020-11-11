@@ -17,13 +17,12 @@ export class SpriteBossA {
 
 	sendBomb(scene: OGE2D.Scene, boss: OGE2D.Sprite, speed: number) {
 		if (!boss.active) return;
-		let script = scene.game.lib("script");
 		let motion: any = scene.sys("motion");
 		let tween: any = scene.systems["tween"];
 		let display = scene.spr("player1").get("display").object;
 		let posX = boss.get("display").object.x, posY = boss.get("display").object.y;
 		let angle = motion.getMotionAngle(posX, posY + 20, display.x, display.y);
-		let bomb = script.call(this, "getFreeEnemy", scene, "boss-bomb-a1");
+		let bomb = boss.script.getFreeEnemy(scene, "boss-bomb-a1");
 		if (bomb) {
 			bomb.components.display.object.tint = 0xffffff;
 			bomb.components.display.object.x = posX + 10 * (angle > 270 ? 1 : -1);
@@ -57,7 +56,7 @@ export class SpriteBossA {
 	go(scene: OGE2D.Scene, posX: number, posY: number, speed: number) {
 		let script = scene.game.lib("script");
 		let motion: any = scene.sys("motion");
-		let enemy = script.call(this, "getFreeEnemy", scene, "boss-a1");
+		let enemy = script.call(this, "getFreeEnemy", scene, "boss-a1"); // another way to call "getFreeEnemy"
 		if (enemy) {
 			let x = 0, y = 0;
 			if (posY < 0) {

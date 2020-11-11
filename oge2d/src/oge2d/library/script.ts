@@ -177,11 +177,20 @@ export class Script {
         }
     }
 
-    get(script: any, functionName: string): any {
+    get(script: any, propName: string): any {
         if (script) {
-            if (script[functionName]) return script[functionName];
-            else return this.get(script.base, functionName);
+            if (script[propName] != undefined) return script[propName];
+            else return this.get(script.base, propName);
         } else return null;
+    }
+
+    set(script: any, propName: string, propValue: any): any {
+        if (script) {
+            if (script[propName] != undefined) script[propName] = propValue;
+            else this.set(script.base, propName, propValue);
+            return true;
+        }
+        return false;
     }
 
     call(script: any, functionName: string, ...args: any[]) {
@@ -190,6 +199,24 @@ export class Script {
             else return this.call(script.base, functionName, ...args);
         }
         return undefined;
+    }
+
+    proxy(script: any) {
+        let ret = null;
+        if (script && script.helper) {
+            let win = window as any;
+            if (win && win.Proxy) {
+                ret = new win.Proxy(script, {
+                    get: function(target, name) {
+                        return target.helper.get(target, name);
+                    },
+                    set: function(target, name, value) {
+                        return target.helper.set(target, name, value);
+                    }
+                });
+            }
+        }
+        return ret;
     }
 
 }

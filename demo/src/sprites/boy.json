@@ -6,8 +6,8 @@
         "spine":
         {
             "png": "spine/raptor.png",
-			"atlas": "spine/raptor-pma.atlas",
-			"json": "spine/raptor-pro.json"
+            "json": "spine/raptor-pro.json",
+			"atlas": "spine/raptor-pma.atlas"
         },
 
         "display":
