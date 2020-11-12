@@ -21,6 +21,19 @@ export class Script {
         return className;
     }
 
+    private getValidClassNameFromModule(className: string, scriptModule: any): string {
+        let validName = className ? className : null;
+        if (!scriptModule) return validName; // if module is null then any name is valid
+        if (scriptModule.hasOwnProperty(validName)) return validName;
+        for (let item of Object.keys(scriptModule)) {
+            if (item && (typeof scriptModule[item] == "function")) {
+                validName = item;
+                break; // just get the first valid one
+            }
+        }
+        return validName ? validName : null;
+    }
+
     loadGameScript(loader: any, gameName: string, callback: (loaded: any)=>void) {
         let classPath: string = "games/" + gameName + ".js";
         let gameScript = this._games.get(classPath);
@@ -29,9 +42,9 @@ export class Script {
             return;
         }
         let className: string = "Game" + this.getClassName(gameName);
-
         let scriptModule = this._modules.get(classPath);
         if (scriptModule != undefined && scriptModule != null) {
+            className = this.getValidClassNameFromModule(className, scriptModule);
             if (scriptModule.hasOwnProperty(className)) {
                 let newInstance = Object.create(scriptModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
@@ -43,6 +56,7 @@ export class Script {
             loader.import(classPath)
             .then((loadedModule) => {
                 if (loadedModule) this._modules.set(classPath, loadedModule);
+                className = this.getValidClassNameFromModule(className, loadedModule);
                 if (loadedModule && loadedModule.hasOwnProperty(className)) {
                     let newInstance = Object.create(loadedModule[className].prototype);
                     newInstance.constructor.apply(newInstance, []);
@@ -69,9 +83,9 @@ export class Script {
             return;
         }
         let className: string = "Scene" + this.getClassName(sceneName);
-
         let scriptModule = this._modules.get(classPath);
         if (scriptModule != undefined && scriptModule != null) {
+            className = this.getValidClassNameFromModule(className, scriptModule);
             if (scriptModule.hasOwnProperty(className)) {
                 let newInstance = Object.create(scriptModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
@@ -83,6 +97,7 @@ export class Script {
             loader.import(classPath)
             .then((loadedModule) => {
                 if (loadedModule) this._modules.set(classPath, loadedModule);
+                className = this.getValidClassNameFromModule(className, loadedModule);
                 if (loadedModule && loadedModule.hasOwnProperty(className)) {
                     let newInstance = Object.create(loadedModule[className].prototype);
                     newInstance.constructor.apply(newInstance, []);
@@ -109,9 +124,9 @@ export class Script {
             return;
         }
         let className: string = "Sprite" + this.getClassName(spriteName);
-
         let scriptModule = this._modules.get(classPath);
         if (scriptModule != undefined && scriptModule != null) {
+            className = this.getValidClassNameFromModule(className, scriptModule);
             if (scriptModule.hasOwnProperty(className)) {
                 let newInstance = Object.create(scriptModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
@@ -123,6 +138,7 @@ export class Script {
             loader.import(classPath)
             .then((loadedModule) => {
                 if (loadedModule) this._modules.set(classPath, loadedModule);
+                className = this.getValidClassNameFromModule(className, loadedModule);
                 if (loadedModule && loadedModule.hasOwnProperty(className)) {
                     let newInstance = Object.create(loadedModule[className].prototype);
                     newInstance.constructor.apply(newInstance, []);
@@ -141,31 +157,25 @@ export class Script {
 
     loadSceneSpriteScript(loader: any, sceneName: string, spriteName: string, callback: (loaded: any)=>void) {
         let classPath: string = "scenes/" + sceneName + "/sprites/"+ spriteName + ".js";
-        //let spriteScript = this._sprites.get(classPath);
-        //if (spriteScript != undefined && spriteScript != null) {
-        //    callback(spriteScript);
-        //    return;
-        //}
         let className: string = "Scene" + this.getClassName(sceneName) + "Sprite" + this.getClassName(spriteName);
-
         let scriptModule = this._modules.get(classPath);
         if (scriptModule != undefined && scriptModule != null) {
+            className = this.getValidClassNameFromModule(className, scriptModule);
             if (scriptModule.hasOwnProperty(className)) {
                 let newInstance = Object.create(scriptModule[className].prototype);
                 newInstance.constructor.apply(newInstance, []);
                 newInstance.helper = this;
-                //this._sprites.set(classPath, newInstance);
                 callback(newInstance);
             } else callback(null);
         } else {
             loader.import(classPath)
             .then((loadedModule) => {
                 if (loadedModule) this._modules.set(classPath, loadedModule);
+                className = this.getValidClassNameFromModule(className, loadedModule);
                 if (loadedModule && loadedModule.hasOwnProperty(className)) {
                     let newInstance = Object.create(loadedModule[className].prototype);
                     newInstance.constructor.apply(newInstance, []);
                     newInstance.helper = this;
-                    //this._sprites.set(classPath, newInstance);
                     callback(newInstance);
                 } else callback(null);
             })
