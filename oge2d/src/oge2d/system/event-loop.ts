@@ -66,8 +66,8 @@ export class EventLoop implements Updater {
                 else {
                     let callbackFunc = event["onUpdate"];
                     let callbackType = callbackFunc ? typeof callbackFunc : null;
-                    if (callbackType == "string" && sprite.scriptObject) {
-                        let callback = this.getScriptFunction(sprite.scriptObject, callbackFunc);
+                    if (callbackType == "string" && sprite.script) {
+                        let callback = this.getScriptFunction(sprite.script, callbackFunc);
                         if (callback) {
                             let func = callback as GeneratorFunction;
                             let plot = func ? new Plot(sprite, func) : null;
@@ -100,8 +100,8 @@ export class EventLoop implements Updater {
                         else {
                             let callbackFunc = event[evt.name];
                             let callbackType = callbackFunc ? typeof callbackFunc : null;
-                            if (callbackType == "string" && spr.scriptObject) {
-                                this.callScript(spr, spr.scriptObject, callbackFunc, evt.data);
+                            if (callbackType == "string" && spr.script) {
+                                this.callScript(spr, spr.script, callbackFunc, evt.data);
                             } else if (callbackType == "function") {
                                 callbackFunc(spr, evt.data);
                             }
@@ -114,8 +114,8 @@ export class EventLoop implements Updater {
                     } else {
                         let callbackFunc = event["onUpdate"];
                         let callbackType = callbackFunc ? typeof callbackFunc : null;
-                        if (callbackType == "string" && spr.scriptObject) {
-                            this.callScript(spr, spr.scriptObject, callbackFunc);
+                        if (callbackType == "string" && spr.script) {
+                            this.callScript(spr, spr.script, callbackFunc);
                         } else if (callbackType == "function") {
                             callbackFunc(spr);
                         }
@@ -135,9 +135,9 @@ export class EventLoop implements Updater {
                 else {
                     let callbackFunc = sceneEvent[evt.name];
                     let callbackType = callbackFunc ? typeof callbackFunc : null;
-                    if (callbackType == "string" && scene.scriptObject) {
-                        if (scene.scriptObject[callbackFunc]) {
-                            scene.scriptObject[callbackFunc](scene, evt.data);
+                    if (callbackType == "string" && scene.script) {
+                        if (scene.script[callbackFunc]) {
+                            scene.script[callbackFunc](scene, evt.data);
                         }
                     } else if (callbackType == "function") {
                         callbackFunc(scene, evt.data);
@@ -148,8 +148,8 @@ export class EventLoop implements Updater {
         if (sceneEvent) {
             let callbackFunc = sceneEvent["onUpdate"];
             let callbackType = callbackFunc ? typeof callbackFunc : null;
-            if (callbackType == "string" && scene.scriptObject) {
-                if (scene.scriptObject[callbackFunc]) scene.scriptObject[callbackFunc](scene);
+            if (callbackType == "string" && scene.script) {
+                if (scene.script[callbackFunc]) scene.script[callbackFunc](scene);
             } else if (callbackType == "function") {
                 callbackFunc(scene);
             }

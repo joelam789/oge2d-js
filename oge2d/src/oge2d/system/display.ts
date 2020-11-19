@@ -60,9 +60,9 @@ export class Display implements Updater {
                         this._pixi.stage.addChild(new PIXI.display.Layer(layers[key]));
                     } else {
                         if (display.layers[key] && display.layers[key].length > 0
-                            && game.scriptObject && game.scriptObject[display.layers[key]]) {
+                            && game.script && game.script[display.layers[key]]) {
                             layers[key] = new PIXI.display.Group(idx, true);
-                            layers[key].on('sort', game.scriptObject[display.layers[key]]);
+                            layers[key].on('sort', game.script[display.layers[key]]);
                             this._pixi.stage.addChild(new PIXI.display.Layer(layers[key]));
                         } else {
                             layers[key] = new PIXI.display.Group(idx, false);
@@ -206,11 +206,11 @@ export class Display implements Updater {
                         
                     } // end if img lib ok
 
-                } else if (sprite.scriptObject) {
-                    let texFunc = this.getScriptFunction(sprite.scriptObject, "prepareTexture");
-                    let texAsyncFunc = this.getScriptFunction(sprite.scriptObject, "prepareTextureAsync");
-                    let sprFunc = this.getScriptFunction(sprite.scriptObject, "prepareSprite");
-                    let sprAsyncFunc = this.getScriptFunction(sprite.scriptObject, "prepareSpriteAsync");
+                } else if (sprite.script) {
+                    let texFunc = this.getScriptFunction(sprite.script, "prepareTexture");
+                    let texAsyncFunc = this.getScriptFunction(sprite.script, "prepareTextureAsync");
+                    let sprFunc = this.getScriptFunction(sprite.script, "prepareSprite");
+                    let sprAsyncFunc = this.getScriptFunction(sprite.script, "prepareSpriteAsync");
                     if (texFunc) {
                         let tex: PIXI.Texture = texFunc ? texFunc(sprite) : null;
                         if (tex) {

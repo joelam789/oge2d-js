@@ -22,7 +22,7 @@ export class SpriteBossA {
 		let display = scene.spr("player1").get("display").object;
 		let posX = boss.get("display").object.x, posY = boss.get("display").object.y;
 		let angle = motion.getMotionAngle(posX, posY + 20, display.x, display.y);
-		let bomb = boss.script.getFreeEnemy(scene, "boss-bomb-a1");
+		let bomb = boss.code.getFreeEnemy(scene, "boss-bomb-a1");
 		if (bomb) {
 			bomb.components.display.object.tint = 0xffffff;
 			bomb.components.display.object.x = posX + 10 * (angle > 270 ? 1 : -1);

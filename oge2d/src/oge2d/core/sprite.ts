@@ -12,8 +12,8 @@ export class Sprite {
 
     origin: Sprite = null;
 
-    scriptObject: any = null;
     script: any = null;
+    code: any = null;
     base: any = null;
     
     plot: Plot = null;
@@ -53,9 +53,9 @@ export class Sprite {
     }
 
     call(functionName: string, ...args: any[]) {
-        if (this.scriptObject && this.scriptObject.helper) {
-            this.scriptObject.helper.caller = this.name; // just for reference...
-            return this.scriptObject.helper.call(this.scriptObject, functionName, ...args);
+        if (this.script && this.script.helper) {
+            this.script.helper.caller = this.name; // just for reference...
+            return this.script.helper.call(this.script, functionName, ...args);
         }
     }
 

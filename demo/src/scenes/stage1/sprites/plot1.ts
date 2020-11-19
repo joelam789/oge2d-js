@@ -5,7 +5,7 @@ export class SceneStage1SpritePlot1 {
 		let game = sprite.game;
 		let plot = sprite.plot;
 		let scene = sprite.scene;
-		let battle = scene.script;
+		let battle = scene.code;
 
 		let tween = scene.systems["tween"];
 
@@ -18,7 +18,7 @@ export class SceneStage1SpritePlot1 {
 		yield plot.wait(3000);
 		console.log("plot - start to send enemies ... ");
 
-		let enemy1 = scene.spr("enemy-a1").script;
+		let enemy1 = scene.spr("enemy-a1").code;
 
 		enemy1.go(scene, 300, 0, 4);
 		yield plot.wait(300);
@@ -36,7 +36,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(2500);
 
-		let enemy2 = scene.spr("enemy-b1").script;
+		let enemy2 = scene.spr("enemy-b1").code;
 
 		enemy2.go(scene, 0, -32, 4);
 		yield plot.wait(300);
@@ -50,7 +50,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(3000);
 
-		let enemy3 = scene.spr("enemy-c1").script;
+		let enemy3 = scene.spr("enemy-c1").code;
 
 		enemy3.go(scene, 600, -20, 2);
 		yield plot.wait(300);
@@ -108,7 +108,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(2000);
 
-		let enemy4 = scene.spr("enemy-d1").script;
+		let enemy4 = scene.spr("enemy-d1").code;
 
 		enemy4.go(scene, 200, -100, "right");
 		enemy4.go(scene, 400, -200, "left");
@@ -119,7 +119,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(2000);
 
-		let enemy5 = scene.spr("enemy-e1").script;
+		let enemy5 = scene.spr("enemy-e1").code;
 
 		enemy5.go(scene, 0, 0, 1);
 		yield plot.wait(12000);
@@ -127,7 +127,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(12000);
 
-		let enemy6 = scene.spr("enemy-f1").script;
+		let enemy6 = scene.spr("enemy-f1").code;
 
 		enemy6.go(scene);
 		yield plot.wait(2000);
@@ -210,7 +210,7 @@ export class SceneStage1SpritePlot1 {
 
 		yield plot.wait(500);
 
-		let boss1 = scene.spr("boss-a1").script;
+		let boss1 = scene.spr("boss-a1").code;
 
 		boss1.go(scene, 320, -128, 1);
 		boss1.go(scene, -128, 192, 1);

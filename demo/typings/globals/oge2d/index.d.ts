@@ -20,8 +20,8 @@ declare module OGE2D {
 	    game: Game;
 	    scene: Scene;
 	    origin: Sprite;
-		scriptObject: any;
 		script: any;
+		code: any;
 		base: any;
 	    plot: Plot;
 	    template: string;
@@ -53,8 +53,8 @@ declare module OGE2D {
 	    name: string;
 	    ticks: number;
 	    paused: boolean;
-		scriptObject: any;
 		script: any;
+		code: any;
 	    private _systems;
 	    private _sprites;
 	    private _timers;
@@ -121,8 +121,8 @@ declare module OGE2D {
 	    fps: number;
 	    ticks: number;
 	    deltaTime: number;
-		scriptObject: any;
 		script: any;
+		code: any;
 	    scenes: {
 	        [name: string]: Scene;
 	    };

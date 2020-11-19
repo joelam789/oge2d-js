@@ -1116,4 +1116,12 @@ export class GameMap {
     findRange(x: number, y: number, mp: number, includeStart: boolean = true, getCost?: GetCostFunc): Array<any> {
         return this.rangeFinder.find(x, y, mp, includeStart, getCost);
     }
+    getTileCost(col: number, row: number) {
+        if (!this.tilemap) return undefined;
+        let idx = col >= 0 && row >= 0 ? this.tilemap.columnCount * row + col : -1;
+        if (idx >= 0 && idx < this.tilemap.tilecosts.length) {
+            return this.tilemap.tilecosts[idx];
+        }
+        return undefined;
+    }
 }

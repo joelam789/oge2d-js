@@ -16,8 +16,8 @@ export class Game {
     ticks: number = 0;
     deltaTime: number = 0;
 
-    scriptObject: any = null;
     script: any = null;
+    code: any = null;
 
     scenes: { [name: string]: Scene } = { };
     systems: { [name: string]: Updater } = { };
@@ -99,9 +99,9 @@ export class Game {
             let scriptlib = this.libraries["script"];
             if (scriptlib && config.script === true) {
                 scriptlib.loadGameScript(this.libraries["systemjs"], this.name, (loadedScript) => {
-                    this.scriptObject = loadedScript;
-                    this.scriptObject.owner = this;
-                    this.script = scriptlib.proxy(this.scriptObject);
+                    this.script = loadedScript;
+                    this.script.owner = this;
+                    this.code = scriptlib.proxy(this.script);
                     for (let item of firstSystems) if (item.init) item.init(this);
                     for (let item of secondSystems) if (item.init) item.init(this);
                     if (eventSystem) eventSystem.callEvent(this, "onInit");
@@ -208,8 +208,8 @@ export class Game {
     }
 
     call(functionName: string, ...args: any[]) {
-        if (this.scriptObject && this.scriptObject[functionName]) {
-            return this.scriptObject[functionName](...args);
+        if (this.script && this.script[functionName]) {
+            return this.script[functionName](...args);
         }
         return undefined;
     }
@@ -219,19 +219,19 @@ export class Game {
         this.ticks += deltaTime;
         if (this.scene != null) this.scene.update(deltaTime);
         let event = this.components["event"];
-        if (this.scriptObject) {
+        if (this.script) {
             if (event && event.queue) {
                 for (let evt of event.queue) {
                     let callbackName = event[evt.name];
                     if (callbackName) {
-                        if (this.scriptObject[callbackName]) {
-                            this.scriptObject[callbackName](this, evt.data);
+                        if (this.script[callbackName]) {
+                            this.script[callbackName](this, evt.data);
                         }
                     }
                 }
             }
             let callback = event ? event["onUpdate"] : undefined;
-            if (callback && this.scriptObject[callback]) this.scriptObject[callback](this);
+            if (callback && this.script[callback]) this.script[callback](this);
         }
         if (event) {
             if (event.queue == undefined || event.queue == null) event.queue = [];

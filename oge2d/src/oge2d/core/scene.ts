@@ -12,8 +12,8 @@ export class Scene {
 
     paused: boolean = false;
 
-    scriptObject: any = null;
     script: any = null;
+    code: any = null;
 
     private _systems: Array<Updater> = [];
     private _sprites: Array<Sprite> = [];
@@ -106,9 +106,9 @@ export class Scene {
             let scriptlib = this.game.libraries["script"];
             if (scriptlib && config.script === true) {
                 scriptlib.loadSceneScript(this.game.libraries["systemjs"], this.name, (loadedScript) => {
-                    this.scriptObject = loadedScript;
-                    this.scriptObject.owner = this;
-                    this.script = scriptlib.proxy(this.scriptObject);
+                    this.script = loadedScript;
+                    this.script.owner = this;
+                    this.code = scriptlib.proxy(this.script);
                     let eventSystem: any = this.systems["event"];
                     if (eventSystem) eventSystem.callEvent(this, "onInit");
                     this.loadSprites(() => {
@@ -233,8 +233,8 @@ export class Scene {
         for (let i=0; i<total-1; i++) {
             let clone = new Sprite(newSprite.scene, newSprite.name + "_" + (i+1));
             clone.origin = newSprite;
-            clone.scriptObject = newSprite.scriptObject;
             clone.script = newSprite.script;
+            clone.code = newSprite.code;
             clone.base = newSprite.base;
             clone.template = newSprite.template;
             clone.components = JSON.parse(JSON.stringify(newSprite.components));
@@ -282,10 +282,11 @@ export class Scene {
             let newSprite = new Sprite(this, spriteName);
             if (config.script === true) {
                 scriptlib.loadSceneSpriteScript(this.game.libraries["systemjs"], this._spriteSceneNames[spriteName], spriteName, (newSprScript) => {
-                    newSprite.scriptObject = newSprScript;
-                    newSprite.scriptObject.owner = newSprite;
-                    newSprite.script = scriptlib.proxy(newSprite.scriptObject);
+                    newSprite.script = newSprScript;
+                    newSprite.script.owner = newSprite;
+                    newSprite.code = scriptlib.proxy(newSprite.script);
                     if (config.template) {
+                        newSprite.template = config.template;
                         let components: Array<any> = [], scripts: Array<any> = [];
                         this.loadSpriteTemplate(config.template, components, scripts, (baseComponents, baseScript) => {
                             if (baseComponents) {
@@ -295,24 +296,24 @@ export class Scene {
                                 if (config.components) newSprite.components = config.components;
                             }
                             if (baseScript) {
-                                if (newSprite.scriptObject) {
-                                    newSprite.scriptObject.base = baseScript;
+                                if (newSprite.script) {
+                                    newSprite.script.base = baseScript;
                                     newSprite.base = scriptlib.proxy(baseScript);
                                 } else {
-                                    newSprite.scriptObject = { base: baseScript, helper: baseScript.helper };
-                                    newSprite.script = scriptlib.proxy(baseScript);
-                                    newSprite.base = newSprite.script;
+                                    newSprite.script = { base: baseScript, helper: baseScript.helper };
+                                    newSprite.code = scriptlib.proxy(baseScript);
+                                    newSprite.base = newSprite.code;
                                 }
                             }
-                            if (!newSprite.script && newSprite.base) newSprite.script = newSprite.base;
-                            if (newSprite.scriptObject) {
+                            if (!newSprite.code && newSprite.base) newSprite.code = newSprite.base;
+                            if (newSprite.script) {
                                 let eventSystem: any = this.systems["event"];
                                 if (eventSystem) eventSystem.callEvent(newSprite, "onInit");
                             }
                             this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
                         });
                     } else {
-                        if (newSprite.scriptObject) {
+                        if (newSprite.script) {
                             let eventSystem: any = this.systems["event"];
                             if (eventSystem) eventSystem.callEvent(newSprite, "onInit");
                         }
@@ -321,6 +322,7 @@ export class Scene {
                 });
             } else {
                 if (config.template) {
+                    newSprite.template = config.template;
                     let components: Array<any> = [], scripts: Array<any> = [];
                     this.loadSpriteTemplate(config.template, components, scripts, (baseComponents, baseScript) => {
                         if (baseComponents) {
@@ -330,17 +332,17 @@ export class Scene {
                             if (config.components) newSprite.components = config.components;
                         }
                         if (baseScript) {
-                            if (newSprite.scriptObject) {
-                                newSprite.scriptObject.base = baseScript;
+                            if (newSprite.script) {
+                                newSprite.script.base = baseScript;
                                 newSprite.base = scriptlib.proxy(baseScript);
                             } else {
-                                newSprite.scriptObject = { base: baseScript, helper: baseScript.helper };
-                                newSprite.script = scriptlib.proxy(baseScript);
-                                newSprite.base = newSprite.script;
+                                newSprite.script = { base: baseScript, helper: baseScript.helper };
+                                newSprite.code = scriptlib.proxy(baseScript);
+                                newSprite.base = newSprite.code;
                             }
                         }
-                        if (!newSprite.script && newSprite.base) newSprite.script = newSprite.base;
-                        if (newSprite.scriptObject) {
+                        if (!newSprite.code && newSprite.base) newSprite.code = newSprite.base;
+                        if (newSprite.script) {
                             let eventSystem: any = this.systems["event"];
                             if (eventSystem) eventSystem.callEvent(newSprite, "onInit");
                         }
@@ -381,15 +383,14 @@ export class Scene {
             if (sprite.origin) continue; // handle clones later
             let spriteConfig = jsonlib.getJson("json/scenes/" + this._spriteSceneNames[sprite.name] + "/sprites/" + sprite.name + ".json");
             if (spriteConfig == undefined || spriteConfig == null) continue;
-            let baseConfig = null, components = null, baseComponents = null;
+            let components = null, baseComponents = null;
             if (sprite.template) baseComponents = this.reloadSpriteTemplate(sprite.template);
             if (baseComponents) {
-                if (spriteConfig.components) this.mergeComponents(baseConfig.components, spriteConfig.components);
-                components = baseConfig.components;
+                if (spriteConfig.components) this.mergeComponents(baseComponents, spriteConfig.components);
+                components = baseComponents;
             } else {
                 if (spriteConfig.components) components = spriteConfig.components;
             }
-            
             if (components) {
                 this.mergeComponents(sprite.components, components);
                 componentMap.set(sprite.name, components);
@@ -513,8 +514,8 @@ export class Scene {
     }
 
     call(functionName: string, ...args: any[]) {
-        if (this.scriptObject && this.scriptObject[functionName]) {
-            return this.scriptObject[functionName](...args);
+        if (this.script && this.script[functionName]) {
+            return this.script[functionName](...args);
         }
         return undefined;
     }
