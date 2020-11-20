@@ -1,0 +1,14 @@
+{
+    "components":
+    {
+        "display":
+        {
+            "bgcolor": "#ffffff"
+        }
+    },
+
+    "script": false,
+
+    "sprites": ["fps1"]
+	
+}

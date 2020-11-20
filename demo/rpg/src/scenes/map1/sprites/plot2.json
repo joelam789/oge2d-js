@@ -1,0 +1,17 @@
+{
+    "active": false,
+    "script": true,
+    "template": "plot",
+    
+    "components":
+    {
+        "rpg":
+        {
+            "tile":
+            {
+                "x": 4,
+                "y": 8
+            }
+        }
+    }
+}

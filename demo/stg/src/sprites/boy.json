@@ -1,0 +1,20 @@
+{
+    "script": true,
+
+    "components":
+    {
+        "spine":
+        {
+            "png": "spine/raptor.png",
+            "json": "spine/raptor-pro.json",
+			"atlas": "spine/raptor-pma.atlas"
+        },
+
+        "display":
+        {
+            "x": 200,
+            "y": 200
+        }
+    }
+    
+}

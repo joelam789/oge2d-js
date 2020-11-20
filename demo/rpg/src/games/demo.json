@@ -1,0 +1,36 @@
+{
+	"components":
+	{
+		"display":
+		{
+			"width": 640,
+			"height": 480,
+			"layers": ["bg", "map", "npc", "obj", "ui", "txt"]
+		},
+
+		"event":
+		{
+			"onInit": "onInit"
+		},
+
+		"rpg":
+		{        
+			"controllable": true,
+			"movespeed": 2,
+			"progress": 0,
+			"power": 20,
+			"score": 0,
+			"level": 1,
+			"hp": 100,
+			"sp": 0
+		}
+	},
+
+	"script": true,
+
+	"packs": ["pack1"],
+
+	"basics": ["display", "stage", "tween", "transition", "mouse", "keyboard", "event"],
+	"scenes": ["info", "dialog", "map1"],
+	"first": "map1"
+}

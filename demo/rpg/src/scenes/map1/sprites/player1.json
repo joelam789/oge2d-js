@@ -1,0 +1,32 @@
+{
+    "active": true,
+    "script": true,
+    "template": "player",
+    
+	"components":
+    {
+        "animation":
+        {
+            "image": "player-01",
+            "current": "down"
+        },
+        
+        "display":
+        {
+            "visible": true
+        },
+
+        "stage":
+        {
+            "x": 272,
+            "y": 240
+        },
+
+        "event":
+        {
+            "onSceneActivate": "onSceneActivate"
+        }
+    }
+	
+	
+}

@@ -1,0 +1,31 @@
+{
+	"script": true,
+
+	"components":
+	{
+		"display":
+		{
+			"layer": "labels",
+
+			"x": 100,
+			"y": 100,
+			
+			"anchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+
+			"scale":
+			{
+				"x": 100,
+				"y": 30
+			}
+		},
+
+		"custom-display":
+		{
+			"color": "#ffff00"
+		}
+	}
+}

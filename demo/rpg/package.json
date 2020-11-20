@@ -1,0 +1,25 @@
+{
+  "name": "rpg-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "gulp",
+    "release": "gulp build-and-bundle",
+    "start": "gulp start"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "archiver": "^5.0.2",
+    "core-js": "^2.6.11",
+    "del": "^6.0.0",
+    "gulp": "^4.0.2",
+    "gulp-jsonlint": "^1.3.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-typescript": "^5.0.1",
+    "gulp-webserver": "^0.9.1",
+    "systemjs-builder": "^0.16.15",
+    "typescript": "^4.0.5"
+  }
+}

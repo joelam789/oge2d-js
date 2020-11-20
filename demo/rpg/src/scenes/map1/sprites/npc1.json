@@ -1,0 +1,33 @@
+{
+    "active": true,
+    "script": true,
+    "template": "npc",
+    
+	"components":
+    {
+        "animation":
+        {
+            "image": "npc-01",
+            "current": "down"
+        },
+        
+        "display":
+        {
+            "visible": true
+        },
+
+        "stage":
+        {
+            "x": 80,
+            "y": 272
+        },
+
+        "event":
+        {
+            "onSceneActivate": "onSceneActivate"
+        }
+
+    }
+	
+	
+}

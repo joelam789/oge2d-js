@@ -1,0 +1,21 @@
+{
+    "script": true,
+
+    "components":
+    {
+        "display":
+        {
+            "x": 20,
+            "y": 20,
+			
+			"layer": "txt",
+            
+            "anchor":
+            {
+                "x": 0.5,
+                "y": 0.5
+            }
+        }
+    }
+    
+}

@@ -1,0 +1,29 @@
+{
+    "script": true,
+
+    "components":
+    {
+        "text":
+        {
+            "content": "?",
+            "style":
+            {
+                "fontFamily": "Verdana",
+                "fontSize": 16,
+                "fill": "#ffffff"
+            }
+        },
+
+        "display":
+        {
+            "layer": "txt"
+        },
+
+		"event":
+        {
+            "onActivate": "onActivate"
+        }
+
+    }
+
+}

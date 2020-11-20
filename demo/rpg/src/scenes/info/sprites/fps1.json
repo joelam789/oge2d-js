@@ -1,0 +1,29 @@
+{
+    "active": true,
+    "script": true,
+	"template": "fps",
+
+    "components":
+    {
+        "text":
+        {
+            "style":
+            {
+                "fill": "#ffffff"
+            }
+        },
+
+        "display":
+        {
+            "visible": true,
+            "layer": "txt",
+            "x": 30,
+            "y": 30
+        },
+
+        "event":
+        {
+            "onSceneActivate": "onSceneActivate"
+        }
+    }
+}

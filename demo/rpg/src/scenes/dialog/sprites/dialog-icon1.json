@@ -1,0 +1,20 @@
+{
+    "active": true,
+    "script": true,
+	"template": "icon-triangle",
+
+    "components":
+    {
+        "display":
+        {
+            "parent": "dialog-box1",
+            "x": 300,
+            "y": 150
+        },
+		
+		"event":
+        {
+            "onActivate": "onActivate"
+        }
+    }
+}

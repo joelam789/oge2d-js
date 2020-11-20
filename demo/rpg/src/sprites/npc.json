@@ -1,0 +1,65 @@
+{
+    "active": true,
+    "script": true,
+
+	"components":
+    {
+        "animation":
+        {
+            "image": "npc-01",
+			"loop": true,
+			"speed": 0.1,
+			"sheets": {
+				"down":  [32, 0, 32, 32],
+				"left":  [32, 32, 32, 32],
+				"right": [32, 64, 32, 32],
+                "up":    [32, 96, 32, 32],
+                "run_down":  [0, 0, 32, 32,   32, 0, 32, 32,   64, 0, 32, 32,   32, 0, 32, 32],
+				"run_left":  [0, 32, 32, 32,  32, 32, 32, 32,  64, 32, 32, 32,  32, 32, 32, 32],
+				"run_right": [0, 64, 32, 32,  32, 64, 32, 32,  64, 64, 32, 32,  32, 64, 32, 32],
+				"run_up":    [0, 96, 32, 32,  32, 96, 32, 32,  64, 96, 32, 32,  32, 96, 32, 32]
+			},
+            "current": "down"
+        },
+        
+        "display":
+        {
+            "x": 16,
+            "y": 16,
+
+            "layer": "npc",
+            "visible": true,
+            
+            "anchor":
+            {
+                "x": 0.5,
+                "y": 0.5
+            },
+
+            "alpha": 1.0
+        },
+
+        "stage":
+        {
+            "x": 16,
+            "y": 16
+        },
+
+        "event":
+        {
+            "onSceneActivate": "onSceneActivate"
+        },
+
+        "movement":
+		{
+            "moving": false,
+            "target": null,
+            "start": null,
+            "next": null,
+            "auto": true,
+			"path": []
+		}
+    }
+	
+	
+}

@@ -1,0 +1,45 @@
+{
+    "components":
+    {
+        "display":
+        {
+            "bgcolor": "#0000ff"
+        },
+
+        "stage":
+        {
+            "x": 0,
+            "y": 0,
+            "map": "map1"
+        },
+
+        "mouse":
+        {
+            "enabled": true,
+            "shareable": true,
+            "actions": ["pointerdown"]
+        },
+
+        "event":
+        {
+            "onInit": "onInit",
+            "onActivate": "onActivate",
+            "onPointerdown": "onPointerdown",
+            "onUpdate": "onUpdate"
+        },
+
+        "rpg":
+        {
+            "player": "player1",
+            "dialog": "dialog-box1",
+            "flags": [0, 0, 0, 0, 0]
+        }
+    },
+
+    "script": true,
+
+	"scenes": ["info", "dialog"],
+	"systems": ["motion", "rpg"],
+    "sprites": ["plot1", "plot2", "plot3", "npc1", "player1"]
+	
+}

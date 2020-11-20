@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html style="width: 100%; height: 100%; position: fixed; overflow-y: hidden;">
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>RPG Game</title>
+
+        <style type="text/css">
+            .round-button {
+            width:80%;
+            }
+            .round-button-circle {
+            width: 100%;
+            height:0;
+            padding-bottom: 100%;
+            border-radius: 50%;
+            border:10px solid #cfdcec;
+            overflow:hidden;
+            background: #4679BD; 
+            box-shadow: 0 0 3px gray;
+            }
+            .round-button-circle:hover {
+            background:#30588e;
+            }
+            .round-button a {
+            display:block;
+            float:left;
+            width:100%;
+            padding-top:50%;
+            padding-bottom:50%;
+            line-height:1em;
+            margin-top:-0.5em;
+            text-align:center;
+            color:#e2eaf3;
+            font-family:Verdana;
+            font-size:1.2em;
+            font-weight:bold;
+            text-decoration:none;
+            }
+        </style> 
+    </head>
+
+    <body style="width: 100%; height: 100%; position: fixed; overflow-y: hidden;">
+
+        <script src="js/core.min.js"></script>
+        <script src="js/system.js"></script>
+
+        <script src="js/pixi/pixi.min.js"></script>
+        <script src="js/pixi/pixi-layers.js"></script>
+        <script src="js/pixi/pixi-spine.js"></script>
+        
+        <script src="js/tweenjs.min.js"></script>
+
+        <script src="js/zip/zip.js"></script>
+
+        <script src="js/oge2d.min.js"></script>
+
+        <script src="js/nipplejs.min.js"></script>
+
+        <script src="rpg.min.js"></script>
+
+        <script>
+
+            zip.workerScriptsPath = 'js/zip/';
+            SystemJS.config( { packages: { ".": { defaultExtension: "js" } } } );
+
+            // window's onload event...
+            window.onload = function() {
+                
+                SystemJS.import('oge2d-main').then(function(main) {
+                    //main.app.loadGame("shooting", "game", function(game) {
+                    main.app.load({ game: "demo", container: "game", systems: { rpg: "systems/rpg" } },
+                    function(game) {
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('game').style.display = 'block';
+                    });
+                });
+
+                if (navigator.userAgent.indexOf('Mobile') >= 0 
+                    || navigator.userAgent.indexOf('Phone') >= 0
+                    || navigator.userAgent.indexOf('Android') >= 0 ) {
+
+                    window.vbuttons = {
+                        right: false,
+                        left: false,
+                        down: false,
+                        up: false,
+                        b1: false,
+                        b2: false
+                    }
+
+                    window.vjoystick = nipplejs.create({
+                        zone: document.getElementById('joystick'),
+                        mode: "static",
+                        color: "grey",
+                        size: 200,
+                        position: {left: (window.innerWidth / 4) + "px" , 
+                        top: (window.innerHeight / 2 + 240) + "px"}
+                    });
+
+                    window.vjoystick.on('start', function (evt, nipple) {
+                        nipple.on('move', function (e, data) {
+                            var a = data.angle.degree;
+                            if (a <= 22.5 || a > 360 - 22.5) {
+                                window.vbuttons.right = true;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = false;
+                            }
+                            else if (a > 22.5 && a <= 22.5 + 45) {
+                                window.vbuttons.right = true;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = true;
+                            }
+                            else if (a > 22.5 + 45 && a <= 22.5 + 90) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = true;
+                            }
+                            else if (a > 22.5 + 90 && a <= 22.5 + 135) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = true;
+                                window.vbuttons.up = true;
+                            }
+                            else if (a > 22.5 + 135 && a <= 22.5 + 180) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = false;
+                                window.vbuttons.left = true;
+                                window.vbuttons.up = false;
+                            }
+                            else if (a > 22.5 + 180 && a <= 22.5 + 225) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = true;
+                                window.vbuttons.left = true;
+                                window.vbuttons.up = false;
+                            }
+                            else if (a > 22.5 + 225 && a <= 22.5 + 270) {
+                                window.vbuttons.right = false;
+                                window.vbuttons.down = true;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = false;
+                            }
+                            else if (a > 22.5 + 270 && a <= 22.5 + 315) {
+                                window.vbuttons.right = true;
+                                window.vbuttons.down = true;
+                                window.vbuttons.left = false;
+                                window.vbuttons.up = false;
+                            }
+                        });
+                    }).on('end', function (evt, nipple) {
+                        nipple.off('move');
+                        window.vbuttons.right = false;
+                        window.vbuttons.down = false;
+                        window.vbuttons.left = false;
+                        window.vbuttons.up = false;
+                    });
+
+                    document.getElementById('joystickbuttons').style.display = 'table';
+                }
+
+            };
+
+        </script>
+
+        <center>
+        <img id="loading" src="img/loading.svg" style="display: block;"/>
+        <div id="game" style="display: none;"></div>
+        </center>
+
+        <div id="joystick" style="z-index: -100; width: 100%;"></div>
+
+        <table id="joystickbuttons" style="position: absolute; left: 0px; top: 0px; z-index: -100; width: 100%; height: 100%; display: none;">
+            <tr style="width: 100%; height: 100%;">
+                <td style="width: 50%;">
+                    <div style="width: 100%; height: 100%;">&nbsp;</div>
+                </td>
+                <td style="width: 50%;">
+                    <table style="width: 100%; height: 100%;">
+                        <tr style="width: 100%; height: 500px;">
+                            <td style="width: 50%;"><div style="width: 100%; height: 480px;">&nbsp;</div></td>
+                            <td style="width: 50%;"><div style="width: 100%; height: 100%;">&nbsp;</div></td>
+                        </tr>
+                        <tr style="width: 100%;">
+                            <td style="width: 50%;">
+                                <div style="width: 80%;">
+                                    <div class="round-button"><div class="round-button-circle">
+                                        <a href="#" class="round-button" id="vbtn2">B</a>
+                                    </div></div>
+                                </div>
+                            </td>
+                            <td style="width: 50%;">
+                                <div style="width: 80%;">
+                                    <div class="round-button"><div class="round-button-circle">
+                                        <a href="#" class="round-button" id="vbtn1">A</a>
+                                    </div></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <script>
+            function bindGameButton(btnid) {
+                var btnobj = document.getElementById(btnid);
+                if (btnobj) {
+                    btnobj.onmousedown = btnobj.ontouchstart = function(e) {
+                        e.preventDefault();
+                        if (e.target.id.indexOf("1") >= 0) window.vbuttons.b1 = true;
+                        else window.vbuttons.b2 = true;
+                    };
+                    btnobj.onmouseup = btnobj.ontouchend = function(e) {
+                        e.preventDefault();
+                        e.preventDefault();
+                        if (e.target.id.indexOf("1") >= 0) window.vbuttons.b1 = false;
+                        else window.vbuttons.b2 = false;
+                    };
+                }
+            }
+            bindGameButton("vbtn1");
+            bindGameButton("vbtn2");
+        </script>
+        
+    </body>
+</html>

@@ -1,0 +1,19 @@
+{
+	"active": true,
+	"script": false,
+	"template": "label",
+
+	"components":
+	{
+		"display":
+		{
+			"x": 110,
+			"y": 150
+		},
+
+		"text":
+		{
+			"content": "Loading..."
+		}
+	}
+}

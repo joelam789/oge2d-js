@@ -1,0 +1,25 @@
+{
+	"active": true,
+	"script": false,
+	"template": "bar",
+
+	"components":
+	{
+		"display":
+		{
+			"x": 110,
+			"y": 190,
+
+			"scale":
+			{
+				"x": 420,
+				"y": 30
+			}
+		},
+
+		"custom-display":
+		{
+			"color": "#00ff00"
+		}
+	}
+}
