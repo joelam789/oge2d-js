@@ -117,7 +117,7 @@ export class SpriteNpc {
 		let state = spr.get("movement");
 		let gamemap = spr.scene.get("stage").gamemap;
 		if (rpg && state && gamemap && !state.waiting && state.auto === true) {
-			spr.scene.timeout(1000 * (Math.floor(Math.random() * 2) + 1) * 2, () => {
+			spr.scene.timeout(1000 * (Math.floor(Math.random() * 3) + 1), () => {
 				if (state.waiting === true) {
 					this.walkOnMap(spr);
 					return;
@@ -127,8 +127,8 @@ export class SpriteNpc {
 				let start = gamemap.pixelToTile(currentX, currentY);
 				let steps = Math.floor(Math.random() * 2) + 1; // 1 ~ 2 steps
 				let range = gamemap.findRange(start.x, start.y, steps, false, (cx, cy, val) => {
-					if (cx < 0 || cx > state.start.x + 2) return -1;
-					if (cy < 0 || cy > state.start.y + 2) return -1;
+					if (cx < state.start.x - 2 || cx > state.start.x + 2) return -1;
+					if (cy < state.start.y - 2 || cy > state.start.y + 2) return -1;
 					if (spr.scene.sys("rpg").isOccupiedTile(spr.scene, null, cx, cy)) return -1;
 					return val >= 0 ? 1 : -1;
 				});
@@ -140,7 +140,7 @@ export class SpriteNpc {
 				}
 			});
 		} else {
-			spr.scene.timeout(1000 * (Math.floor(Math.random() * 2) + 1) * 2, () => this.walkOnMap(spr));
+			spr.scene.timeout(1000 * (Math.floor(Math.random() * 3) + 1), () => this.walkOnMap(spr));
 		}
 	}
 
@@ -156,13 +156,19 @@ export class SpriteNpc {
 	onSceneActivate(sprite) {
 		//console.log("[Base] Npc - onSceneActivate: " + sprite.name);
 		let rpg = sprite.scene.sys("rpg");
+		let gamemap = sprite.scene.get("stage").gamemap;
+		let tile = sprite.get("tile");
+		if (tile && gamemap) {
+			let pos = gamemap.tileToPixel(tile.x, tile.y);
+			sprite.get("stage").x = pos.x;
+			sprite.get("stage").y = pos.y;
+		}
 		if (rpg) {
 			rpg.alignToTile(sprite);
 			rpg.occupyCurrentTile(sprite);
 		}
 		let state = sprite.get("movement");
 		if (state) state.waiting = false;
-		let gamemap = sprite.scene.get("stage").gamemap;
 		if (gamemap && state && state.auto === true) {
 			let currentX = sprite.get("stage").x;
 			let currentY = sprite.get("stage").y;

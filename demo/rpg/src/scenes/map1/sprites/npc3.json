@@ -1,0 +1,22 @@
+{
+    "active": true,
+    "template": "npc",
+    
+	"components":
+    {
+        "animation":
+        {
+            "image": "npc-03",
+            "current": "down"
+        },
+
+        "tile":
+        {
+            "x": 17,
+            "y": 17
+        }
+
+    }
+	
+	
+}

@@ -40,6 +40,6 @@
 
 	"scenes": ["info", "dialog"],
 	"systems": ["motion", "rpg"],
-    "sprites": ["plot1", "plot2", "plot3", "npc1", "player1"]
+    "sprites": ["plot1", "plot2", "plot3", "plot4", "plot5", "npc1", "npc2", "npc3", "player1"]
 	
 }

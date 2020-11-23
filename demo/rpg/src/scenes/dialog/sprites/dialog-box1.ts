@@ -65,7 +65,8 @@ export class SceneDialogSpriteDialogBox1 {
         }
     }
 
-    close(spr) {
+    close() {
+        let spr = (this as any).owner;
         let tween = spr.scene.sys("tween");
         let chatbox = spr.scene.sprites["dialog-box1"];
         let chatmsg = spr.scene.sprites["dialog-msg1"];

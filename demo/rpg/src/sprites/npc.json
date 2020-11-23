@@ -45,6 +45,12 @@
             "y": 16
         },
 
+        "tile":
+        {
+            "x": 0,
+            "y": 0
+        },
+
         "event":
         {
             "onSceneActivate": "onSceneActivate"
@@ -58,7 +64,9 @@
             "next": null,
             "auto": true,
 			"path": []
-		}
+        }
+        
+        
     }
 	
 	

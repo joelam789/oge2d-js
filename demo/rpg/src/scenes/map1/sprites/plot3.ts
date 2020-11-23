@@ -18,7 +18,7 @@ export class Plot3 {
         if (state.times == 0) {
 
             dialog1.show(sprite, [
-                "Old Man:",
+                "Man:",
                 "",
                 "I am a farmer living in the forest.",
                 "Do you know what is Forest Farming?",
@@ -27,21 +27,21 @@ export class Plot3 {
 
             yield sprite.plot.wait();
 
-            dialog1.close(sprite);
+            dialog1.close();
 
             state.times += 1;
 
         } else {
 
             dialog1.show(sprite, [
-                "Old Man:",
+                "Man:",
                 "",
                 "Do you like farmers?"
             ]);
     
             yield sprite.plot.wait();
     
-            dialog1.close(sprite);
+            dialog1.close();
 
         }
 

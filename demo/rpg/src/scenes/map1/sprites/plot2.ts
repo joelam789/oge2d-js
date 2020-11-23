@@ -53,7 +53,7 @@ export class Plot2 {
 
         yield sprite.plot.wait();
 
-        dialog1.close(sprite);
+        dialog1.close();
 
         console.log("plot ended - " + sprite.name);
 

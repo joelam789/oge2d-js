@@ -8,23 +8,23 @@
         "animation":
         {
             "image": "npc-01",
-            "current": "down"
-        },
-        
-        "display":
-        {
-            "visible": true
+            "current": "right"
         },
 
-        "stage":
+        "tile":
         {
-            "x": 80,
-            "y": 272
+            "x": 17,
+            "y": 5
         },
 
         "event":
         {
             "onSceneActivate": "onSceneActivate"
+        },
+
+        "movement":
+		{
+            "auto": false
         }
 
     }

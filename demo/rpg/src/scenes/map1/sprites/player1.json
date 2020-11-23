@@ -16,10 +16,10 @@
             "visible": true
         },
 
-        "stage":
+        "tile":
         {
-            "x": 272,
-            "y": 240
+            "x": 8,
+            "y": 7
         },
 
         "event":

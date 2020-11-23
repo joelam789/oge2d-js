@@ -1,0 +1,14 @@
+{
+    "active": false,
+    "script": true,
+    "template": "plot",
+    
+    "components":
+    {
+        "rpg":
+        {
+            "npc": "npc3"
+        }
+    }
+
+}

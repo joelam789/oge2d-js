@@ -163,6 +163,13 @@ export class SpritePlayer {
 	onSceneActivate(sprite) {
 		//console.log("[Base] Player - onSceneActivate: " + sprite.name);
 		let rpg = sprite.scene.sys("rpg");
+		let gamemap = sprite.scene.get("stage").gamemap;
+		let tile = sprite.get("tile");
+		if (tile && gamemap) {
+			let pos = gamemap.tileToPixel(tile.x, tile.y);
+			sprite.get("stage").x = pos.x;
+			sprite.get("stage").y = pos.y;
+		}
 		if (rpg) {
 			rpg.alignToTile(sprite);
 			rpg.occupyCurrentTile(sprite);
