@@ -245,6 +245,15 @@ export class Rpg implements OGE2D.Updater {
 		return this.dialog && this.dialog.active;
 	}
 
+	onSceneMapClick(scene, event) {
+        let pos = event.data.getLocalPosition(scene.components["display"].object);
+        //console.log("scene onPointerdown: " + scene.name + " - x=" + pos.x + " , y=" + pos.y);
+        let target = scene.systems["stage"].transform(pos);
+        let rpg = scene.components["rpg"];
+        let player = scene.sprites[rpg.player];
+        if (player) player.code.walkTo(player, target.x, target.y);
+    }
+
 	handleKeyboard(scene: OGE2D.Scene) { // handle (virtual) controller
 
 		if (scene.paused) return;
@@ -294,7 +303,7 @@ export class Rpg implements OGE2D.Updater {
 			}
 			if (act && !this.holdon) {
 				if (this.dialog && this.dialog.active) {
-					this.dialog.code.next(this.dialog);
+					this.dialog.code.next();
 					this.holdon = true;
 					this.player.scene.timeout(500, () => this.holdon = false);
 				} else if (!walking) {

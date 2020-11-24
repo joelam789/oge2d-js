@@ -514,8 +514,18 @@ export class Scene {
     }
 
     call(functionName: string, ...args: any[]) {
-        if (this.script && this.script[functionName]) {
-            return this.script[functionName](...args);
+        if (functionName.indexOf('.') >= 0) {
+            let parts = functionName.split('.');
+            if (parts.length >= 2 && parts[0] && parts[1]) {
+                let sysObj = this.sys(parts[0]);
+                if (sysObj && sysObj[parts[1]]) {
+                    return sysObj[parts[1]](...args);
+                }
+            }
+        } else {
+            if (this.script && this.script[functionName]) {
+                return this.script[functionName](...args);
+            }
         }
         return undefined;
     }

@@ -24,7 +24,7 @@
         {
             "onInit": "onInit",
             "onActivate": "onActivate",
-            "onPointerdown": "onPointerdown",
+            "onPointerdown": "rpg.onSceneMapClick",
             "onUpdate": "onUpdate"
         },
 

@@ -46,17 +46,18 @@ export class SceneDialogSpriteDialogBox1 {
                     .to({y: chatbox.custom.posY, height: chatbox.custom.maxH}, 120)
                     .call(() => {
                         chatmsg.active = true;
-                        chatmsg.code.updateText(chatmsg, speed, more);
+                        chatmsg.code.updateText(speed, more);
                 });
             } else {
                 chatmsg.active = true;
-                spr.scene.timeout(150, () => chatmsg.code.updateText(chatmsg, speed, more));
+                spr.scene.timeout(150, () => chatmsg.code.updateText(speed, more));
             }
 
         }
     }
 
-    next(spr) {
+    next() {
+        let spr = (this as any).owner;
         let chatbox = spr.scene.sprites["dialog-box1"];
         let chatstate = chatbox && chatbox.custom ? chatbox.custom.status : "";
         if (chatstate == "done" || chatstate == "more" ) {
@@ -104,7 +105,7 @@ export class SceneDialogSpriteDialogBox1 {
     
     onPointerup(spr, event) {
         //console.log("DialogBox1 - onPointerup: " + spr.name);
-        this.next(spr);
+        this.next();
 	}
 
 }

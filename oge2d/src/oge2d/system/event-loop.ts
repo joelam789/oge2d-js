@@ -135,10 +135,8 @@ export class EventLoop implements Updater {
                 else {
                     let callbackFunc = sceneEvent[evt.name];
                     let callbackType = callbackFunc ? typeof callbackFunc : null;
-                    if (callbackType == "string" && scene.script) {
-                        if (scene.script[callbackFunc]) {
-                            scene.script[callbackFunc](scene, evt.data);
-                        }
+                    if (callbackType == "string") {
+                        scene.call(callbackFunc, scene, evt.data);
                     } else if (callbackType == "function") {
                         callbackFunc(scene, evt.data);
                     }
@@ -148,8 +146,8 @@ export class EventLoop implements Updater {
         if (sceneEvent) {
             let callbackFunc = sceneEvent["onUpdate"];
             let callbackType = callbackFunc ? typeof callbackFunc : null;
-            if (callbackType == "string" && scene.script) {
-                if (scene.script[callbackFunc]) scene.script[callbackFunc](scene);
+            if (callbackType == "string") {
+                scene.call(callbackFunc, scene);
             } else if (callbackType == "function") {
                 callbackFunc(scene);
             }
