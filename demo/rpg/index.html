@@ -68,7 +68,7 @@
                 
                 SystemJS.import('oge2d-main').then(function(main) {
                     //main.app.loadGame("shooting", "game", function(game) {
-                    main.app.load({ game: "demo", container: "game", systems: { rpg: "systems/rpg" } },
+                    main.app.load({ game: "demo", container: "game", systems: ["systems/rpg"] },
                     function(game) {
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('game').style.display = 'block';

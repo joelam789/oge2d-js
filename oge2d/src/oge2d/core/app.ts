@@ -7,6 +7,24 @@ export class App {
     systems: Map<string, any> = new Map<string, any>();
     libraries: Map<string, any> = new Map<string, any>();
 
+    getFileNameFromPath(filepath: string, needExt: boolean = false): string {
+        let filename = filepath.split('\\').pop().split('/').pop();
+        if (!needExt) {
+            let idx = filename.lastIndexOf('.');
+            if (idx >= 0) filename = filename.substring(0, idx);
+        }
+        return filename;
+    }
+    getFileMapFromArray(files: Array<string>): any {
+        let fileMap = {};
+        for (let item of files) {
+            let key = this.getFileNameFromPath(item);
+            if (!key) key = item;
+            if (key) fileMap[key] = item;
+        }
+        return fileMap;
+    }
+
     constructor(config?: any) {
         if (config && config.systems) {
             for (let item of Object.keys(config.systems)) {
@@ -76,9 +94,11 @@ export class App {
             return;
         }
         let loadings = [], classNames: Map<string, string> = new Map<string, string>();
-        for (let item of Object.keys(config.systems)) {
+        let configSystems = config.systems;
+        if (Array.isArray(configSystems)) configSystems = this.getFileMapFromArray(configSystems);
+        for (let item of Object.keys(configSystems)) {
             let className = '';
-            let classPath = config.systems[item];
+            let classPath = configSystems[item];
             let pathParts = classPath.split('/');
             let lastPart = pathParts[pathParts.length - 1];
             let lastChar = '?', currentChar = '';
@@ -116,9 +136,11 @@ export class App {
             return;
         }
         let loadings = [], classNames: Map<string, string> = new Map<string, string>();
-        for (let item of Object.keys(config.libraries)) {
+        let configLibraries = config.libraries;
+        if (Array.isArray(configLibraries)) configLibraries = this.getFileMapFromArray(configLibraries);
+        for (let item of Object.keys(configLibraries)) {
             let className = '';
-            let classPath = config.libraries[item];
+            let classPath = configLibraries[item];
             let pathParts = classPath.split('/');
             let lastPart = pathParts[pathParts.length - 1];
             let lastChar = '?', currentChar = '';
