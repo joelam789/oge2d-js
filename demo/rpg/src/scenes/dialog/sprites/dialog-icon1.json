@@ -1,15 +1,37 @@
 {
     "active": true,
     "script": true,
-	"template": "icon-triangle",
+	"template": "text",
 
     "components":
     {
+        "text":
+        {
+            "content": "▼",
+            "style":
+            {
+                "fontSize": 24
+            }
+        },
+
         "display":
         {
             "parent": "dialog-box1",
+
             "x": 300,
-            "y": 150
+            "y": 148,
+
+            "anchor":
+            {
+                "x": 0.5,
+                "y": 0.5
+            },
+
+            "scale":
+            {
+                "x": 1.0,
+                "y": 0.5
+            }
         },
 		
 		"event":
