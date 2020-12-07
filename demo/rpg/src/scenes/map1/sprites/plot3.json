@@ -8,7 +8,8 @@
         "rpg":
         {
             "npc": "npc1",
-            "times": 0
+            "times": 0,
+            "answer": 0
         }
     }
 

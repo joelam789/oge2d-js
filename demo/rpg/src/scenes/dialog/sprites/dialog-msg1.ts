@@ -22,16 +22,17 @@ export class SceneDialogSpriteDialogMsg1 {
         
     }
 
-    onDisplayDone() {
+    onDisplayDone(showIcon: boolean = true) {
         let spr = (this as any).owner;
         let chatbox = spr.scene.sprites["dialog-box1"];
         let chaticon = spr.scene.sprites["dialog-icon1"];
         if (chatbox && chaticon) {
+            //console.log("onDisplayDone - ", spr.custom);
             if (spr.custom && spr.custom.more) {
                 chatbox.custom.status = "more";
                 chatbox.code.next();
             } else {
-                chaticon.active = true;
+                if (showIcon) chaticon.active = true;
                 chatbox.custom.status = "done";
             }
         }

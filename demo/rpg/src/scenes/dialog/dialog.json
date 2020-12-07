@@ -1,4 +1,4 @@
 {
     "script": false,
-    "sprites": ["dialog-box1", "dialog-msg1","dialog-icon1"]
+    "sprites": ["dialog-box1","dialog-msg1","dialog-icon1", "answer-box1","answer-msg1","answer-icon1"]
 }

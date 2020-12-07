@@ -1,0 +1,20 @@
+{
+    "active": false,
+    "script": false,
+	"template": "text",
+	"count": 8,
+
+    "components":
+    {
+        "text":
+        {
+            "content": "Your answer 1"
+        },
+
+        "display":
+        {
+            "x": 20,
+            "y": 20
+        }
+    }
+}

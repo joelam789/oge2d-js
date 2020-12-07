@@ -1,0 +1,30 @@
+{
+    "active": false,
+    "script": false,
+	"template": "text",
+
+    "components":
+    {
+        "text":
+        {
+            "content": "➤",
+            "style":
+            {
+                "fontSize": 24
+            }
+        },
+
+        "display":
+        {
+            "x": 100,
+            "y": 100,
+
+            "anchor":
+            {
+                "x": 0.5,
+                "y": 0.5
+            }
+        }
+		
+    }
+}

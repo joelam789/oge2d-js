@@ -11,6 +11,7 @@ export class Scene1 {
     onActivate(scene) {
         this.scene = scene;
         console.log("on scene activate: " + scene.name);
+        //console.log(scene.game.systems);
         //console.log(scene.sprites);
     }
 

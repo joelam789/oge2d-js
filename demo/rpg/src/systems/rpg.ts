@@ -245,6 +245,15 @@ export class Rpg implements OGE2D.Updater {
 		return this.dialog && this.dialog.active;
 	}
 
+	isAnswering() {
+		return this.dialog && this.dialog.active 
+				&& this.dialog.code && this.dialog.code.isAnswering();
+	}
+
+	selectAnswer() {
+		if (this.dialog && this.dialog.active && this.dialog.code) this.dialog.code.selectAnswer();
+	}
+
 	onSceneMapClick(scene, event) {
         let pos = event.data.getLocalPosition(scene.components["display"].object);
         //console.log("scene onPointerdown: " + scene.name + " - x=" + pos.x + " , y=" + pos.y);
@@ -301,8 +310,22 @@ export class Rpg implements OGE2D.Updater {
 				playerAction.walkOnTile(this.player, dir, speed);
 				walking = true;
 			}
+			if (talking && !this.holdon) {
+				if (this.isAnswering()) {
+					if (dir && (dir == "up" || dir == "down")) {
+						this.dialog.code.moveCursor(dir);
+						this.holdon = true;
+						this.player.scene.timeout(200, () => this.holdon = false);
+					}
+					if (act && !this.holdon) {
+						this.selectAnswer();
+						this.holdon = true;
+						this.player.scene.timeout(200, () => this.holdon = false);
+					}
+				}
+			}
 			if (act && !this.holdon) {
-				if (this.dialog && this.dialog.active) {
+				if (talking) {
 					this.dialog.code.next();
 					this.holdon = true;
 					this.player.scene.timeout(500, () => this.holdon = false);

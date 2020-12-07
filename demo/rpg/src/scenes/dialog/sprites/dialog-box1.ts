@@ -16,7 +16,7 @@ export class SceneDialogSpriteDialogBox1 {
                 if (display) {
                     chatbox.custom.posY = display.y;
                     chatbox.custom.maxH = display.height;
-                    chatbox.custom.minH = 40;
+                    chatbox.custom.minH = 60;
                 }
             }
             if (!chatmsg.custom) chatmsg.custom = {};
@@ -101,6 +101,31 @@ export class SceneDialogSpriteDialogBox1 {
             let rpg = spr.scene.sys("rpg");
             if (rpg) rpg.stopNpcWaiting(spr.scene);
         }
+    }
+
+    isAnswering() {
+        let spr = (this as any).owner;
+        let answer1 = spr.scene.spr("answer-box1").code;
+        return answer1 && answer1.isAnswering();
+    }
+
+    getChoice() {
+        let spr = (this as any).owner;
+        let answer1 = spr.scene.spr("answer-box1").code;
+        return answer1 ? 0 : answer1.getChoice();
+    }
+
+    moveCursor(dir: string) {
+        let spr = (this as any).owner;
+        let answer1 = spr.scene.spr("answer-box1").code;
+        if (answer1) answer1.moveCursor(dir);
+    }
+
+    selectAnswer() {
+        let spr = (this as any).owner;
+        let icon = spr.scene.spr("answer-icon1");
+        let answer1 = spr.scene.spr("answer-box1").code;
+        if (answer1 && icon) answer1.selectAnswer(icon);
     }
     
     onPointerup(spr, event) {

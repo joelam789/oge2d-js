@@ -1,0 +1,29 @@
+{
+    "active": false,
+    "script": true,
+	"template": "panel",
+	"count": 8,
+
+    "components":
+    {
+        "display":
+        {
+            "x": 100,
+            "y": 100,
+            "width": 350,
+            "height": 60
+        },
+		
+		"mouse":
+		{
+			"enabled": true,
+			"shareable": false,
+			"actions": ["pointerup"]
+		},
+
+		"event":
+		{
+            "onPointerup": "onPointerup"
+		}
+    }
+}
