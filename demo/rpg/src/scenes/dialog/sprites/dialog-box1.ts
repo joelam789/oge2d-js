@@ -63,6 +63,11 @@ export class SceneDialogSpriteDialogBox1 {
         if (chatstate == "done" || chatstate == "more" ) {
             let plotctx = spr.scene.sprites[chatbox.custom.plot];
             if (plotctx) plotctx.plot.signal();
+        } else if (chatstate == "open") {
+            let chatmsg = spr.scene.sprites["dialog-msg1"];
+            if (chatmsg && chatmsg.custom && chatmsg.custom.content) {
+                chatmsg.get("display").object.text = chatmsg.custom.content;
+            }
         }
     }
 

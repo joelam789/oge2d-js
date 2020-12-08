@@ -343,7 +343,11 @@ export class Rpg implements OGE2D.Updater {
 							let npcDir = this.getDirection(npcTile, playerTile);
 							if (npcDir && anima) anima.set(npcDir);
 						}
-						if (!npc || (npc && !npcWalking)) plot.active = true;
+						if (!npc || (npc && !npcWalking)) {
+							plot.active = true;
+							this.holdon = true;
+							this.player.scene.timeout(500, () => this.holdon = false);
+						}
 					}
 				}
 			}
