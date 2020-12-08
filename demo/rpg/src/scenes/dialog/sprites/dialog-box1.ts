@@ -112,7 +112,7 @@ export class SceneDialogSpriteDialogBox1 {
     getChoice() {
         let spr = (this as any).owner;
         let answer1 = spr.scene.spr("answer-box1").code;
-        return answer1 ? 0 : answer1.getChoice();
+        return answer1 ? answer1.getChoice() : 0;
     }
 
     moveCursor(dir: string) {
@@ -126,6 +126,11 @@ export class SceneDialogSpriteDialogBox1 {
         let icon = spr.scene.spr("answer-icon1");
         let answer1 = spr.scene.spr("answer-box1").code;
         if (answer1 && icon) answer1.selectAnswer(icon);
+    }
+
+    list(spr, options: Array<string>, left = 150, top = 40, gap = 80) {
+        let answer1 = spr.scene.spr("answer-box1").code;
+        if (answer1) answer1.show(spr, options, left, top, gap);
     }
     
     onPointerup(spr, event) {
