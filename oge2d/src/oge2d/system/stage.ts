@@ -19,8 +19,11 @@ export class Stage implements Updater {
     private _tilemaps:  { [name: string]: any }  = { };
     private _gamemaps:  { [name: string]: any }  = { };
 
+    private _commonTileCanvas: Map<string, HTMLCanvasElement> = null;
+
     init(game: Game): boolean {
         this._game = game;
+        this._commonTileCanvas = new Map<string, HTMLCanvasElement>();
         return true;
     }
 
@@ -619,13 +622,20 @@ export class Stage implements Updater {
             //tilemap.defaultTileTexture = graph.generateCanvasTexture();
             //tilemap.defaultTileTextures = [tilemap.defaultTileTexture];
 
-            let canv = document.createElement('canvas');
-            canv.width = cellWidth;
-            canv.height = cellWidth;
+            let canvName = cellWidth + "_" + cellHeight + "_" 
+                            + ( tilemap.bgcolor ? tilemap.bgcolor.toString() : "" );
+            let canv = this._commonTileCanvas.get(canvName);
+            if (!canv) {
+                canv = document.createElement('canvas');
+                canv.width = cellWidth;
+                canv.height = cellHeight;
+                this._commonTileCanvas.set(canvName, canv);
+            }
             let ctx = canv.getContext('2d');
+            ctx.clearRect(0, 0, canv.width, canv.height);
             if (tilemap.bgcolor) ctx.fillStyle = tilemap.bgcolor.toString();
             else ctx.fillStyle = 'rgba(0, 0, 0, 1)';  // black
-            ctx.fillRect(0, 0, cellWidth, cellWidth);
+            ctx.fillRect(0, 0, cellWidth, cellHeight);
             tilemap.defaultTileTexture = PIXI.Texture.from(canv);
             tilemap.defaultTileTextures = [tilemap.defaultTileTexture];
             
@@ -639,7 +649,9 @@ export class Stage implements Updater {
 
             tilemap.display = new PIXI.Container();
             tilemap.sprites = [];
-            tilemap.spriteCount = col * row * 2;
+            //tilemap.spriteCount = col * row * 2;
+            if (col < 10 && row < 10) tilemap.spriteCount = col * row * 2;
+            else tilemap.spriteCount = (col+4) * (row+4); // should be enough
 
             for (let i=0; i<tilemap.spriteCount; i++) {
                 let tileSprite = new PIXI.AnimatedSprite(tilemap.defaultTileTextures, true);

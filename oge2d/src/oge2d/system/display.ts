@@ -13,6 +13,8 @@ export class Display implements Updater {
 
     private _pauses: { [name: string]: boolean }  = { };
 
+    private _objects: Map<string, PIXI.DisplayObject> = null;
+
     private _game: Game = null;
     private _event: any = null;
     private _pixi: PIXI.Application = null;
@@ -20,6 +22,7 @@ export class Display implements Updater {
 
     init(game: Game): boolean {
         this._game = game;
+        this._objects = new Map<string, PIXI.Sprite>();
         this._event = game.systems["event"];
         let display = game.components["display"];
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
@@ -109,19 +112,25 @@ export class Display implements Updater {
     }
 
 	prepare(sprite: Sprite, callback: ()=>void) {
-
         let display = sprite.components["display"];
         if (display && display.object) {
             if (callback) callback();
             return;
         }
-
         let container = null;
         display = sprite.scene.components["display"];
         if (display && display.object) container = display.object;
         if (container) display = sprite.components["display"];
         if (container && display) {
             if (display.object == undefined || display.object == null) {
+                let fullName = sprite.scene.name + "." + sprite.name;
+                let existingSpr = this._objects.get(fullName);
+                if (existingSpr) {
+                    display.object = existingSpr;
+                    if (callback) callback();
+                    return;
+                }
+                //console.log(fullName);
                 let text = sprite.components["text"];
                 let graphic = sprite.components["graphic"];
                 let animation = sprite.components["animation"];
@@ -132,6 +141,7 @@ export class Display implements Updater {
                     let pixispr = new PIXI.Text(textContent, text.style ? text.style : undefined);
                     this.applySpriteProperties(pixispr, display);
                     display.object = pixispr;
+                    this._objects.set(fullName, pixispr);
                     if (callback) callback();
                     return;
                 } else if (graphic && graphic.image && graphic.area) {
@@ -147,6 +157,7 @@ export class Display implements Updater {
                                                 : new PIXI.Sprite(tex);
                                 this.applySpriteProperties(pixispr, display);
                                 display.object = pixispr;
+                                this._objects.set(fullName, pixispr);
                             }
                             if (callback) callback();
                             return;
@@ -198,6 +209,7 @@ export class Display implements Updater {
                                 display.animation = animationContainer;
                                 pixispr.onComplete = animationContainer.done.bind(animationContainer);
                                 pixispr.play();
+                                this._objects.set(fullName, pixispr);
                             }
                             if (callback) callback();
                             return;
@@ -217,6 +229,7 @@ export class Display implements Updater {
                             let pixispr = new PIXI.Sprite(tex);
                             this.applySpriteProperties(pixispr, display);
                             display.object = pixispr;
+                            this._objects.set(fullName, pixispr);
                         }
                         if (callback) callback();
                     } else if (texAsyncFunc) {
@@ -225,6 +238,7 @@ export class Display implements Updater {
                                 let pixispr = new PIXI.Sprite(tex);
                                 this.applySpriteProperties(pixispr, display);
                                 display.object = pixispr;
+                                this._objects.set(fullName, pixispr);
                             }
                             if (callback) callback();
                         });
@@ -233,6 +247,7 @@ export class Display implements Updater {
                         if (pixispr) {
                             this.applySpriteProperties(pixispr, display);
                             display.object = pixispr;
+                            this._objects.set(fullName, pixispr);
                         }
                         if (callback) callback();
                             
@@ -242,11 +257,25 @@ export class Display implements Updater {
                                 let pixispr = spr;
                                 this.applySpriteProperties(pixispr, display);
                                 display.object = pixispr;
+                                this._objects.set(fullName, pixispr);
                             }
                             if (callback) callback();
                         });
+                    } else {
+                        let pixispr = new PIXI.Sprite(PIXI.Texture.EMPTY);
+                        this.applySpriteProperties(pixispr, display);
+                        display.object = pixispr;
+                        this._objects.set(fullName, pixispr);
+                        if (callback) callback();
                     }
                     return;
+
+                } else {
+                    // still try to create the sprite tho no textures defined...
+                    let pixispr = new PIXI.Sprite(PIXI.Texture.EMPTY);
+                    this.applySpriteProperties(pixispr, display);
+                    this._objects.set(fullName, pixispr);
+                    display.object = pixispr;
                 }
 
             } // end if display.object is empty

@@ -313,6 +313,7 @@ export class Scene {
                             this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
                         });
                     } else {
+                        if (config.components) newSprite.components = config.components;
                         if (newSprite.script) {
                             let eventSystem: any = this.systems["event"];
                             if (eventSystem) eventSystem.callEvent(newSprite, "onInit");
@@ -349,6 +350,7 @@ export class Scene {
                         this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
                     });
                 } else {
+                    if (config.components) newSprite.components = config.components;
                     this.addNewSpriteWithClones(newSprite, config.active, config.count, callback);
                 }
             }
