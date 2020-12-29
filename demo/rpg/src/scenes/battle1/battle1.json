@@ -6,13 +6,6 @@
             "bgcolor": "#0000ff"
         },
 
-        "stage":
-        {
-            "x": 0,
-            "y": 0,
-            "map": "map1"
-        },
-
         "mouse":
         {
             "enabled": true,
@@ -24,23 +17,27 @@
         {
             "onInit": "onInit",
             "onActivate": "onActivate",
-            "onPointerdown": "rpg-map.onSceneMapClick",
+            "onPointerdown": "rpg-battle.onSceneBattleClick",
             "onUpdate": "onUpdate"
         },
 
         "rpg":
         {
-            "times": 0,
-            "player": "player1",
+            "entry": "plot-menu",
             "dialog": "dialog-box1",
+            "listbox": "list-box1",
+            "fighter": "",
+            "target": "",
             "flags": [0, 0, 0, 0, 0]
         }
     },
 
     "script": true,
 
-	"scenes": ["info", "dialog"],
-	"systems": ["motion", "rpg-map", "rpg-transition"],
-    "sprites": ["plot1", "plot2", "plot3", "plot4", "plot5", "npc1", "npc2", "npc3", "player1"]
+	"scenes": ["info", "list"],
+	"systems": ["motion", "rpg-battle"],
+    "sprites": ["bg1", "enemy1", "fighter1", 
+                "plot-menu", "plot-select-enemy",
+				"plot-fight", "plot-enemy-fight"]
 	
 }

@@ -1,7 +1,7 @@
 
 export class Scene1 {
 
-    scene: any = null;
+    sceneName: any = null;
     path: Array<any> = [];
 
     onInit(scene) {
@@ -9,10 +9,9 @@ export class Scene1 {
     }
 
     onActivate(scene) {
-        this.scene = scene;
-        console.log("on scene activate: " + scene.name);
-        //console.log(scene.game.systems);
-        //console.log(scene.sprites);
+        this.sceneName = scene.name;
+        let rpg = scene.get("rpg");
+        console.log("on scene activate: " + scene.name + " (" + rpg.times + ")");
     }
 
     /*

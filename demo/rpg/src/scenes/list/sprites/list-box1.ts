@@ -1,27 +1,35 @@
-export class SceneDialogSpriteAnswerBox1 {
+export class SceneListSpriteListBox1 {
 
+    plotName = "";
     selected = 0;
-    answering = false;
+    listing = false;
     textRelativeX = 50;
-    textRelativeY = 20;
+    textRelativeY = 10;
     iconRelativeX = 30;
-    iconRelativeY = 28;
+    iconRelativeY = 18;
 
-    show(spr, lines: Array<string>, left = 150, top = 40, gap = 80) {
-        //console.log("showing answers...");
+    show(spr, items: Array<any>, left = 240, top = 40, width = 180, gap = 30) {
+        //console.log("showing the list...");
         let scene = spr.scene;
-        let chatmsg = scene.sprites["dialog-msg1"];
-        if (chatmsg && chatmsg.custom) {
-            chatmsg.custom.more = false;
-            chatmsg.custom.history = "";
-        }
-        let chatbox = spr.scene.sprites["dialog-box1"];
-        if (chatbox && chatbox.custom) chatbox.custom.status = "wait";
         let idx = 0, posX = left, posY = top;
-        for (let line of lines) {
+        let box = spr.scene.sprites["list-box1"];
+        if (box) {
+            let boxDisplay = box.get("display").object;
+            boxDisplay.x = posX;
+            boxDisplay.y = posY;
+            boxDisplay.width = width;
+            if (items && items.length > 0) {
+                boxDisplay.height = gap * (items.length + 2) - (gap / 2);
+            }
+            box.active = true;
+        }
+
+        posY += gap / 2;
+
+        for (let line of items) {
             idx++;
-            let item = scene.getFreeSprite("answer-box1");
-            let text = scene.getFreeSprite("answer-msg1");
+            let item = scene.getFreeSprite("list-item1");
+            let text = scene.getFreeSprite("list-label1");
             let itemDisplay = item.get("display").object;
             let textDisplay = text.get("display").object;
             itemDisplay.x = posX;
@@ -34,7 +42,7 @@ export class SceneDialogSpriteAnswerBox1 {
             textDisplay.text = line;
             text.active = true;
             if (idx == 1) {
-                let icon = scene.sprites["answer-icon1"];
+                let icon = scene.sprites["list-cursor1"];
                 if (!icon.custom) icon.custom = {};
                 icon.custom.flag = idx;
                 let iconDisplay = icon.get("display").object;
@@ -44,36 +52,45 @@ export class SceneDialogSpriteAnswerBox1 {
             }
             posY += gap;
         }
-        this.answering = true;
+        this.plotName = spr.name;
+        this.listing = true;
     }
 
-    close() {
+    cleanup() {
         let spr = (this as any).owner;
         //let sprName = spr.origin ? spr.origin.name : spr.name;
-        let pool = spr.scene.pools["answer-box1"];
+        let pool = spr.scene.pools["list-item1"];
         for (let item of pool) {
             item.active = false;
             if (item.custom) item.custom.flag = 0;
         }
-        let pool2 = spr.scene.pools["answer-msg1"];
+        let pool2 = spr.scene.pools["list-label1"];
         for (let item of pool2) item.active = false;
-        let icon = spr.scene.sprites["answer-icon1"];
-        icon.custom.flag = 0;
+        let icon = spr.scene.sprites["list-cursor1"];
+        if (icon.custom) icon.custom.flag = 0;
         icon.active = false;
-        this.answering = false;
+        if (this.plotName) this.plotName = "";
+    }
+
+    close() {
+        this.cleanup();
+        let spr = (this as any).owner;
+        let box = spr.scene.sprites["list-box1"];
+        box.active = false;
+        this.listing = false;
     }
 
     getChoice() {
         return this.selected;
     }
 
-    isAnswering() {
-        return this.answering;
+    isListing() {
+        return this.listing;
     }
 
     moveCursorTo(spr) {
         if (!spr || !spr.active) return;
-        let icon = spr.scene.sprites["answer-icon1"];
+        let icon = spr.scene.sprites["list-cursor1"];
         if (!icon || !icon.active) return;
         let iconDisplay = icon.get("display").object;
         let item = spr;
@@ -84,15 +101,16 @@ export class SceneDialogSpriteAnswerBox1 {
     }
 
     moveCursor(dir: string = "down") {
+        //console.log("moveCursor");
         let spr = (this as any).owner;
-        let icon = spr.scene.sprites["answer-icon1"];
+        let icon = spr.scene.sprites["list-cursor1"];
         if (!icon || !icon.active) return;
         let delta = 0;
         if (dir == "down") delta++;
         else if (dir == "up") delta--;
         if (delta == 0) return;
         let idx = 0, gap = 0, firstY = 0, lastY = 0;
-        let pool = spr.scene.pools["answer-box1"];
+        let pool = spr.scene.pools["list-item1"];
         for (let item of pool) {
             if (item.active && item.custom && item.custom.flag > 0) {
                 idx++;
@@ -127,22 +145,22 @@ export class SceneDialogSpriteAnswerBox1 {
         }
     }
 
-    selectAnswer(spr) {
-        let flag = spr && spr.custom ? spr.custom.flag : 0;
+    selectItem(spr = null) {
+        let target = spr;
+        if (!target) {
+            target = (this as any).owner.scene.sprites["list-cursor1"];
+        }
+        let flag = target && target.custom ? target.custom.flag : 0;
         this.selected = flag;
-        this.close();
-        let chatmsg = spr.scene.sprites["dialog-msg1"];
-        if (chatmsg) chatmsg.code.onDisplayDone(false);
-        let chatbox = spr.scene.sprites["dialog-box1"];
-        if (chatbox) chatbox.code.next();
+        if (target && this.plotName) {
+            target.scene.sprites[this.plotName].plot.signal();
+        }
+        console.log("ListBox1 - onPointerup", target.name, this.selected);
+        //this.cleanup();
     }
-
-    onPointerdown(spr, event) {
-        this.moveCursorTo(spr);
-	}
     
     onPointerup(spr, event) {
-        this.selectAnswer(spr);
+        //this.selectItem(spr);
 	}
 
 }

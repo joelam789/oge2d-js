@@ -1,0 +1,23 @@
+{
+    "active": true,
+    "script": false,
+    "template": "fighter",
+    
+	"components":
+    {
+        "animation":
+        {
+            "image": "fighter-01",
+            "current": "stand"
+        },
+		
+		"display":
+        {
+            "x": 460,
+            "y": 280
+		}
+
+    }
+	
+	
+}

@@ -71,7 +71,7 @@ export class SceneDialogSpriteDialogBox1 {
         }
     }
 
-    close() {
+    close(needAnima = true) {
         let spr = (this as any).owner;
         let tween = spr.scene.sys("tween");
         let chatbox = spr.scene.sprites["dialog-box1"];
@@ -86,7 +86,7 @@ export class SceneDialogSpriteDialogBox1 {
             let display = chatbox.get("display").object;
             let canShowAnima = showing && tween && display && chatbox.custom.posY 
                                 && chatbox.custom.maxH && chatbox.custom.minH;
-            if (canShowAnima) {
+            if (canShowAnima && needAnima) {
                 tween.get(display)
                     .to({ y: chatbox.custom.posY + (chatbox.custom.maxH - chatbox.custom.minH) / 2, 
                             height: chatbox.custom.minH }, 120)
@@ -94,16 +94,16 @@ export class SceneDialogSpriteDialogBox1 {
                         chatbox.active = false;
                         display.y = chatbox.custom.posY;
                         display.height = chatbox.custom.maxH;
-                        let rpg = spr.scene.sys("rpg");
+                        let rpg = spr.scene.sys("rpg-map");
                         if (rpg) rpg.stopNpcWaiting(spr.scene);
                     });
             } else {
                 chatbox.active = false;
-                let rpg = spr.scene.sys("rpg");
+                let rpg = spr.scene.sys("rpg-map");
                 if (rpg) rpg.stopNpcWaiting(spr.scene);
             }
         } else {
-            let rpg = spr.scene.sys("rpg");
+            let rpg = spr.scene.sys("rpg-map");
             if (rpg) rpg.stopNpcWaiting(spr.scene);
         }
     }

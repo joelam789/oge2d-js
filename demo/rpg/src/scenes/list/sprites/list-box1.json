@@ -2,7 +2,6 @@
     "active": false,
     "script": true,
 	"template": "panel",
-	"count": 8,
 
     "components":
     {
@@ -11,19 +10,18 @@
             "x": 100,
             "y": 100,
             "width": 350,
-            "height": 60
+            "height": 360
         },
 		
 		"mouse":
 		{
 			"enabled": true,
 			"shareable": false,
-			"actions": ["pointerdown", "pointerup"]
+			"actions": []
 		},
 
 		"event":
 		{
-            "onPointerdown": "onPointerdown",
             "onPointerup": "onPointerup"
 		}
     }

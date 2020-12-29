@@ -2,7 +2,7 @@
 export class SpritePlayer {
 
 	walkOnTile(spr: any, dir: string, speed: number = 2) {
-		let rpg = spr.scene.sys("rpg");
+		let rpg = spr.scene.sys("rpg-map");
 		let state = spr.get("movement");
 		let anima = spr.get("display").animation;
 		let motion = spr.scene.systems["motion"];
@@ -40,7 +40,7 @@ export class SpritePlayer {
 	}
 
 	walkOneStep(spr: any, speed: number = 2) {
-		let rpg = spr.scene.sys("rpg");
+		let rpg = spr.scene.sys("rpg-map");
 		let state = spr.get("movement");
 		let anima = spr.get("display").animation;
 		let gamemap = spr.scene.get("stage").gamemap;
@@ -76,7 +76,7 @@ export class SpritePlayer {
 		let end = {x: x, y: y};
 		
 		let path = gamemap.findPath(start.x, start.y, end.x, end.y, false, (cx, cy, val) => {
-            return spr.scene.sys("rpg").isOccupiedTile(spr.scene, [spr.name], cx, cy) ? -1 : val;
+            return spr.scene.sys("rpg-map").isOccupiedTile(spr.scene, [spr.name], cx, cy) ? -1 : val;
 		});
 
 		//console.log("walkToTile", x, y);
@@ -95,7 +95,7 @@ export class SpritePlayer {
 
 	walkTo(spr: any, x: number, y: number, speed: number = 2) {
 
-		let rpg = spr.scene.sys("rpg");
+		let rpg = spr.scene.sys("rpg-map");
 		if (rpg && rpg.isTalking()) return;
 
 		let state = spr.get("movement");
@@ -110,7 +110,7 @@ export class SpritePlayer {
 	}
 
 	stopWalking(spr: any, dir: string = "") {
-		let rpg = spr.scene.sys("rpg");
+		let rpg = spr.scene.sys("rpg-map");
 		let state = spr.get("movement");
 		let anima = spr.get("display").animation;
 		let gamemap = spr.scene.get("stage").gamemap;
@@ -162,23 +162,30 @@ export class SpritePlayer {
 
 	onSceneActivate(sprite) {
 		//console.log("[Base] Player - onSceneActivate: " + sprite.name);
-		let rpg = sprite.scene.sys("rpg");
-		let gamemap = sprite.scene.get("stage").gamemap;
-		let tile = sprite.get("tile");
-		if (tile && gamemap) {
-			let pos = gamemap.tileToPixel(tile.x, tile.y);
-			sprite.get("stage").x = pos.x;
-			sprite.get("stage").y = pos.y;
+		let mapState = sprite.scene.get("rpg");
+        if (mapState && mapState.times == 1) {
+			let rpg = sprite.scene.sys("rpg-map");
+			let gamemap = sprite.scene.get("stage").gamemap;
+			let tile = sprite.get("tile");
+			if (tile && gamemap) {
+				let pos = gamemap.tileToPixel(tile.x, tile.y);
+				sprite.get("stage").x = pos.x;
+				sprite.get("stage").y = pos.y;
+			}
+			if (rpg) {
+				rpg.alignToTile(sprite);
+				rpg.occupyCurrentTile(sprite);
+			}
+			let state = sprite.get("movement");
+			if (state) {
+				state.moving = false;
+				state.next = null;
+			}
+		} else {
+			let rpg = sprite.scene.sys("rpg-map");
+			if (rpg) rpg.occupyCurrentTile(sprite);
 		}
-		if (rpg) {
-			rpg.alignToTile(sprite);
-			rpg.occupyCurrentTile(sprite);
-		}
-		let state = sprite.get("movement");
-		if (state) {
-			state.moving = false;
-			state.next = null;
-		}
+
 	}
 
 }

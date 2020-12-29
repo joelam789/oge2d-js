@@ -57,9 +57,23 @@ export class Plot3 {
                 responseWords[dialog1.getChoice() - 1]
             ]);
             yield sprite.plot.wait();
-    
-            dialog1.close();
 
+            if (dialog1.getChoice() != 2) {
+                dialog1.close();
+            } else {
+                dialog1.close(false);
+                let transition: any = sprite.scene.systems["rpg-transition"];
+                if (!transition.isWorking()) {
+                    transition.callScene("battle1", (nextScene) => {
+                        //dialog1.close(false);
+                        nextScene.reset();
+                    }, 500, 1000);
+                } else {
+                    dialog1.close();
+                }
+                
+            }
+    
         }
 
         console.log("plot ended - " + sprite.name);

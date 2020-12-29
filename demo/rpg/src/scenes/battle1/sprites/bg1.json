@@ -1,0 +1,16 @@
+{
+    "active": true,
+    "script": false,
+    "template": "bg",
+    
+	"components":
+    {
+        "graphic":
+        {
+            "image": "battle_bg"
+        }
+
+    }
+	
+	
+}

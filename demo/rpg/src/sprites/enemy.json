@@ -1,0 +1,42 @@
+{
+	"active": false,
+    "script": true,
+
+	"components":
+	{
+		"animation":
+		{
+			"image": "enemy-01",
+			"loop": false,
+			"speed": 0.5,
+			"sheets": {
+				"stand": [105,105,190,110]
+			},
+			"current": "stand"
+		},
+		
+		"display":
+        {
+            "x": 16,
+            "y": 16,
+
+            "layer": "npc",
+            "visible": true,
+            
+            "anchor":
+            {
+                "x": 0.5,
+                "y": 0.5
+            },
+
+            "alpha": 1.0
+        },
+
+		"rpg":
+		{
+			"hp": 50,
+			"maxhp": 50,
+			"score": 200
+		}
+	}
+}

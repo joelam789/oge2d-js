@@ -31,6 +31,6 @@
 	"packs": ["pack1"],
 
 	"basics": ["display", "stage", "tween", "transition", "mouse", "keyboard", "event"],
-	"scenes": ["info", "dialog", "map1"],
+	"scenes": ["info", "dialog", "list", "map1", "battle1"],
 	"first": "map1"
 }

@@ -1,0 +1,36 @@
+{
+	"active": true,
+    "script": false,
+
+    "components":
+    {
+        "graphic":
+        {
+            "image": "bg",
+            "area":
+            {
+                "x": 0,
+                "y": 0,
+                "width": 640,
+                "height": 480
+            }
+        },
+
+        "display":
+        {
+            "x": 0,
+            "y": 0,
+			
+			"layer": "bg",
+            "visible": true,
+            
+            "anchor":
+            {
+                "x": 0,
+                "y": 0
+            }
+        }
+    }
+
+    
+}

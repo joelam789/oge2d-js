@@ -1,7 +1,6 @@
 {
     "active": false,
     "script": true,
-	"template": "panel",
 	"count": 8,
 
     "components":

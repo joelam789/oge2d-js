@@ -2,7 +2,7 @@
 export class SpriteNpc {
 
 	walkOnTile(spr: any, dir: string, speed: number = 2, callback = null) {
-		let rpg = spr.scene.sys("rpg");
+		let rpg = spr.scene.sys("rpg-map");
 		let state = spr.get("movement");
 		let anima = spr.get("display").animation;
 		let motion = spr.scene.systems["motion"];
@@ -36,7 +36,7 @@ export class SpriteNpc {
 	}
 
 	walkOneStep(spr: any, speed: number = 2, callback = null) {
-		let rpg = spr.scene.sys("rpg");
+		let rpg = spr.scene.sys("rpg-map");
 		let state = spr.get("movement");
 		let anima = spr.get("display").animation;
 		let gamemap = spr.scene.get("stage").gamemap;
@@ -69,7 +69,7 @@ export class SpriteNpc {
 		let end = {x: x, y: y};
 		
 		let path = gamemap.findPath(start.x, start.y, end.x, end.y, false, (cx, cy, val) => {
-            return spr.scene.sys("rpg").isOccupiedTile(spr.scene, null, cx, cy) ? -1 : val;
+            return spr.scene.sys("rpg-map").isOccupiedTile(spr.scene, null, cx, cy) ? -1 : val;
 		});
 		
 		if (path && path.length > 0) {
@@ -78,14 +78,14 @@ export class SpriteNpc {
 			state.target = { x: end.x, y: end.y };
 			if (!state.moving) this.walkOneStep(spr, speed, callback);
 		} else {
-			let dir = spr.scene.sys("rpg").getDirection(start , end);
+			let dir = spr.scene.sys("rpg-map").getDirection(start , end);
 			if (dir) spr.get("display").animation.set(dir);
 			if (callback) callback();
 		}
 	}
 
 	stopWalking(spr: any, dir: string = "", callback = null) {
-		let rpg = spr.scene.sys("rpg");
+		let rpg = spr.scene.sys("rpg-map");
 		let state = spr.get("movement");
 		let anima = spr.get("display").animation;
 		let gamemap = spr.scene.get("stage").gamemap;
@@ -113,7 +113,7 @@ export class SpriteNpc {
 	}
 
 	walkOnMap(spr: any) {
-		let rpg = spr.scene.sys("rpg");
+		let rpg = spr.scene.sys("rpg-map");
 		let state = spr.get("movement");
 		let gamemap = spr.scene.get("stage").gamemap;
 		if (rpg && state && gamemap && !state.waiting && state.auto === true) {
@@ -129,7 +129,7 @@ export class SpriteNpc {
 				let range = gamemap.findRange(start.x, start.y, steps, false, (cx, cy, val) => {
 					if (cx < state.start.x - 2 || cx > state.start.x + 2) return -1;
 					if (cy < state.start.y - 2 || cy > state.start.y + 2) return -1;
-					if (spr.scene.sys("rpg").isOccupiedTile(spr.scene, null, cx, cy)) return -1;
+					if (spr.scene.sys("rpg-map").isOccupiedTile(spr.scene, null, cx, cy)) return -1;
 					return val >= 0 ? 1 : -1;
 				});
 				if (range && range.length > 0) {
@@ -155,29 +155,40 @@ export class SpriteNpc {
 
 	onSceneActivate(sprite) {
 		//console.log("[Base] Npc - onSceneActivate: " + sprite.name);
-		let rpg = sprite.scene.sys("rpg");
-		let gamemap = sprite.scene.get("stage").gamemap;
-		let tile = sprite.get("tile");
-		if (tile && gamemap) {
-			let pos = gamemap.tileToPixel(tile.x, tile.y);
-			sprite.get("stage").x = pos.x;
-			sprite.get("stage").y = pos.y;
-		}
-		if (rpg) {
-			rpg.alignToTile(sprite);
-			rpg.occupyCurrentTile(sprite);
-		}
-		let state = sprite.get("movement");
-		if (state) state.waiting = false;
-		if (gamemap && state && state.auto === true) {
-			let currentX = sprite.get("stage").x;
-			let currentY = sprite.get("stage").y;
-			let start = gamemap.pixelToTile(currentX, currentY);
-			state.start = {
-				x: start.x,
-				y: start.y
+		let mapState = sprite.scene.get("rpg");
+        if (mapState && mapState.times == 1) {
+			let rpg = sprite.scene.sys("rpg-map");
+			let gamemap = sprite.scene.get("stage").gamemap;
+			let tile = sprite.get("tile");
+			if (tile && gamemap) {
+				let pos = gamemap.tileToPixel(tile.x, tile.y);
+				sprite.get("stage").x = pos.x;
+				sprite.get("stage").y = pos.y;
 			}
-			this.walkOnMap(sprite);
+			if (rpg) {
+				rpg.alignToTile(sprite);
+				rpg.occupyCurrentTile(sprite);
+			}
+			let state = sprite.get("movement");
+			if (state) state.waiting = false;
+			if (gamemap && state && state.auto === true) {
+				let currentX = sprite.get("stage").x;
+				let currentY = sprite.get("stage").y;
+				let start = gamemap.pixelToTile(currentX, currentY);
+				state.start = {
+					x: start.x,
+					y: start.y
+				}
+				this.walkOnMap(sprite);
+			}
+		} else {
+			let rpg = sprite.scene.sys("rpg-map");
+			if (rpg) rpg.occupyCurrentTile(sprite);
+			let state = sprite.get("movement");
+			if (state) state.waiting = false;
+			if (state && state.auto === true) {
+				this.walkOnMap(sprite);
+			}
 		}
 	}
 
