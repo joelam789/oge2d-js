@@ -116,9 +116,11 @@ export class Plot {
         return 0;
     }
 
-    wait(target?: number | string): number {
+    wait(target?: number | string | Array<string>): number {
         if (target == undefined) return this.pause("::::");
-        if (typeof target == "string") {
+        if (Array.isArray(target)) {
+            return this.pause(...target);
+        } else if (typeof target == "string") {
             return this.pause(target);
         } else {
             if (target <= 0) return;

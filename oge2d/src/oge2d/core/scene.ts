@@ -362,7 +362,9 @@ export class Scene {
         if (baseComponents && newComponents) {
             for (let key of Object.keys(newComponents)) {
                 if (baseComponents[key]) {
-                    if (typeof baseComponents[key] == "object" && typeof newComponents[key] == "object") {
+                    if (Array.isArray(baseComponents[key]) && Array.isArray(newComponents[key])) {
+                        baseComponents[key] = newComponents[key];
+                    } else if (typeof baseComponents[key] == "object" && typeof newComponents[key] == "object") {
                         this.mergeComponents(baseComponents[key], newComponents[key]);
                     } else baseComponents[key] = newComponents[key];
                 } else baseComponents[key] = newComponents[key];

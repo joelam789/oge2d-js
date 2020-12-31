@@ -38,12 +38,15 @@ export class Tween implements Updater {
         return createjs.Tween.get(target, options, undefined, override);
     }
 
-    blink(target: any, ms?: number, callback?: (targetObj?: any)=>void) {
+    blink(target: any, ms?: number, speed?: number, callback?: (targetObj?: any)=>void) {
+        let speedLevel = speed ? speed : 1;
+        if (speedLevel < 1) speedLevel = 1;
+        if (speedLevel > 5) speedLevel = 5;
         createjs.Tween.get(target, {loop:true})
                         .to({alpha: 1.0})
-                        .wait(50)
+                        .wait(50/speedLevel)
                         .to({alpha: 0.0})
-                        .wait(50);
+                        .wait(50/speedLevel);
         if (!isNaN(ms) && ms > 0) {
             this._game.scene.timeout(ms, (obj) => {
                 createjs.Tween.removeTweens(obj);
