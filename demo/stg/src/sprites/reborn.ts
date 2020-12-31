@@ -32,7 +32,7 @@ export class SpriteReborn {
 			player.components.collision.enabled = false;
 			player.active = true;
 
-			tween.blink(player.components.display.object, 3000, 
+			tween.blink(player.components.display.object, 3000, 1,
 						() => player.components.collision.enabled = true);
 
 			motion.moveTo(player, 320, 350, 10, () => profile.controllable = true);
