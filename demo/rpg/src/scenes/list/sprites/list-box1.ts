@@ -8,7 +8,7 @@ export class SceneListSpriteListBox1 {
     iconRelativeX = 30;
     iconRelativeY = 18;
 
-    show(spr, items: Array<any>, left = 240, top = 40, width = 180, gap = 30) {
+    show(spr, items: Array<any>, left = 260, top = 40, width = 180, gap = 30) {
         //console.log("showing the list...");
         let scene = spr.scene;
         let idx = 0, posX = left, posY = top;

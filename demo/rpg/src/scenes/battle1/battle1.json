@@ -28,7 +28,9 @@
             "listbox": "list-box1",
             "fighter": "",
             "target": "",
-            "flags": [0, 0, 0, 0, 0]
+            "flags": [0, 0, 0, 0, 0],
+            "fighterTeam": ["Bird"],
+            "enemyTeam": ["DragonA", "DragonB"]
         }
     },
 
@@ -36,8 +38,9 @@
 
 	"scenes": ["info", "list"],
 	"systems": ["motion", "rpg-battle"],
-    "sprites": ["bg1", "enemy1", "fighter1", 
+    "sprites": ["bg1", "num1", "enemy1", "fighter1", "effect1",
                 "plot-menu", "plot-select-enemy",
-				"plot-fight", "plot-enemy-fight"]
+				"plot-fight", "plot-enemy-fight",
+				"plot-win"]
 	
 }

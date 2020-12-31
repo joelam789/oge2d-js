@@ -14,14 +14,11 @@ export class PlotSelectEnemy {
         //yield sprite.plot.wait(100);
 
         let menu1 = scene.spr("list-box1").code;
+        let menuItems = [];
+        menuItems.push(...sceneInfo.enemyTeam);
+        menuItems.push("Go Back");
 
-        menu1.show(sprite, [
-            "DragonA",
-            "DragonB",
-            "Go Back"
-        ]);
-
-
+        menu1.show(sprite, menuItems);
         console.log("Please select an enemy");
         
         while (true) {
@@ -35,7 +32,7 @@ export class PlotSelectEnemy {
                 sceneInfo.target = "enemy1";
                 scene.spr("plot-fight").active = true;
                 break;
-            } else if (menu1.selected == 3) {
+            } else if (menu1.selected == menuItems.length) {
                 menu1.cleanup();
                 scene.spr(sceneInfo.previous).active = true;
                 break;

@@ -1,0 +1,25 @@
+{
+    "active": false,
+    "script": false,
+    "template": "effect",
+    
+	"components":
+    {	
+        "animation":
+        {
+            "image": "effects",
+			"loop": false,
+			"speed": 0.2,
+            "current": "style2"
+        },
+
+		"display":
+        {
+            "x": 0,
+            "y": 0
+		}
+
+    }
+	
+	
+}
