@@ -11,6 +11,7 @@ export class SceneListSpriteListBox1 {
     show(spr, items: Array<any>, left = 260, top = 40, width = 180, gap = 30) {
         //console.log("showing the list...");
         let scene = spr.scene;
+        let audio = spr.game.lib("audio");
         let idx = 0, posX = left, posY = top;
         let box = spr.scene.sprites["list-box1"];
         if (box) {
@@ -20,6 +21,9 @@ export class SceneListSpriteListBox1 {
             boxDisplay.width = width;
             if (items && items.length > 0) {
                 boxDisplay.height = gap * (items.length + 2) - (gap / 2);
+            }
+            if (!box.active) {
+                audio.sounds["menu-popup"].play();
             }
             box.active = true;
         }
@@ -143,6 +147,7 @@ export class SceneListSpriteListBox1 {
                 icon.custom.flag += 1;
             }
         }
+        spr.game.lib("audio").sounds["move-cursor"].play();
     }
 
     selectItem(spr = null) {
@@ -155,6 +160,7 @@ export class SceneListSpriteListBox1 {
         if (target && this.plotName) {
             target.scene.sprites[this.plotName].plot.signal();
         }
+        if (target) target.game.lib("audio").sounds["menu-select"].play();
         console.log("ListBox1 - onPointerup", target.name, this.selected);
         //this.cleanup();
     }

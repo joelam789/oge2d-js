@@ -36,6 +36,14 @@
 
     "script": true,
 
+    "preload": 
+    {
+        "musics": ["rpg-battle.m4a"],
+        "sounds": ["menu-popup.ogg", "menu-select", "move-cursor", 
+                    "rpg-win1.m4a", "rpg-win2.m4a", "enemy-cry.ogg",
+                    "rpg-fight1", "rpg-fight2.ogg", "rpg-fight3"]
+    },
+
 	"scenes": ["info", "list"],
 	"systems": ["motion", "rpg-battle"],
     "sprites": ["bg1", "num1", "enemy1", "fighter1", "effect1",

@@ -15,12 +15,13 @@
         "event":
         {
             "onInit": "onInit",
+            "onUpdate": "onUpdate",
             "onActivate": "onActivate"
         }
     },
 
     "script": true,
 
-    "sprites": ["bar1", "label1", "progress1"]
+    "sprites": ["bar1", "progress1", "label1", "number1", "button1", "label2"]
 	
 }

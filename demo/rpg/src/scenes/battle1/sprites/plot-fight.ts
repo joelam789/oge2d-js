@@ -41,7 +41,7 @@ export class PlotFight {
         effectDisplay.x = enemyDisplay.x;
         effectDisplay.y = enemyDisplay.y;
         effectDisplay.loop = false;
-        effectDisplay.animationSpeed = 0.2;
+        effectDisplay.animationSpeed = 0.4;
 
         effectAnimation.reset("style2", true);
         effectAnimation.onComplete = () => {
@@ -51,9 +51,10 @@ export class PlotFight {
             effect.active = false;
         };
         effectAnimation.play(false);
+        scene.game.lib("audio").sounds["rpg-fight1"].play(); // effects should be bound to sounds
 
         enemyDisplay.tint = 0xff7777;
-
+        
         yield sprite.plot.wait(["end1", "end2"]);
 
         let damage = Math.floor(Math.random() * 150) + 100;
@@ -90,10 +91,11 @@ export class PlotFight {
         yield sprite.plot.wait("end1");
 
         if (enemyInfo.hp <= 0) {
-            tween.blink(enemyDisplay, 1000, 10, () => {
+            tween.blink(enemyDisplay, 1200, 10, () => {
                 enemy.active = false;
                 sprite.plot.signal("end1");
             });
+            scene.game.lib("audio").sounds["enemy-cry"].play();
         }
 
         motion.moveTo(fighter, fighterDisplay.x + 50, fighterDisplay.y, 10, 

@@ -9,13 +9,13 @@
 		{
 			"layer": "ui",
 			
-			"x": 110,
+			"x": 500,
 			"y": 150
 		},
 
 		"text":
 		{
-			"content": "Loading..."
+			"content": "0"
 		}
 	}
 }

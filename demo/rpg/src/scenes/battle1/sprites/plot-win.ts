@@ -18,7 +18,12 @@ export class PlotWin {
         fighterAnimation.onComplete = null;
         fighterAnimation.play(true);
 
-        yield sprite.plot.wait(2000);
+        let bgm = scene.game.lib("audio").musics["rpg-battle"];
+        bgm.stop();
+
+        scene.game.lib("audio").sounds["rpg-win2"].play();
+
+        yield sprite.plot.wait(4500);
 
         console.log("plot ended - " + sprite.name);
 

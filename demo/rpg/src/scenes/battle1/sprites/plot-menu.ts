@@ -53,7 +53,9 @@ export class PlotMenu {
         if (menu1.selected == 5) {
             let transition: any = sprite.scene.systems["transition"];
             if (transition.isWorking()) return;
-            transition.callScene("map1");
+            let bgm = scene.game.lib("audio").musics["rpg-battle"];
+            bgm.stop();
+            transition.callScene(scene.game.get("rpg").lastmap);
         }
     }
 

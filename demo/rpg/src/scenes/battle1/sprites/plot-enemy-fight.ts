@@ -50,6 +50,7 @@ export class PlotEnemyFight {
             effect.active = false;
         };
         effectAnimation.play(false);
+        scene.game.lib("audio").sounds["rpg-fight3"].play(); // effects should be bound to sounds
 
         //enemyDisplay.tint = 0xff7777;
 

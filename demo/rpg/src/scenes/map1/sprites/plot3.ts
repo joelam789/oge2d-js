@@ -64,6 +64,11 @@ export class Plot3 {
                 dialog1.close(false);
                 let transition: any = sprite.scene.systems["rpg-transition"];
                 if (!transition.isWorking()) {
+                    let bgm = scene.game.lib("audio").musics[scene.get("rpg").bgm];
+                    let nextbgm = scene.game.lib("audio").musics["rpg-battle"];
+                    bgm.stop();
+                    nextbgm.play();
+                    scene.game.get("rpg").lastmap = scene.name;
                     transition.callScene("battle1", (nextScene) => {
                         //dialog1.close(false);
                         nextScene.reset();

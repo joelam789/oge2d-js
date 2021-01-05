@@ -1,5 +1,5 @@
 {
-	"active": true,
+	"active": false,
 	"script": false,
 	"template": "bar",
 
@@ -8,20 +8,20 @@
 		"display":
 		{
 			"layer": "ui",
-			
-			"x": 110,
-			"y": 190,
+
+			"x": 230,
+			"y": 250,
 
 			"scale":
 			{
-				"x": 420,
-				"y": 30
+				"x": 180,
+				"y": 40
 			}
 		},
 
 		"custom-display":
 		{
-			"color": "#00ff00"
+			"color": "#7f7f7f"
 		}
 	}
 }

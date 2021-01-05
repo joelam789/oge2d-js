@@ -1,5 +1,5 @@
 {
-	"active": true,
+	"active": false,
 	"script": false,
 	"template": "label",
 
@@ -7,15 +7,15 @@
 	{
 		"display":
 		{
-			"layer": "ui",
+			"layer": "txt",
 			
-			"x": 110,
-			"y": 150
+			"x": 250,
+			"y": 260
 		},
 
 		"text":
 		{
-			"content": "Loading..."
+			"content": "Click me to continue"
 		}
 	}
 }
