@@ -31,6 +31,6 @@
 
 	"packs": ["pack1"],
 
-	"basics": ["display", "stage", "tween", "transition", "mouse", "keyboard", "event"],
+	"basics": ["display", "stage", "tween", "transition", "mouse", "keyboard", "gamepad", "event"],
 	"scenes": ["preload"]
 }

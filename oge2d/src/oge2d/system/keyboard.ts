@@ -10,7 +10,7 @@ export class Keyboard implements Updater {
     private _game: Game = null;
     private _event: any = null;
 
-	states: { [name: string]: boolean }  = { };
+	keys: { [name: string]: boolean }  = { };
 	ticks: { [name: string]: number }  = { };
 
     init(game: Game): boolean {
@@ -18,10 +18,10 @@ export class Keyboard implements Updater {
         this._game = game;
 
         document.body.addEventListener("keydown", (event) => {
-            this.states[event.key] = true;
+            this.keys[event.key] = true;
         });
         document.body.addEventListener("keyup", (event) => {
-            this.states[event.key] = false;
+            this.keys[event.key] = false;
             if (this._game.scene && this._event) {
                 this._event.addEvent(this._game.scene, "onKeyPress", event.key);
             }
@@ -44,9 +44,9 @@ export class Keyboard implements Updater {
     }
 
     reset() {
-        let keys = Object.keys(this.states);
+        let keys = Object.keys(this.keys);
         for (let key of keys) {
-            this.states[key] = false;
+            this.keys[key] = false;
 			this.ticks[key] = 0;
         }
 	}

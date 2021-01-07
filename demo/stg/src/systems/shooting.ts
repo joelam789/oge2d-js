@@ -5,6 +5,7 @@ export class Shooting implements OGE2D.Updater {
 
 	collision: any = null;
 	keyboard: any = null;
+	gamepad: any = null;
 	motion: any = null;
 	tween: any = null;
 	audio: any = null;
@@ -24,6 +25,7 @@ export class Shooting implements OGE2D.Updater {
 	activate(scene: OGE2D.Scene) {
 		this.player = null;
 		this.keyboard = scene.systems["keyboard"];
+		this.gamepad = scene.systems["gamepad"];
 		this.motion = scene.systems["motion"];
 		this.tween = scene.systems["tween"];
 		this.audio = scene.game.libraries["audio"];
@@ -54,6 +56,18 @@ export class Shooting implements OGE2D.Updater {
 		if (this.profile == undefined || this.profile == null) return;
 		if (this.profile.controllable !== true) return;
 
+		if (this.gamepad) {
+			let firstGamepad = this.gamepad.getFirstGamepad();
+			if (firstGamepad) {
+				this.keyboard.keys["ArrowUp"] = firstGamepad.keys["up"];
+				this.keyboard.keys["ArrowDown"] = firstGamepad.keys["down"];
+				this.keyboard.keys["ArrowLeft"] = firstGamepad.keys["left"];
+				this.keyboard.keys["ArrowRight"] = firstGamepad.keys["right"];
+				this.keyboard.keys["Control"] = firstGamepad.keys["b0"];
+				this.keyboard.keys["Shift"] = firstGamepad.keys["b1"];
+			}
+		}
+
 		let jbuttons = (window as any).vbuttons;
 		if (jbuttons) {
 			let isUp = jbuttons.up;
@@ -61,27 +75,29 @@ export class Shooting implements OGE2D.Updater {
 			let isLeft = jbuttons.left;
 			let isRight = jbuttons.right;
 			if (isUp || isDown || isLeft || isRight) {
-				this.keyboard.states["ArrowUp"] = isUp;
-				this.keyboard.states["ArrowDown"] = isDown;
-				this.keyboard.states["ArrowLeft"] = isLeft;
-				this.keyboard.states["ArrowRight"] = isRight;
+				this.keyboard.keys["ArrowUp"] = isUp;
+				this.keyboard.keys["ArrowDown"] = isDown;
+				this.keyboard.keys["ArrowLeft"] = isLeft;
+				this.keyboard.keys["ArrowRight"] = isRight;
 			} else {
-				this.keyboard.states["ArrowUp"] = false;
-				this.keyboard.states["ArrowDown"] = false;
-				this.keyboard.states["ArrowLeft"] = false;
-				this.keyboard.states["ArrowRight"] = false;
+				this.keyboard.keys["ArrowUp"] = false;
+				this.keyboard.keys["ArrowDown"] = false;
+				this.keyboard.keys["ArrowLeft"] = false;
+				this.keyboard.keys["ArrowRight"] = false;
 			}
-			this.keyboard.states["Control"] = jbuttons.b1 === true;
-			this.keyboard.states["Shift"] = jbuttons.b2 === true;
+			this.keyboard.keys["Control"] = jbuttons.b1 === true;
+			this.keyboard.keys["Shift"] = jbuttons.b2 === true;
 		}
+
+		
 
 		let display = this.player.components["display"];
 		if (this.player.active && display && display.object) {
 			let speed = 4, deltax = 0, deltay = 0;
-			if (this.keyboard.states["ArrowUp"]) deltay -= speed;
-			if (this.keyboard.states["ArrowDown"]) deltay += speed;
-			if (this.keyboard.states["ArrowLeft"]) deltax -= speed;
-			if (this.keyboard.states["ArrowRight"]) deltax += speed;
+			if (this.keyboard.keys["ArrowUp"]) deltay -= speed;
+			if (this.keyboard.keys["ArrowDown"]) deltay += speed;
+			if (this.keyboard.keys["ArrowLeft"]) deltax -= speed;
+			if (this.keyboard.keys["ArrowRight"]) deltax += speed;
 			if (deltax != 0 || deltay != 0) {
 				let rect = display.object.getBounds(false);
 				if (rect.left + deltax > 0 && rect.right + deltax < scene.game.width
@@ -91,7 +107,7 @@ export class Shooting implements OGE2D.Updater {
 				}
 			}
 
-			if (this.keyboard.states["Control"]) {
+			if (this.keyboard.keys["Control"]) {
 				let interval = this.keyboard.ticks["Control"] ? scene.ticks - this.keyboard.ticks["Control"] : scene.ticks;
 				if (interval >= 120) {
 					let bullet = scene.getFreeSprite("player-bullet-a1");
@@ -107,7 +123,7 @@ export class Shooting implements OGE2D.Updater {
 				}
 			}
 
-			if (this.keyboard.states["Shift"] && this.profile && this.profile.bombs > 0
+			if (this.keyboard.keys["Shift"] && this.profile && this.profile.bombs > 0
 				&& scene.getFreeSpriteCount("player-bomb1") >= 3) {
 				this.profile.bombs = this.profile.bombs - 1;
 				let posX = display.object.x - 80;

@@ -6,6 +6,7 @@ export class RpgBattle implements OGE2D.Updater {
 	entry: OGE2D.Sprite = null;
 	listbox: OGE2D.Sprite = null;
 	profile: any = null;
+	gamepad: any = null;
 	keyboard: any = null;
 	holdon: boolean = false;
 
@@ -18,6 +19,7 @@ export class RpgBattle implements OGE2D.Updater {
 	activate(scene: OGE2D.Scene) {
 		this.listbox = null;
 		this.holdon = false;
+		this.gamepad = scene.systems["gamepad"];
 		this.keyboard = scene.systems["keyboard"];
 		let rpg = scene.components["rpg"];
 		if (rpg) {
@@ -37,17 +39,17 @@ export class RpgBattle implements OGE2D.Updater {
 
 	checkMovementControl() {
 		if (!this.keyboard) return null;
-		if (this.keyboard.states["ArrowUp"]) return "up";
-		else if (this.keyboard.states["ArrowDown"]) return "down";
-		else if (this.keyboard.states["ArrowLeft"]) return "left";
-		else if (this.keyboard.states["ArrowRight"]) return "right";
+		if (this.keyboard.keys["ArrowUp"]) return "up";
+		else if (this.keyboard.keys["ArrowDown"]) return "down";
+		else if (this.keyboard.keys["ArrowLeft"]) return "left";
+		else if (this.keyboard.keys["ArrowRight"]) return "right";
 		return "";
 	}
 
 	checkActionControl() {
 		if (!this.keyboard) return null;
-		if (this.keyboard.states[" "]) return "check";
-		//else if (this.keyboard.states["Escape"]) return "menu";
+		if (this.keyboard.keys[" "]) return "check";
+		//else if (this.keyboard.keys["Escape"]) return "menu";
 		return "";
 	}
 
@@ -79,6 +81,18 @@ export class RpgBattle implements OGE2D.Updater {
 		if (this.profile == undefined || this.profile == null) return;
 		if (this.profile.controllable !== true) return;
 
+		if (this.gamepad) {
+			let firstGamepad = this.gamepad.getFirstGamepad();
+			if (firstGamepad) {
+				this.keyboard.keys["ArrowUp"] = firstGamepad.keys["up"];
+				this.keyboard.keys["ArrowDown"] = firstGamepad.keys["down"];
+				this.keyboard.keys["ArrowLeft"] = firstGamepad.keys["left"];
+				this.keyboard.keys["ArrowRight"] = firstGamepad.keys["right"];
+				this.keyboard.keys[" "] = firstGamepad.keys["b0"];
+				this.keyboard.keys["Escape"] = firstGamepad.keys["b1"];
+			}
+		}
+
 		let jbuttons = (window as any).vbuttons;
 		if (jbuttons) {
 			let isUp = jbuttons.up;
@@ -86,18 +100,18 @@ export class RpgBattle implements OGE2D.Updater {
 			let isLeft = jbuttons.left;
 			let isRight = jbuttons.right;
 			if (isUp || isDown || isLeft || isRight) {
-				this.keyboard.states["ArrowUp"] = isUp;
-				this.keyboard.states["ArrowDown"] = isDown;
-				this.keyboard.states["ArrowLeft"] = isLeft;
-				this.keyboard.states["ArrowRight"] = isRight;
+				this.keyboard.keys["ArrowUp"] = isUp;
+				this.keyboard.keys["ArrowDown"] = isDown;
+				this.keyboard.keys["ArrowLeft"] = isLeft;
+				this.keyboard.keys["ArrowRight"] = isRight;
 			} else {
-				this.keyboard.states["ArrowUp"] = false;
-				this.keyboard.states["ArrowDown"] = false;
-				this.keyboard.states["ArrowLeft"] = false;
-				this.keyboard.states["ArrowRight"] = false;
+				this.keyboard.keys["ArrowUp"] = false;
+				this.keyboard.keys["ArrowDown"] = false;
+				this.keyboard.keys["ArrowLeft"] = false;
+				this.keyboard.keys["ArrowRight"] = false;
 			}
-			this.keyboard.states[" "] = jbuttons.b1 === true;
-			this.keyboard.states["Escape"] = jbuttons.b2 === true;
+			this.keyboard.keys[" "] = jbuttons.b1 === true;
+			this.keyboard.keys["Escape"] = jbuttons.b2 === true;
 		}
 
 		let profile = scene.game.get("rpg");

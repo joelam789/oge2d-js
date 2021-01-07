@@ -9,6 +9,7 @@ import { Motion } from "./oge2d/system/motion";
 import { Collision } from "./oge2d/system/collision";
 import { Mouse } from "./oge2d/system/mouse";
 import { Keyboard } from "./oge2d/system/keyboard";
+import { GameController } from "./oge2d/system/game-controller";
 import { EventLoop } from "./oge2d/system/event-loop";
 
 import { Json } from "./oge2d/library/json";
@@ -28,6 +29,7 @@ export const app = new App({
 		collision: new Collision(),
 		mouse: new Mouse(),
 		keyboard: new Keyboard(),
+		gamepad: new GameController(),
 		event: new EventLoop()
 	},
 	libraries:

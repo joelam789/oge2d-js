@@ -25,6 +25,7 @@
 
 			"spine/raptor.png",
 			"spine/raptor-pro.json",
+			"spine/raptor-pma.atlas",
 
 			"audio/musics/menu.mp3",
 			"audio/sounds/select.mp3",

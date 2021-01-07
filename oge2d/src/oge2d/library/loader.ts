@@ -106,7 +106,8 @@ export class Loader {
                         block.buffer = buffer;
                         Loader.loadPackContent(url, cache, callback);
                     });
-                } else if (ext == ".json" || ext == ".js" || ext == ".html" || ext == ".css" || ext == ".txt") {
+                } else if (ext == ".atlas" || ext == ".json" || ext == ".js" 
+                            || ext == ".html" || ext == ".css" || ext == ".txt") {
                     Loader.blobToText(block.blob, (text) => {
                         block.blob = null;
                         block.text = text;
