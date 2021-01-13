@@ -13,10 +13,12 @@ export class Transition implements Updater {
     private _game: Game = null;
     private _stage: any = null;
     private _dark: PIXI.Sprite = null;
+    private _pixi: PIXI.Application = null;
     private _target: string = "";
 
     init(game: Game): boolean {
         this._game = game;
+        this._pixi = game.components["display"].pixi;
         this._stage = game.components["display"].object;
 
         //let graph = new PIXI.Graphics();
@@ -27,12 +29,19 @@ export class Transition implements Updater {
         //graph.endFill();
         //this._dark = new PIXI.Sprite(graph.generateCanvasTexture());
 
-        let canv = document.createElement('canvas');
-        canv.width = canv.height = 1;
-        let ctx = canv.getContext('2d');
-        ctx.fillStyle = 'rgba(0, 0, 0, 1)';  // black
-        ctx.fillRect(0, 0, 1, 1);
-        this._dark = new PIXI.Sprite(PIXI.Texture.from(canv));
+        //let canv = document.createElement('canvas');
+        //canv.width = canv.height = 1;
+        //let ctx = canv.getContext('2d');
+        //ctx.fillStyle = 'rgba(0, 0, 0, 1)';  // black
+        //ctx.fillRect(0, 0, 1, 1);
+        //this._dark = new PIXI.Sprite(PIXI.Texture.from(canv));
+
+        let rect = new PIXI.Graphics();
+        rect.beginFill(0x0); // black
+        rect.drawRect(0, 0, 1, 1);
+        rect.endFill();
+        let tex = this._pixi.renderer.generateTexture(rect, PIXI.SCALE_MODES.NEAREST, 1);
+        this._dark = new PIXI.Sprite(tex);
 
         //this._dark.x = this._dark.y = 0;
         //this._dark.width = this._dark.height = 1;

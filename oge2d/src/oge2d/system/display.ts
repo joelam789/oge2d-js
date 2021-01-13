@@ -25,12 +25,14 @@ export class Display implements Updater {
         this._objects = new Map<string, PIXI.Sprite>();
         this._event = game.systems["event"];
         let display = game.components["display"];
+        // LINEAR - Smooth scaling (default)
+        // NEAREST - Pixelating scaling (but fast?)
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
         //PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.HIGH;
+        // sharper image quality but movement may appear less smooth
+        PIXI.settings.ROUND_PIXELS = true;
         this._pixi = new PIXI.Application({ width: display.width, height: display.height });
         this._pixi.stage = new PIXI.display.Stage();
-        //this._pixi.renderer.roundPixels = true;
-        PIXI.settings.ROUND_PIXELS = true;
         this._game.width = this._pixi.screen.width;
         this._game.height = this._pixi.screen.height;
         if (game.container) game.container.appendChild(this._pixi.view);
@@ -144,13 +146,15 @@ export class Display implements Updater {
                     this._objects.set(fullName, pixispr);
                     if (callback) callback();
                     return;
-                } else if (graphic && graphic.image && graphic.area) {
+                } else if (graphic && graphic.image) {
                     //console.log("load graphic: " + sprite.name);
                     let imgName: string = graphic.image.toString();
                     if (imgName.indexOf('.') < 0) imgName += ".png";
                     let imagelib = sprite.game.libraries["image"];
                     if (imagelib) {
-                        imagelib.loadTexture("img/" + imgName, graphic.area, (tex) => {
+                        let imgUrl = imgName.startsWith("http://") || imgName.startsWith("https://") 
+                                    ? imgName : "img/" + imgName;
+                        imagelib.loadTexture(imgUrl, graphic.area, (tex) => {
                             if (tex) {
                                 let pixispr = graphic.slice && graphic.slice.length >= 4 
                                                 ? new PIXI.NineSlicePlane(tex, graphic.slice[0], graphic.slice[1], graphic.slice[2], graphic.slice[3])
@@ -168,6 +172,8 @@ export class Display implements Updater {
                     //console.log("load animation: " + sprite.name);
                     let imgName: string = animation.image.toString();
                     if (imgName.indexOf('.') < 0) imgName += ".png";
+                    if (!imgName.startsWith("http://") && !imgName.startsWith("https://"))
+                        imgName = "img/" + imgName;
                     let imagelib = sprite.game.libraries["image"];
                     if (imagelib) {
                         let sheetNames: Array<string> = [];
@@ -182,7 +188,7 @@ export class Display implements Updater {
                             let imageNames = [];
                             let animationFrames = [];
                             for (let i=0; i<frameCount; i++) {
-                                imageNames.push("img/" + imgName);
+                                imageNames.push(imgName);
                                 animationFrames.push({x: frameset[4*i], y: frameset[4*i+1], width: frameset[4*i+2], height: frameset[4*i+3]});
                             }
                             sheetNames.push(animationName);
@@ -226,7 +232,10 @@ export class Display implements Updater {
                     if (texFunc) {
                         let tex: PIXI.Texture = texFunc ? texFunc(sprite) : null;
                         if (tex) {
-                            let pixispr = new PIXI.Sprite(tex);
+                            //let pixispr = new PIXI.Sprite(tex);
+                            let pixispr = graphic && graphic.slice && graphic.slice.length >= 4 
+                                                ? new PIXI.NineSlicePlane(tex, graphic.slice[0], graphic.slice[1], graphic.slice[2], graphic.slice[3])
+                                                : new PIXI.Sprite(tex);
                             this.applySpriteProperties(pixispr, display);
                             display.object = pixispr;
                             this._objects.set(fullName, pixispr);
@@ -235,7 +244,10 @@ export class Display implements Updater {
                     } else if (texAsyncFunc) {
                         texAsyncFunc(sprite, (tex) => {
                             if (tex) {
-                                let pixispr = new PIXI.Sprite(tex);
+                                //let pixispr = new PIXI.Sprite(tex);
+                                let pixispr = graphic && graphic.slice && graphic.slice.length >= 4 
+                                                ? new PIXI.NineSlicePlane(tex, graphic.slice[0], graphic.slice[1], graphic.slice[2], graphic.slice[3])
+                                                : new PIXI.Sprite(tex);
                                 this.applySpriteProperties(pixispr, display);
                                 display.object = pixispr;
                                 this._objects.set(fullName, pixispr);

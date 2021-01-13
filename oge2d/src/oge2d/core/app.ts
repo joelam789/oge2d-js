@@ -25,6 +25,19 @@ export class App {
         return fileMap;
     }
 
+    private getValidClassNameFromModule(className: string, scriptModule: any): string {
+        let validName = className ? className : null;
+        if (!scriptModule) return validName; // if module is null then any name is valid
+        if (scriptModule.hasOwnProperty(validName)) return validName;
+        for (let item of Object.keys(scriptModule)) {
+            if (item && (typeof scriptModule[item] == "function")) {
+                validName = item;
+                break; // just get the first valid one
+            }
+        }
+        return validName ? validName : null;
+    }
+
     constructor(config?: any) {
         if (config && config.systems) {
             for (let item of Object.keys(config.systems)) {
@@ -93,7 +106,7 @@ export class App {
             callback(this.systems);
             return;
         }
-        let loadings = [], classNames: Map<string, string> = new Map<string, string>();
+        let loadings = [], classNames = new Array<Array<string>>();
         let configSystems = config.systems;
         if (Array.isArray(configSystems)) configSystems = this.getFileMapFromArray(configSystems);
         for (let item of Object.keys(configSystems)) {
@@ -110,20 +123,34 @@ export class App {
                 }
                 lastChar = currentChar;
             }
-            classNames.set(item, className);
+            classNames.push([item, className]);
             loadings.push(loader.import(classPath));
         }
         Promise.all(loadings).then((modules) => {
-            classNames.forEach((value, key) => {
-                for (let item of modules) {
-                    if (item.hasOwnProperty(value)) {
-                        let newInstance = Object.create(item[value].prototype);
+            if (modules.length == classNames.length) {
+                for (let i=0; i<classNames.length; i++) {
+                    let  parts = classNames[i], item = modules[i];
+                    let key = parts[0], value = parts[1];
+                    let className = this.getValidClassNameFromModule(value, item);
+                    if (className) {
+                        let newInstance = Object.create(item[className].prototype);
                         newInstance.constructor.apply(newInstance, []);
                         this.systems.set(key, newInstance);
-                        break;
                     }
                 }
-            });
+            } else {
+                for (let parts of classNames) {
+                    let key = parts[0], value = parts[1];
+                    for (let item of modules) {
+                        if (item.hasOwnProperty(value)) {
+                            let newInstance = Object.create(item[value].prototype);
+                            newInstance.constructor.apply(newInstance, []);
+                            this.systems.set(key, newInstance);
+                            break;
+                        }
+                    }
+                };
+            }
             callback(this.systems);
         });
     }
@@ -135,7 +162,7 @@ export class App {
             callback(this.libraries);
             return;
         }
-        let loadings = [], classNames: Map<string, string> = new Map<string, string>();
+        let loadings = [], classNames = new Array<Array<string>>();
         let configLibraries = config.libraries;
         if (Array.isArray(configLibraries)) configLibraries = this.getFileMapFromArray(configLibraries);
         for (let item of Object.keys(configLibraries)) {
@@ -152,20 +179,34 @@ export class App {
                 }
                 lastChar = currentChar;
             }
-            classNames.set(item, className);
+            classNames.push([item, className]);
             loadings.push(loader.import(classPath));
         }
         Promise.all(loadings).then((modules) => {
-            classNames.forEach((value, key) => {
-                for (let item of modules) {
-                    if (item.hasOwnProperty(value)) {
-                        let newInstance = Object.create(item[value].prototype);
+            if (modules.length == classNames.length) {
+                for (let i=0; i<classNames.length; i++) {
+                    let  parts = classNames[i], item = modules[i];
+                    let key = parts[0], value = parts[1];
+                    let className = this.getValidClassNameFromModule(value, item);
+                    if (className) {
+                        let newInstance = Object.create(item[className].prototype);
                         newInstance.constructor.apply(newInstance, []);
                         this.libraries.set(key, newInstance);
-                        break;
                     }
                 }
-            });
+            } else {
+                for (let parts of classNames) {
+                    let key = parts[0], value = parts[1];
+                    for (let item of modules) {
+                        if (item.hasOwnProperty(value)) {
+                            let newInstance = Object.create(item[value].prototype);
+                            newInstance.constructor.apply(newInstance, []);
+                            this.libraries.set(key, newInstance);
+                            break;
+                        }
+                    }
+                };
+            }
             callback(this.libraries);
         });
     }

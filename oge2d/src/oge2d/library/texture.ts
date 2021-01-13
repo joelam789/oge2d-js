@@ -124,9 +124,15 @@ export class Texture {
         let texId = area ? (url + "," + area.x + "," + area.y + "," + area.width + "," + area.height) : url;
         let tex = this._textures.get(texId);
         if (tex) return tex;
-        let img = area ? this._images.get(url) : null;
-        if (img && area) {
-            let newTex = new PIXI.Texture(img, new PIXI.Rectangle(area.x, area.y, area.width, area.height));
+        let img = this._images.get(url);
+        if (img) {
+            let imgArea = area ? area : {
+                x: 0,
+                y: 0,
+                width: img.width,
+                height: img.height
+            };
+            let newTex = new PIXI.Texture(img, new PIXI.Rectangle(imgArea.x, imgArea.y, imgArea.width, imgArea.height));
             if (newTex) this._textures.set(texId, newTex);
             if (newTex) return newTex;
         }
@@ -141,16 +147,23 @@ export class Texture {
     }
 
     loadTexture(url: string, area: any, callback: (texture: any)=>void) {
-        let texId = url + "," + area.x + "," + area.y + "," + area.width + "," + area.height;
-        let tex = this._textures.get(texId);
+        let tex = this.getTexture(url, area);
         if (tex != undefined && tex != null) {
             callback(tex);
             return;
         }
+        let texId = url;
+        if (area) texId += "," + area.x + "," + area.y + "," + area.width + "," + area.height;
         this.loadImage(url, (img) => {
             if (img) {
                 img.update();
-                let newTex = new PIXI.Texture(img, new PIXI.Rectangle(area.x, area.y, area.width, area.height));
+                let imgArea = area ? area : {
+                    x: 0,
+                    y: 0,
+                    width: img.width,
+                    height: img.height
+                };
+                let newTex = new PIXI.Texture(img, new PIXI.Rectangle(imgArea.x, imgArea.y, imgArea.width, imgArea.height));
                 if (newTex) this._textures.set(texId, newTex);
                 callback(newTex);
             } else callback(null);
@@ -214,6 +227,7 @@ export class Texture {
                     if (imgtype == Texture.IMG_TYPE_TEX) newone = new PIXI.Texture(new PIXI.BaseTexture(image));
                     else if (imgtype == Texture.IMG_TYPE_BASE) newone = new PIXI.BaseTexture(image);
                     else if (imgtype == Texture.IMG_TYPE_HTML) newone = image;
+                    //console.log(url, newone.width, newone.height);
                     if (newone) imageSet.set(url, newone);
                     callback(newone);
                 });
