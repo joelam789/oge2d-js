@@ -32,7 +32,7 @@ export class ScenePreload {
 				this.message = "Done";
 				//let needClickToContinue = navigator.userAgent.indexOf('iPad') >= 0
 				//							 || navigator.userAgent.indexOf('iPhone') >= 0;
-				let needClickToContinue = true; // ...
+				let needClickToContinue = scene.game.lib("audio").locked(); // ...
 				if (needClickToContinue) {
 					scene.spr("label2").active = true;
 					scene.spr("button1").active = true;

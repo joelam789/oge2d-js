@@ -12,6 +12,10 @@ export class Scene1 {
         this.sceneName = scene.name;
         let rpg = scene.get("rpg");
         console.log("on scene activate: " + scene.name + " (" + rpg.times + ")");
+        //console.log(scene.game.systems);
+        //console.log(scene.game.libraries);
+
+        //console.log(scene.game.lib("audio").musics);
 
         let mapbgm = scene.game.lib("audio").musics[rpg.bgm];
 		mapbgm.volume = 1.0;

@@ -9,10 +9,12 @@ export class RpgTransition implements OGE2D.Updater {
     private _player: OGE2D.Sprite = null;
     private _stage: any = null;
     private _bright: PIXI.Sprite = null;
+    private _pixi: PIXI.Application = null;
     private _target: string = "";
 
     init(game: OGE2D.Game): boolean {
         this._game = game;
+        this._pixi = game.components["display"].pixi;
         this._stage = game.components["display"].object;
 
         //let graph = new PIXI.Graphics();
@@ -23,12 +25,20 @@ export class RpgTransition implements OGE2D.Updater {
         //graph.endFill();
         //this._dark = new PIXI.Sprite(graph.generateCanvasTexture());
 
-        let canv = document.createElement('canvas');
-        canv.width = canv.height = 1;
-        let ctx = canv.getContext('2d');
-        ctx.fillStyle = 'rgba(255, 255, 255, 1)';  // white
-        ctx.fillRect(0, 0, 1, 1);
-        this._bright = new PIXI.Sprite(PIXI.Texture.from(canv));
+        //let canv = document.createElement('canvas');
+        //canv.width = canv.height = 1;
+        //let ctx = canv.getContext('2d');
+        //ctx.fillStyle = 'rgba(255, 255, 255, 1)';  // white
+        //ctx.fillRect(0, 0, 1, 1);
+        //this._bright = new PIXI.Sprite(PIXI.Texture.from(canv));
+
+        let rect = new PIXI.Graphics();
+        rect.beginFill(0xFFFFFF); // white
+        rect.drawRect(0, 0, 1, 1);
+        rect.endFill();
+        let tex = this._pixi.renderer.generateTexture(rect, PIXI.SCALE_MODES.NEAREST, 1);
+        this._bright = new PIXI.Sprite(tex);
+
         this._bright.scale.set(game.width, game.height);
 
         let layers = game.components["display"].layers;
