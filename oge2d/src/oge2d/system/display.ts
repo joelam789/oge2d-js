@@ -27,10 +27,12 @@ export class Display implements Updater {
         let display = game.components["display"];
         // LINEAR - Smooth scaling (default)
         // NEAREST - Pixelating scaling (but fast?)
-        PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+        if (!display.scale || display.scale != "smooth")
+            PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
         //PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.HIGH;
         // sharper image quality but movement may appear less smooth
-        PIXI.settings.ROUND_PIXELS = true;
+        if (!display.move || display.move != "smooth")
+            PIXI.settings.ROUND_PIXELS = true;
         this._pixi = new PIXI.Application({ width: display.width, height: display.height });
         this._pixi.stage = new PIXI.display.Stage();
         this._game.width = this._pixi.screen.width;

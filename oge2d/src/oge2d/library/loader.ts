@@ -16,6 +16,8 @@ export class Loader {
         xhr.onload = (e) => {
             let code = (xhr.status + '')[0]; // make sure we get a successful response back.
             if (code !== '0' && code !== '2' && code !== '3') {
+                console.error("Failed to load text from - " + url);
+                console.error("Error code - " + code);
                 callback("");
             } else {
                 let text = xhr.responseText;
@@ -26,6 +28,7 @@ export class Loader {
             
         };
         xhr.onerror = function() {
+            //console.error("Failed to load text from - " + url);
             callback("");
         }
         xhr.send();
@@ -43,12 +46,15 @@ export class Loader {
         xhr.onload = (e) => {
             let code = (xhr.status + '')[0]; // make sure we get a successful response back.
             if (code !== '0' && code !== '2' && code !== '3') {
+                console.error("Failed to load data from - " + url);
+                console.error("Error code - " + code);
                 callback(null);
             } else {
                 callback(xhr.response);
             }
         };
         xhr.onerror = function() {
+            //console.error("Failed to load data from - " + url);
             callback(null);
         }
         xhr.send();
@@ -66,12 +72,15 @@ export class Loader {
         xhr.onload = (e) => {
             let code = (xhr.status + '')[0]; // make sure we get a successful response back.
             if (code !== '0' && code !== '2' && code !== '3') {
+                console.error("Failed to load data from - " + url);
+                console.error("Error code - " + code);
                 callback(null);
             } else {
                 callback(new Uint8Array(xhr.response));
             }
         };
         xhr.onerror = function() {
+            //console.error("Failed to load data from - " + url);
             callback(null);
         }
         xhr.send();

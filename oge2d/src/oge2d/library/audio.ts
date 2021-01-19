@@ -52,7 +52,7 @@ export class Audio {
 		} else gain.value = value;
 	}
 
-	playDummy() { // for iOS only ...
+	playDummy() { // would use it to unlock web audio ...
 		this._isPlayingDummy = true;
 		if (this._dummyAudioSource == null) {
 			this._dummyAudioBuffer = this._context.createBuffer(2, 1, this._context.sampleRate);
@@ -82,6 +82,13 @@ export class Audio {
 		return this._isPlayingDummy;
 	}
 
+	locked(): boolean {
+		return this._isPlayingDummy === false;
+	}
+	unlock() {
+		this.playDummy();
+	}
+
 	getNameFromUrl(url: string): string {
 		let name = "";
 		//let path = url.replace(/\\/g, "/");
@@ -89,6 +96,9 @@ export class Audio {
 		if (endPos > startPos && endPos > 0) {
 			if (startPos < 0) startPos = -1;
 			name = url.substring(startPos+1, endPos);
+		} else if (startPos >= 0) {
+			startPos = url.lastIndexOf("=");
+			if (startPos > 0) name = url.substring(startPos+1).trim();
 		}
 		return name;
 	}
