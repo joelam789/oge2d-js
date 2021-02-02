@@ -385,6 +385,7 @@ export class Scene {
         // reload sprites' components
         for (let sprite of this._sprites) {
             if (sprite.origin) continue; // handle clones later
+            if (sprite.plot) sprite.plot.reset(); // reset plot
             let spriteConfig = jsonlib.getJson("json/scenes/" + this._spriteSceneNames[sprite.name] + "/sprites/" + sprite.name + ".json");
             if (spriteConfig == undefined || spriteConfig == null) continue;
             let components = null, baseComponents = null;
@@ -402,7 +403,8 @@ export class Scene {
             if (spriteConfig.active != undefined) sprite.active = spriteConfig.active;
         }
         for (let sprite of this._sprites) { // handle clones here
-            if (sprite.origin == undefined || sprite.origin == null) continue;
+            if (!sprite.origin) continue;
+            if (sprite.plot) sprite.plot.reset(); // reset plot
             this.mergeComponents(sprite.components, componentMap.get(sprite.origin.name));
             sprite.active = sprite.origin.active;
         }
