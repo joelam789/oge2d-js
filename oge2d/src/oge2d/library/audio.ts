@@ -52,6 +52,10 @@ export class Audio {
 		} else gain.value = value;
 	}
 
+	getAudioContext() {
+		return this._context;
+	}
+
 	playDummy() { // would use it to unlock web audio ...
 		this._isPlayingDummy = true;
 		if (this._dummyAudioSource == null) {

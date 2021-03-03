@@ -10,6 +10,10 @@ export class Tween implements Updater {
     private _game: Game = null;
     private _ticker: any = null;
 
+    getTween() {
+        return createjs.Tween;
+    }
+
     init(game: Game): boolean {
         this._game = game;
         if (game.components.display) this._ticker = game.components.display.ticker;

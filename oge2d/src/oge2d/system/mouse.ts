@@ -43,6 +43,10 @@ export class Mouse implements Updater {
         return ctx;
     }
 
+    getInteraction() {
+        return this._interaction;
+    }
+
     init(game: Game): boolean {
 
         this._game = game;

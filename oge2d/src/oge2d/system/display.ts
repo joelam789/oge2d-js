@@ -20,6 +20,10 @@ export class Display implements Updater {
     private _pixi: PIXI.Application = null;
     private _ticker: PIXI.Ticker = null;
 
+    getPixiApp() {
+        return this._pixi;
+    }
+
     init(game: Game): boolean {
         this._game = game;
         this._objects = new Map<string, PIXI.Sprite>();
