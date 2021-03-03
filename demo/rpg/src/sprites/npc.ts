@@ -57,7 +57,7 @@ export class SpriteNpc {
 		} else this.stopWalking(spr, "", callback);
 	}
 
-	walkToTile(spr: any, x: number, y: number, speed: number = 2, callback = null) {
+	walkToTile(spr: any, x: number, y: number, speed: number = 2, maxSteps: number = 0, callback = null) {
 
 		let state = spr.get("movement");
 		let gamemap = spr.scene.get("stage").gamemap;
@@ -71,8 +71,13 @@ export class SpriteNpc {
 		let path = gamemap.findPath(start.x, start.y, end.x, end.y, false, (cx, cy, val) => {
             return spr.scene.sys("rpg-map").isOccupiedTile(spr.scene, null, cx, cy) ? -1 : val;
 		});
+
+		let isPathOK: boolean = path && path.length > 0;
+		if (isPathOK && maxSteps > 0) {
+			if (path.length > maxSteps) isPathOK = false;
+		}
 		
-		if (path && path.length > 0) {
+		if (isPathOK) {
 			state.path = [];
 			state.path.push(...path);
 			state.target = { x: end.x, y: end.y };
@@ -134,7 +139,7 @@ export class SpriteNpc {
 				});
 				if (range && range.length > 0) {
 					let idx = Math.floor(Math.random() * range.length);
-					this.walkToTile(spr, range[idx].x, range[idx].y, 2, () => this.walkOnMap(spr));
+					this.walkToTile(spr, range[idx].x, range[idx].y, 2, 2, () => this.walkOnMap(spr));
 				} else {
 					this.walkOnMap(spr);
 				}
