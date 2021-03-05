@@ -62,7 +62,7 @@ export class Stage implements Updater {
         let tilemapName: string = stage.map ? stage.map.toString() : "";
         let idx = 0, maxX = 0, maxY = 0;
 
-        if (stage.pics && stage.pics.length > 0) {
+        if (stage.pics && stage.areas) {
             let urls: Array<string> = [], areas: Array<any> = [];
             for (let pic of stage.pics) {
                 if (pic.indexOf('.') < 0) pic += ".png";
@@ -136,14 +136,72 @@ export class Stage implements Updater {
                 if (maxX > stage.maxX) stage.maxX = maxX;
                 if (maxY > stage.maxY) stage.maxY = maxY;
                 stage.tilemap = tilemap;
-                if (tilemap) {
-                    stage.gamemap = this._gamemaps[tilemapName];
-                    container.addChild(stage.tilemap.display);
+
+                let extra = tilemap && tilemap.extra ? tilemap.extra : null;
+
+                let mapbg = extra && extra.background ? extra.background : null;
+                if (mapbg && mapbg.pics && mapbg.areas && (!stage.blocks || stage.blocks.length <= 0)) {
+
+                    stage.pics = [];
+                    stage.pics.push(...mapbg.pics);
+
+                    stage.areas = [];
+                    stage.areas.push(...mapbg.areas);
+
+                    let urls: Array<string> = [], areas: Array<any> = [];
+                    for (let pic of stage.pics) {
+                        if (pic.indexOf('.') < 0) pic += ".png";
+                        urls.push("img/" + pic);
+                        let area = {x:0, y:0, width:0, height:0};
+                        let offsetX = stage.areas[idx++];
+                        let offsetY = stage.areas[idx++];
+                        area.width = stage.areas[idx++];
+                        area.height = stage.areas[idx++];
+                        offsetX = offsetX + area.width - this._game.width;
+                        offsetY = offsetY + area.height - this._game.height;
+                        if (offsetX > maxX) maxX = offsetX;
+                        if (offsetY > maxY) maxY = offsetY;
+                        areas.push(area);
+                    }
+
+                    if (maxX > stage.maxX) stage.maxX = maxX;
+                    if (maxY > stage.maxY) stage.maxY = maxY;
+
+                    idx = 0;
+                    imagelib.loadTextures(urls, areas, (textures) => {
+                        if (textures && textures.length > 0) {
+                            stage.blocks = [];
+                            for (let tex of textures) {
+                                let pixispr = new PIXI.Sprite(tex);
+                                pixispr.x = stage.areas[idx++];
+                                pixispr.y = stage.areas[idx++];
+                                container.addChild(pixispr);
+                                stage.blocks.push(pixispr);
+                                idx += 2;
+                            }
+                        }
+
+                        if (tilemap) {
+                            stage.gamemap = this._gamemaps[tilemapName];
+                            container.addChild(stage.tilemap.display);
+                        }
+                        if (container.children && container.children.length > 0) {
+                            stage.display = container;
+                        }
+                        if (callback) callback();
+
+                    });
+
+                } else {
+                    if (tilemap) {
+                        stage.gamemap = this._gamemaps[tilemapName];
+                        container.addChild(stage.tilemap.display);
+                    }
+                    if (container.children && container.children.length > 0) {
+                        stage.display = container;
+                    }
+                    if (callback) callback();
                 }
-                if (container.children && container.children.length > 0) {
-                    stage.display = container;
-                }
-                if (callback) callback();
             });
         } else {
             if (container.children && container.children.length > 0) {
