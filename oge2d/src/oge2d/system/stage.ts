@@ -62,9 +62,9 @@ export class Stage implements Updater {
         let tilemapName: string = stage.map ? stage.map.toString() : "";
         let idx = 0, maxX = 0, maxY = 0;
 
-        if (stage.pics && stage.areas) {
+        if (stage.images && stage.areas) {
             let urls: Array<string> = [], areas: Array<any> = [];
-            for (let pic of stage.pics) {
+            for (let pic of stage.images) {
                 if (pic.indexOf('.') < 0) pic += ".png";
                 urls.push("img/" + pic);
                 let area = {x:0, y:0, width:0, height:0};
@@ -140,16 +140,16 @@ export class Stage implements Updater {
                 let extra = tilemap && tilemap.extra ? tilemap.extra : null;
 
                 let mapbg = extra && extra.background ? extra.background : null;
-                if (mapbg && mapbg.pics && mapbg.areas && (!stage.blocks || stage.blocks.length <= 0)) {
+                if (mapbg && mapbg.images && mapbg.areas && (!stage.blocks || stage.blocks.length <= 0)) {
 
-                    stage.pics = [];
-                    stage.pics.push(...mapbg.pics);
+                    stage.images = [];
+                    stage.images.push(...mapbg.images);
 
                     stage.areas = [];
                     stage.areas.push(...mapbg.areas);
 
                     let urls: Array<string> = [], areas: Array<any> = [];
-                    for (let pic of stage.pics) {
+                    for (let pic of stage.images) {
                         if (pic.indexOf('.') < 0) pic += ".png";
                         urls.push("img/" + pic);
                         let area = {x:0, y:0, width:0, height:0};
@@ -680,21 +680,26 @@ export class Stage implements Updater {
             //tilemap.defaultTileTexture = graph.generateCanvasTexture();
             //tilemap.defaultTileTextures = [tilemap.defaultTileTexture];
 
-            let canvName = cellWidth + "_" + cellHeight + "_" 
+            if (tilemap.bgcolorOpacity != undefined && tilemap.bgcolorOpacity == 0) {
+                tilemap.defaultTileTexture = PIXI.Texture.EMPTY;
+            } else {
+                let canvName = cellWidth + "_" + cellHeight + "_" 
                             + ( tilemap.bgcolor ? tilemap.bgcolor.toString() : "" );
-            let canv = this._commonTileCanvas.get(canvName);
-            if (!canv) {
-                canv = document.createElement('canvas');
-                canv.width = cellWidth;
-                canv.height = cellHeight;
-                this._commonTileCanvas.set(canvName, canv);
+                let canv = this._commonTileCanvas.get(canvName);
+                if (!canv) {
+                    canv = document.createElement('canvas');
+                    canv.width = cellWidth;
+                    canv.height = cellHeight;
+                    this._commonTileCanvas.set(canvName, canv);
+                }
+                let ctx = canv.getContext('2d');
+                ctx.clearRect(0, 0, canv.width, canv.height);
+                if (tilemap.bgcolor) ctx.fillStyle = tilemap.bgcolor.toString();
+                else ctx.fillStyle = 'rgba(0, 0, 0, 1)';  // black
+                ctx.fillRect(0, 0, cellWidth, cellHeight);
+                tilemap.defaultTileTexture = PIXI.Texture.from(canv);
             }
-            let ctx = canv.getContext('2d');
-            ctx.clearRect(0, 0, canv.width, canv.height);
-            if (tilemap.bgcolor) ctx.fillStyle = tilemap.bgcolor.toString();
-            else ctx.fillStyle = 'rgba(0, 0, 0, 1)';  // black
-            ctx.fillRect(0, 0, cellWidth, cellHeight);
-            tilemap.defaultTileTexture = PIXI.Texture.from(canv);
+
             tilemap.defaultTileTextures = [tilemap.defaultTileTexture];
             
             let col: number = tilemap.viewWidth % cellWidth;
