@@ -13,18 +13,14 @@ export class Plot3 {
 
         let dialog1 = scene.spr("dialog-box1").code;
 
-        dialog1.show(sprite, [
-            "Kid:",
-            "",
+        dialog1.open(sprite, "Kid", [
             "Here is my secret garden.",
             "I feel peaceful and calm everytime when I get here.",
         ]);
 
         yield sprite.plot.wait();
 
-        dialog1.show(sprite, [
-            "Kid:",
-            "",
+        dialog1.open(sprite, "Kid", [
             "You look not a bad guy.",
             "Could you please come and play with me?",
         ]);

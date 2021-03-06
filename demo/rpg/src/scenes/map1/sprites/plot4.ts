@@ -13,9 +13,7 @@ export class Plot3 {
 
         let dialog1 = scene.spr("dialog-box1").code;
 
-        dialog1.show(sprite, [
-            "Old Man:",
-            "",
+        dialog1.open(sprite, "Old Man", [
             "I am looking for my grandson.",
             "He is clever, but also a naughty kid.",
             "If you see him please tell him to go home."

@@ -1,31 +1,43 @@
 export class SceneDialogSpriteDialogBox1 {
 
-    show(spr, lines: Array<string>, speed: number = 50, more: boolean = false) {
-        //let game = spr.game;
-        let tween = spr.scene.sys("tween");
-        let chatbox = spr.scene.sprites["dialog-box1"];
-        let chatmsg = spr.scene.sprites["dialog-msg1"];
-        let chaticon = spr.scene.sprites["dialog-icon1"];
-		if (chatbox && chatmsg && chaticon) {
+    minHeight = 60;
+
+    open(plotspr: any, speaker: string, words: Array<string>, speed: number = 50, more: boolean = false) {
+        let game = plotspr.game;
+        let tween = plotspr.scene.sys("tween");
+        let chatbox = plotspr.scene.sprites["dialog-box1"];
+        let chatmsg = plotspr.scene.sprites["dialog-msg1"];
+        let chatguy = plotspr.scene.sprites["dialog-speaker1"];
+        let cursor = plotspr.scene.sprites["dialog-icon1"];
+		if (chatbox && chatmsg && cursor) {
+
+            console.log("here1");
 
             let showing = chatbox.active;
             let display = chatbox.get("display").object;
+
+            if (!showing) {
+                display.x = (game.get("display").width - display.width) / 2;
+                display.y = game.get("display").height - display.height;
+            }
 
             if (!chatbox.custom) {
                 chatbox.custom = {};
                 if (display) {
                     chatbox.custom.posY = display.y;
                     chatbox.custom.maxH = display.height;
-                    chatbox.custom.minH = 60;
+                    chatbox.custom.minH = this.minHeight;
                 }
             }
             if (!chatmsg.custom) chatmsg.custom = {};
 
             chatbox.custom.status = "open";
-            chatbox.custom.plot = spr.name;
+            chatbox.custom.plot = plotspr.name;
+
+            if (chatguy) chatguy.get("display").object.text = speaker ? speaker : "";
 
             let history = chatmsg.custom.history ? chatmsg.custom.history : "";
-            chatmsg.custom.current = lines.join("\n");
+            chatmsg.custom.current = words.join("\n");
             chatmsg.get("text").content = history + chatmsg.custom.current;
             chatmsg.get("display").object.text = history;
             chatmsg.custom.content = history + chatmsg.custom.current;
@@ -39,7 +51,8 @@ export class SceneDialogSpriteDialogBox1 {
 
             chatbox.active = true;
             chatmsg.active = chatmsg.custom.history ? true : false;
-            chaticon.active = false;
+            if (chatguy) chatguy.active = chatmsg.active;
+            cursor.active = false;
 
             if (canShowAnima) {
                 tween.get(display)
@@ -47,10 +60,12 @@ export class SceneDialogSpriteDialogBox1 {
                     .call(() => {
                         chatmsg.active = true;
                         chatmsg.code.updateText(speed, more);
+                        if (chatguy) chatguy.active = chatmsg.active;
                 });
             } else {
                 chatmsg.active = true;
-                spr.scene.timeout(150, () => chatmsg.code.updateText(speed, more));
+                if (chatguy) chatguy.active = chatmsg.active;
+                plotspr.scene.timeout(150, () => chatmsg.code.updateText(speed, more));
             }
 
         }
@@ -75,11 +90,13 @@ export class SceneDialogSpriteDialogBox1 {
         let spr = (this as any).owner;
         let tween = spr.scene.sys("tween");
         let chatbox = spr.scene.sprites["dialog-box1"];
+        let chatguy = spr.scene.sprites["dialog-speaker1"];
         let chatmsg = spr.scene.sprites["dialog-msg1"];
         let chaticon = spr.scene.sprites["dialog-icon1"];
         if (chatbox && chatmsg && chaticon) {
 
             chatmsg.active = false;
+            if (chatguy) chatguy.active = chatmsg.active;
             chaticon.active = false;
 
             let showing = chatbox.active;

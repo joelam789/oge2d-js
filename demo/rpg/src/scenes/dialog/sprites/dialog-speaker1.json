@@ -1,20 +1,20 @@
 {
     "active": false,
-    "script": true,
+    "script": false,
 	"template": "text",
 
     "components":
     {
         "text":
         {
-            "content": ["Hello","World"]
+            "content": "???"
         },
 
         "display":
         {
             "parent": "dialog-box1",
             "x": 35,
-            "y": 45
+            "y": 20
         }
     }
 }

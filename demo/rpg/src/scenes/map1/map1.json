@@ -17,14 +17,14 @@
         {
             "enabled": true,
             "shareable": true,
-            "actions": ["pointerdown"]
+            "actions": ["pointerup"]
         },
 
         "event":
         {
             "onInit": "onInit",
             "onActivate": "onActivate",
-            "onPointerdown": "rpg-map.onSceneMapClick",
+            "onPointerup": "rpg-map.onSceneMapClick",
             "onUpdate": "onUpdate"
         },
 
