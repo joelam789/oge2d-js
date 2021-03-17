@@ -2,6 +2,7 @@
     "active": false,
     "script": true,
 	"template": "text",
+	"count": 8,
 
     "components":
     {

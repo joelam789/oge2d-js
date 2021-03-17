@@ -29,7 +29,7 @@ export class Plot2 {
         yield sprite.plot.wait();
         dialog1.open(sprite, "神之声", [
             " 天选之子！ "
-        ], 2, true);
+        ], 2, true, "#FF0000");
         yield sprite.plot.wait();
         dialog1.open(sprite, "神之声", [
             "",

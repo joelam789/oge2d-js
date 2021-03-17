@@ -94,6 +94,7 @@
 			"json/scenes/dialog/sprites/dialog-box1.json",
 			"json/scenes/dialog/sprites/dialog-icon1.json",
 			"json/scenes/dialog/sprites/dialog-msg1.json",
+			"json/scenes/dialog/sprites/dialog-speaker1.json",
 			"json/scenes/info/info.json",
 			"json/scenes/info/sprites/fps1.json",
 			"json/scenes/list/list.json",

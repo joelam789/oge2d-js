@@ -2,7 +2,7 @@ export class SceneDialogSpriteDialogBox1 {
 
     minHeight = 60;
 
-    open(plotspr: any, speaker: string, words: Array<string>, speed: number = 50, more: boolean = false) {
+    open(plotspr: any, speaker: string, words: Array<string>, speed: number = 50, more: boolean = false, color: string = "#FFFFFF") {
         let game = plotspr.game;
         let tween = plotspr.scene.sys("tween");
         let chatbox = plotspr.scene.sprites["dialog-box1"];
@@ -11,7 +11,9 @@ export class SceneDialogSpriteDialogBox1 {
         let cursor = plotspr.scene.sprites["dialog-icon1"];
 		if (chatbox && chatmsg && cursor) {
 
-            console.log("here1");
+            //console.log("here1");
+
+            //chatmsg.code.disableCurrent();
 
             let showing = chatbox.active;
             let display = chatbox.get("display").object;
@@ -36,11 +38,13 @@ export class SceneDialogSpriteDialogBox1 {
 
             if (chatguy) chatguy.get("display").object.text = speaker ? speaker : "";
 
-            let history = chatmsg.custom.history ? chatmsg.custom.history : "";
-            chatmsg.custom.current = words.join("\n");
-            chatmsg.get("text").content = history + chatmsg.custom.current;
-            chatmsg.get("display").object.text = history;
-            chatmsg.custom.content = history + chatmsg.custom.current;
+            //let history = chatmsg.custom.history ? chatmsg.custom.history : "";
+            //chatmsg.custom.current = words.join("\n");
+            //chatmsg.get("text").content = history + chatmsg.custom.current;
+            //chatmsg.get("display").object.text = history;
+            //chatmsg.custom.content = history + chatmsg.custom.current;
+
+            chatmsg.code.prepareCurrent(words, more, color);
 
             let canShowAnima = !showing && tween && display && chatbox.custom.posY 
                                 && chatbox.custom.maxH && chatbox.custom.minH;
@@ -50,7 +54,7 @@ export class SceneDialogSpriteDialogBox1 {
             }
 
             chatbox.active = true;
-            chatmsg.active = chatmsg.custom.history ? true : false;
+            chatmsg.active = chatmsg.code.history.length > 0 ? true : false;
             if (chatguy) chatguy.active = chatmsg.active;
             cursor.active = false;
 
@@ -74,15 +78,20 @@ export class SceneDialogSpriteDialogBox1 {
     next() {
         let spr = (this as any).owner;
         let chatbox = spr.scene.sprites["dialog-box1"];
+        let chatmsg = spr.scene.sprites["dialog-msg1"];
         let chatstate = chatbox && chatbox.custom ? chatbox.custom.status : "";
         if (chatstate == "done" || chatstate == "more" ) {
+
+            if (chatbox.custom.more) chatmsg.code.appendHistory();
+            else chatmsg.code.clearHistory();
+
             let plotctx = spr.scene.sprites[chatbox.custom.plot];
             if (plotctx) plotctx.plot.signal();
         } else if (chatstate == "open") {
-            let chatmsg = spr.scene.sprites["dialog-msg1"];
-            if (chatmsg && chatmsg.custom && chatmsg.custom.content) {
-                chatmsg.get("display").object.text = chatmsg.custom.content;
-            }
+            //if (chatmsg && chatmsg.custom && chatmsg.custom.content) {
+            //    chatmsg.get("display").object.text = chatmsg.custom.content;
+            //}
+            if (chatmsg) chatmsg.code.enableCurrent();
         }
     }
 
@@ -98,6 +107,8 @@ export class SceneDialogSpriteDialogBox1 {
             chatmsg.active = false;
             if (chatguy) chatguy.active = chatmsg.active;
             chaticon.active = false;
+
+            chatmsg.code.disableCurrent();
 
             let showing = chatbox.active;
             let display = chatbox.get("display").object;
@@ -148,6 +159,12 @@ export class SceneDialogSpriteDialogBox1 {
         let icon = spr.scene.spr("answer-icon1");
         let answer1 = spr.scene.spr("answer-box1").code;
         if (answer1 && icon) answer1.selectAnswer(icon);
+    }
+
+    clearHistory() {
+        let spr = (this as any).owner;
+        let chatmsg = spr.scene.spr("dialog-msg1").code;
+        if (chatmsg) chatmsg.clearHistory();
     }
 
     list(spr, options: Array<string>, left = 150, top = 40, gap = 80) {

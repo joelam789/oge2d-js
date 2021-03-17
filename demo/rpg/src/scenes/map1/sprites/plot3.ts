@@ -42,6 +42,8 @@ export class Plot3 {
             ]);
             yield sprite.plot.wait();
 
+            dialog1.clearHistory();
+
             let responseWords = [
                 "I am glad to hear that.",
                 "You should get to know more about them.",
