@@ -132,7 +132,7 @@ export class SceneDialogSpriteAnswerBox1 {
         this.selected = flag;
         this.close();
         let chatmsg = spr.scene.sprites["dialog-msg1"];
-        if (chatmsg) chatmsg.code.onDisplayDone(false);
+        if (chatmsg) chatmsg.code.onDisplayDone(false, false);
         let chatbox = spr.scene.sprites["dialog-box1"];
         if (chatbox) chatbox.code.next();
     }

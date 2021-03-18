@@ -2,7 +2,8 @@ export class SceneDialogSpriteDialogBox1 {
 
     minHeight = 60;
 
-    open(plotspr: any, speaker: string, words: Array<string>, speed: number = 50, more: boolean = false, color: string = "#FFFFFF") {
+    open(plotspr: any, speaker: string, words: Array<string>, speed: number = 50, more: boolean = false, 
+            color: string = "#FFFFFF", weight: string = "normal") {
         let game = plotspr.game;
         let tween = plotspr.scene.sys("tween");
         let chatbox = plotspr.scene.sprites["dialog-box1"];
@@ -44,7 +45,7 @@ export class SceneDialogSpriteDialogBox1 {
             //chatmsg.get("display").object.text = history;
             //chatmsg.custom.content = history + chatmsg.custom.current;
 
-            chatmsg.code.prepareCurrent(words, more, color);
+            chatmsg.code.prepareCurrent(words, more, color, weight);
 
             let canShowAnima = !showing && tween && display && chatbox.custom.posY 
                                 && chatbox.custom.maxH && chatbox.custom.minH;
@@ -81,10 +82,6 @@ export class SceneDialogSpriteDialogBox1 {
         let chatmsg = spr.scene.sprites["dialog-msg1"];
         let chatstate = chatbox && chatbox.custom ? chatbox.custom.status : "";
         if (chatstate == "done" || chatstate == "more" ) {
-
-            if (chatbox.custom.more) chatmsg.code.appendHistory();
-            else chatmsg.code.clearHistory();
-
             let plotctx = spr.scene.sprites[chatbox.custom.plot];
             if (plotctx) plotctx.plot.signal();
         } else if (chatstate == "open") {
@@ -109,6 +106,7 @@ export class SceneDialogSpriteDialogBox1 {
             chaticon.active = false;
 
             chatmsg.code.disableCurrent();
+            chatmsg.code.clearHistory();
 
             let showing = chatbox.active;
             let display = chatbox.get("display").object;

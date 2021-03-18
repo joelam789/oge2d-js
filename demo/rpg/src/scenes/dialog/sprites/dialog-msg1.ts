@@ -7,20 +7,23 @@ export class SceneDialogSpriteDialogMsg1 {
     defaultX = 35;
     defaultY = 45;
     lineHeight = 20;
+    wordSpace = 10;
 
-    prepareCurrent(words: Array<string>, more: boolean, color: string) {
+    prepareCurrent(words: Array<string>, more: boolean, color: string, weight: string) {
         let msgspr = (this as any).owner;
         let x = this.defaultX, y = this.defaultY;
         for (let item of this.current) item.spr.active = false;
+        //console.log(this.history);
         for (let i = 0; i < this.history.length; i++) {
             let item = this.history[i];
             item.spr.active = true;
             if (item.spr.nline) {
                 x = this.defaultX;
                 y += this.lineHeight;
+                //console.log(x, y);
             } else {
                 let mt = PIXI.TextMetrics.measureText(item.content, item.spr.get("display").object.style);
-                x = this.defaultX + mt.width;
+                x += mt.width + this.wordSpace;
                 //console.log(x, y);
             }
         }
@@ -35,12 +38,13 @@ export class SceneDialogSpriteDialogMsg1 {
             }
             txtspr.get("display").object.text = "";
             txtspr.get("display").object.style.fill = color;
+            txtspr.get("display").object.style.fontWeight = weight;
             txtspr.get("display").object.x = x;
             txtspr.get("display").object.y = y;
             txtspr.active = true;
+            this.current.push(item);
             x = this.defaultX;
             y += this.lineHeight;
-            this.current.push(item);
         }
     }
 
@@ -97,7 +101,7 @@ export class SceneDialogSpriteDialogMsg1 {
         
     }
 
-    onDisplayDone(showIcon: boolean = true) {
+    onDisplayDone(showIcon: boolean = true, updateHistory: boolean = true) {
         let spr = (this as any).owner;
         let chatbox = spr.scene.sprites["dialog-box1"];
         let chaticon = spr.scene.sprites["dialog-icon1"];
@@ -105,10 +109,14 @@ export class SceneDialogSpriteDialogMsg1 {
             //console.log("onDisplayDone - ", spr.custom);
             if (chatbox.custom && chatbox.custom.more) {
                 chatbox.custom.status = "more";
+                if (updateHistory) this.appendHistory();
                 chatbox.code.next();
             } else {
                 if (showIcon) chaticon.active = true;
                 chatbox.custom.status = "done";
+                //this.clearHistory();
+                this.current.push(...this.history);
+                this.history = [];
             }
         }
     }
