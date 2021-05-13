@@ -663,14 +663,20 @@ export class Stage implements Updater {
             let cellHeight: number = tilemap.tileHeight;
 
             let bgcolor = 0x00;
+            let bgColorCode: string = null;
             if (tilemap.bgcolor) {
-                let colorCode: string = tilemap.bgcolor.toString();
-                if (colorCode.length >= 7 && colorCode.charAt(0) == '#') {
-                    bgcolor = parseInt(colorCode.substr(1, 6), 16);
-                }
-                if (colorCode.length >= 9 && colorCode.charAt(0) == '#') {
-                    tilemap.bgcolorOpacity = Math.round(parseInt(colorCode.substr(7, 2), 16) / 255.0 * 100) / 100.0;
-                }
+                bgColorCode = tilemap.bgcolor.toString();
+				if (bgColorCode == 'null') {
+					bgcolor = 0x00;
+					tilemap.bgcolorOpacity = 0;
+				} else {
+					if (bgColorCode.length >= 7 && bgColorCode.charAt(0) == '#') {
+						bgcolor = parseInt(bgColorCode.substr(1, 6), 16);
+					}
+					if (bgColorCode.length >= 9 && bgColorCode.charAt(0) == '#') {
+						tilemap.bgcolorOpacity = Math.round(parseInt(bgColorCode.substr(7, 2), 16) / 255.0 * 100) / 100.0;
+					}
+				}
             }
 
             //let graph = new PIXI.Graphics();
@@ -680,7 +686,7 @@ export class Stage implements Updater {
             //tilemap.defaultTileTexture = graph.generateCanvasTexture();
             //tilemap.defaultTileTextures = [tilemap.defaultTileTexture];
 
-            if (tilemap.bgcolorOpacity != undefined && tilemap.bgcolorOpacity == 0) {
+            if (!bgColorCode || (tilemap.bgcolorOpacity != undefined && tilemap.bgcolorOpacity == 0)) {
                 tilemap.defaultTileTexture = PIXI.Texture.EMPTY;
             } else {
                 let canvName = cellWidth + "_" + cellHeight + "_" 
@@ -712,9 +718,9 @@ export class Stage implements Updater {
 
             tilemap.display = new PIXI.Container();
             tilemap.sprites = [];
-            //tilemap.spriteCount = col * row * 2;
-            if (col < 10 && row < 10) tilemap.spriteCount = col * row * 2;
-            else tilemap.spriteCount = (col+4) * (row+4); // should be enough
+            //if (col < 10 && row < 10) tilemap.spriteCount = col * row * 2;
+            //else tilemap.spriteCount = (col+4) * (row+4); // should be enough
+			tilemap.spriteCount = col * row * 2; // maybe need more for multiple layers ...
 
             for (let i=0; i<tilemap.spriteCount; i++) {
                 let tileSprite = new PIXI.AnimatedSprite(tilemap.defaultTileTextures, true);
