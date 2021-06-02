@@ -6,6 +6,7 @@ import { Updater } from "./updater";
 export class Game {
 
     name: string = "";
+    title: string = "";
     container: any = null;
 
     width: number = 0;
@@ -83,6 +84,8 @@ export class Game {
 
     init(config: any, systems: Map<string, any>, libraries: Map<string, any>, callback: (game: Game)=>void) {
         if (config.components) this.components = config.components;
+        if (config.title) this.title = config.title;
+        if (!this.title) this.title = this.name; 
         libraries.forEach((value, key) => this.libraries[key] = value);
         let firstSystems = [], secondSystems = [], eventSystem: any = null;
         systems.forEach((value, key) => {
