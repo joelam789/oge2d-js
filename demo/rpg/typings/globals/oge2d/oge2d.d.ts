@@ -115,6 +115,7 @@ declare module OGE2D {
 	
 	export class Game {
 	    name: string;
+		title: string;
 	    container: any;
 	    width: number;
 	    height: number;

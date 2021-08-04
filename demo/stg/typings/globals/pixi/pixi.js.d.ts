@@ -4632,8 +4632,9 @@ declare namespace PIXI {
              * @protected
              * @param {PIXI.Geometry} geometry - Instance of geometry to to generate Vao for
              * @param {PIXI.Program} program - Instance of program
+             * @param {boolean} [incRefCount=false] - Increment refCount of all geometry buffers
              */
-            protected initGeometryVao(geometry: PIXI.Geometry, program: PIXI.Program): void;
+            protected initGeometryVao(geometry: PIXI.Geometry, program: PIXI.Program, incRefCount?: boolean): void;
             /**
              * Disposes buffer
              * @param {PIXI.Buffer} buffer - buffer with data
@@ -10168,10 +10169,11 @@ declare namespace PIXI {
          * @param {number} y - Y position
          * @param {number} innerRadius - Inner circle radius
          * @param {number} outerRadius - Outer circle radius
-         * @param {number} sweep - How much of the circle to fill, in radius
+         * @param {number} [startArc=0] - Where to begin sweep, in radians, 0.0 = to the right
+         * @param {number} [endArc=Math.PI*2] - Where to end sweep, in radians
          * @return {PIXI.Graphics}
          */
-        drawTorus(x: number, y: number, innerRadius: number, outerRadius: number, sweep: number): PIXI.Graphics;
+        drawTorus(x: number, y: number, innerRadius: number, outerRadius: number, startArc?: number, endArc?: number): PIXI.Graphics;
         /**
          * The array of children of this container.
          *
@@ -11143,8 +11145,9 @@ declare namespace PIXI {
          * @param {number} color - Color to add
          * @param {number} alpha - Alpha to use
          * @param {number} size - Number of colors to add
+         * @param {number} offset
          */
-        protected addColors(colors: number[], color: number, alpha: number, size: number): void;
+        protected addColors(colors: number[], color: number, alpha: number, size: number, offset: number): void;
         /**
          * Add texture id that the shader/fragment wants to use.
          *
@@ -11152,8 +11155,9 @@ declare namespace PIXI {
          * @param {number[]} textureIds
          * @param {number} id
          * @param {number} size
+         * @param {number} offset
          */
-        protected addTextureIds(textureIds: number[], id: number, size: number): void;
+        protected addTextureIds(textureIds: number[], id: number, size: number, offset: number): void;
         /**
          * Generates the UVs for a shape.
          *
@@ -20371,9 +20375,9 @@ declare namespace PIXI {
         /**
          * The array of textures used for this AnimatedSprite.
          *
-         * @member {PIXI.Texture[]}
+         * @member {PIXI.Texture[]|PIXI.AnimatedSprite.FrameObject[]}
          */
-        textures: PIXI.Texture[];
+        textures: PIXI.Texture[] | PIXI.AnimatedSprite.FrameObject[];
         /**
          * The AnimatedSprites current frame index.
          *
@@ -23501,7 +23505,7 @@ declare namespace PIXI {
     class BitmapFont {
         constructor(data: PIXI.BitmapFontData, textures: PIXI.Texture[] | {
             [key: string]: PIXI.Texture;
-        });
+        }, ownsTextures?: boolean);
         /**
          * The name of the font face.
          *
@@ -23542,17 +23546,20 @@ declare namespace PIXI {
          *        characters map that could be provided as xml or raw string.
          * @param {Object.<string, PIXI.Texture>|PIXI.Texture|PIXI.Texture[]}
          *        textures - List of textures for each page.
+         * @param {boolean} managedTexture - Set to `true` to destroy page textures
+         *        when the font is uninstalled. By default fonts created with
+         *        `BitmapFont.from` or from the `BitmapFontLoader` are `true`.
          * @return {PIXI.BitmapFont} Result font object with font, size, lineHeight
          *         and char fields.
          */
         static install(data: XMLDocument | string | PIXI.BitmapFontData, textures: {
             [key: string]: PIXI.Texture;
-        } | PIXI.Texture | PIXI.Texture[]): PIXI.BitmapFont;
+        } | PIXI.Texture | PIXI.Texture[], managedTexture: boolean): PIXI.BitmapFont;
         /**
          * Remove bitmap font by name.
          *
          * @static
-         * @param {string} name
+         * @param {string} name - Name of the font to uninstall.
          */
         static uninstall(name: string): void;
         /**
@@ -23820,15 +23827,12 @@ declare namespace PIXI {
             maxWidth?: number;
         });
         /**
-         * If true PixiJS will Math.floor() x/y values when rendering, stopping pixel interpolation.
-         * Advantages can include sharper image quality (like text) and faster rendering on canvas.
-         * The main disadvantage is movement of objects may appear less smooth.
-         * To set the global default, change {@link PIXI.settings.ROUND_PIXELS}
+         * If true PixiJS will Math.floor() x/y values when rendering
          *
-         * @member {boolean} PIXI.BitmapText#roundPixels
+         * @member {boolean} PIXI.BitmapText#_roundPixels
          * @default PIXI.settings.ROUND_PIXELS
          */
-        roundPixels: boolean;
+        _roundPixels: boolean;
         /**
          * Set to `true` if the BitmapText needs to be redrawn.
          *
@@ -23920,6 +23924,16 @@ declare namespace PIXI {
          * @member {number}
          */
         letterSpacing: number;
+        /**
+         * If true PixiJS will Math.floor() x/y values when rendering, stopping pixel interpolation.
+         * Advantages can include sharper image quality (like text) and faster rendering on canvas.
+         * The main disadvantage is movement of objects may appear less smooth.
+         * To set the global default, change {@link PIXI.settings.ROUND_PIXELS}
+         *
+         * @member {boolean}
+         * @default PIXI.settings.ROUND_PIXELS
+         */
+        roundPixels: boolean;
         /**
          * The height of the overall text, different from fontSize,
          * which is defined in the style object.
