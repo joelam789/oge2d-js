@@ -14,12 +14,12 @@
     "del": "^4.1.1",
     "electron": "^5.0.12",
     "gulp": "^4.0.2",
-    "gulp-sourcemaps": "^2.6.5",
-    "gulp-typescript": "^5.0.1",
+    "gulp-sourcemaps": "^3.0.0",
+    "gulp-typescript": "^6.0.0-alpha.1",
     "gulp-webserver": "^0.9.1",
     "json-stringify-deterministic": "^1.0.1",
     "jspm": "^0.16.55",
-    "typescript": "^3.6.4"
+    "typescript": "^5.3.2"
   },
   "dependencies": {
     "@types/i18next": "^12.1.0",

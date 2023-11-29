@@ -671,10 +671,10 @@ export class Stage implements Updater {
 					tilemap.bgcolorOpacity = 0;
 				} else {
 					if (bgColorCode.length >= 7 && bgColorCode.charAt(0) == '#') {
-						bgcolor = parseInt(bgColorCode.substr(1, 6), 16);
+						bgcolor = parseInt(bgColorCode.substring(1, 7), 16);
 					}
 					if (bgColorCode.length >= 9 && bgColorCode.charAt(0) == '#') {
-						tilemap.bgcolorOpacity = Math.round(parseInt(bgColorCode.substr(7, 2), 16) / 255.0 * 100) / 100.0;
+						tilemap.bgcolorOpacity = Math.round(parseInt(bgColorCode.substring(7, 9), 16) / 255.0 * 100) / 100.0;
 					}
 				}
             }

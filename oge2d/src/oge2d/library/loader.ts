@@ -102,7 +102,7 @@ export class Loader {
 
                 let ext = "";
                 let pos = entry.filename.indexOf('.');
-                if (pos > 0) ext = entry.filename.substr(pos).toLowerCase();
+                if (pos > 0) ext = entry.filename.substring(pos).toLowerCase();
                 if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".bmp") {
                     Loader.blobToBytes(block.blob, (bytes) => {
                         block.blob = null;

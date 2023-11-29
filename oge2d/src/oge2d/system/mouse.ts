@@ -115,7 +115,7 @@ export class Mouse implements Updater {
                     for (let action of mouse.actions) {
                         let eventName: string = action.toString();
                         if (eventName.length > 0) {
-                            eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substr(1);
+                            eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substring(1);
                             let ctx = this.getSceneMouseContext(scene, eventName);
                             if (ctx.active === false) {
                                 view.on(action, ctx.emit);
@@ -142,7 +142,7 @@ export class Mouse implements Updater {
                 for (let action of mouse.actions) {
                     let eventName: string = action.toString();
                     if (eventName.length > 0) {
-                        eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substr(1);
+                        eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substring(1);
                         let ctx = this.getSceneMouseContext(scene, eventName);
                         if (ctx.active === true) {
                             view.off(action, ctx.emit);
@@ -172,7 +172,7 @@ export class Mouse implements Updater {
                     for (let action of mouse.actions) {
                         let eventName: string = action.toString();
                         if (eventName.length > 0) {
-                            eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substr(1);
+                            eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substring(1);
                             let ctx = this.getSceneSpriteMouseContext(sprite, eventName, mouse.shareable === true);
                             if (ctx.active === false) {
                                 view.on(action, ctx.emit);
@@ -196,7 +196,7 @@ export class Mouse implements Updater {
                 for (let action of mouse.actions) {
                     let eventName: string = action.toString();
                     if (eventName.length > 0) {
-                        eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substr(1);
+                        eventName = "on" + eventName.charAt(0).toUpperCase() + eventName.substring(1);
                         let ctx = this.getSceneSpriteMouseContext(sprite, eventName, mouse.shareable === true);
                         if (ctx.active === true) {
                             view.off(action, ctx.emit);
